@@ -23,15 +23,18 @@ def page_header(title: str, subtitle: str = "", icon: str = ""):
 # ── KPI / Metric cards ──
 
 def metric_card(label: str, value: str, color: str = "#1B3A5C", subtitle: str = ""):
+    # Built as one line (no indentation/blank lines) so Streamlit's markdown
+    # never renders a stray '</div>' as a code block when subtitle is empty.
+    sub = (f"<p style='color:#999;font-size:0.75rem;margin:0.2rem 0 0 0;'>{subtitle}</p>"
+           if subtitle else "")
     st.markdown(
-        f"""<div style="background: white; border-left: 4px solid {color};
-        padding: 1rem 1.2rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        min-height: 100px;">
-        <p style="color: #666; font-size: 0.8rem; margin: 0; text-transform: uppercase;
-        letter-spacing: 0.5px;">{label}</p>
-        <p style="color: {color}; font-size: 1.6rem; font-weight: 700; margin: 0.3rem 0 0 0;">{value}</p>
-        {"<p style='color: #999; font-size: 0.75rem; margin: 0.2rem 0 0 0;'>" + subtitle + "</p>" if subtitle else ""}
-        </div>""",
+        f"<div style='background:white;border-left:4px solid {color};"
+        f"padding:1rem 1.2rem;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.08);"
+        f"min-height:100px;'>"
+        f"<p style='color:#666;font-size:0.8rem;margin:0;text-transform:uppercase;"
+        f"letter-spacing:0.5px;'>{label}</p>"
+        f"<p style='color:{color};font-size:1.6rem;font-weight:700;margin:0.3rem 0 0 0;'>{value}</p>"
+        f"{sub}</div>",
         unsafe_allow_html=True,
     )
 
