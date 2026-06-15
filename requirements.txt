@@ -1,14 +1,18 @@
+# Pinned to tested versions for reproducible deploys.
+# A rebuild on Render installs exactly these — no surprise breakage from a new
+# upstream release. Bump deliberately, then re-run the test suites.
+
 # ── Dashboard (DECCA read-only view) ──
-streamlit>=1.30.0
-pandas>=2.0.0
-plotly>=5.18.0
+streamlit==1.57.0
+pandas==2.3.1
+plotly==6.7.0
 
 # ── Shared data layer ──
-supabase>=2.0.0
+supabase==2.30.0
 
-# ── Agent input (MCP server for Claude Desktop) ──
-mcp[cli]>=1.2.0
+# ── HTTP API (for Vonage/n8n voice pipeline + Android app) ──
+fastapi==0.136.3
+uvicorn[standard]==0.34.0
 
-# ── HTTP API (for Vonage/n8n voice pipeline) ──
-fastapi>=0.110.0
-uvicorn[standard]>=0.29.0
+# ── Agent input (MCP server for Claude Desktop; not used by the web services) ──
+mcp[cli]==1.27.2
