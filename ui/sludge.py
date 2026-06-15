@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from data.sample_data import get_sludge_zones
+from data.provider import get_sludge_zones
 from ui.components import page_header, section_header, metric_card, callout
 
 
@@ -38,7 +38,7 @@ def render():
         return f"background-color: {bg}; font-weight: bold" if bg else ""
 
     styled = df.style.map(color_status, subset=["Status"]).set_properties(**{"text-align": "center"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Visual chart ──
     fig = go.Figure()
@@ -57,7 +57,7 @@ def render():
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         margin=dict(t=50, b=40),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # ── KPI row ──
     avg_loss = sum(z.capacity_loss_pct for z in zones) / len(zones)
@@ -86,7 +86,7 @@ def render():
             textinfo="label+percent",
         ))
         fig2.update_layout(height=350, margin=dict(t=20, b=20), showlegend=False)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width='stretch')
 
     with col2:
         comp_data = pd.DataFrame([
@@ -95,7 +95,7 @@ def render():
             {"Component": "Sand / silt", "Percentage": "~17%", "Digestible": "NO", "Treatment": "Physical removal only"},
             {"Component": "Minerals", "Percentage": "~17%", "Digestible": "NO", "Treatment": "Physical removal only"},
         ])
-        st.dataframe(comp_data, use_container_width=True, hide_index=True)
+        st.dataframe(comp_data, width='stretch', hide_index=True)
 
     # ── Internal Nutrient Loading ──
     section_header("Internal Nutrient Loading — Risk Assessment")
@@ -111,7 +111,7 @@ def render():
          "P Contribution": "Difficult to quantify", "Prevention": "Sludge reduction programme"},
     ]
     df_risk = pd.DataFrame(risks)
-    st.dataframe(df_risk, use_container_width=True, hide_index=True)
+    st.dataframe(df_risk, width='stretch', hide_index=True)
 
     callout(
         "<strong>The Internal Loading Trap:</strong> Even with zero external nutrient inputs, "

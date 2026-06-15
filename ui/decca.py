@@ -5,14 +5,14 @@ import plotly.graph_objects as go
 
 from core.constants import DECCA_LIMITS, MONTH_NAMES
 from core.calculations import check_compliance, monthly_compliance_rate
-from data.sample_data import get_monthly_readings
+from data.provider import get_monthly_readings
 from ui.components import page_header, section_header, metric_card, callout
 
 
 def render():
     page_header(
         "DECCA REGULATORY COMPLIANCE REPORT",
-        "Reporting Period: January – December 2026  |  Dubai Holdings — Dubai Lands",
+        "Reporting Period: January – December 2026  |  Compliance Reporting — Project",
         icon="📋",
     )
 
@@ -52,7 +52,7 @@ def render():
         return "background-color: #FFC7CE; color: #9C0006; font-weight: bold"
 
     styled = df.style.map(color_status, subset=["Status"]).set_properties(**{"text-align": "center"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Annual scorecard KPIs ──
     section_header("Annual Compliance Scorecard")
@@ -104,7 +104,7 @@ def render():
         margin=dict(t=20, b=40),
         yaxis=dict(autorange="reversed"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     callout(
         "Green = large safety margin from DECCA limit. Yellow/Red = approaching or exceeding limit. "
@@ -121,4 +121,4 @@ def render():
     incident_cols = ["Date", "Parameter", "Measured Value", "DECCA Limit",
                      "Duration (hr)", "Root Cause", "Corrective Action",
                      "Resolution Date", "Days to Resolve"]
-    st.dataframe(pd.DataFrame(columns=incident_cols), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(columns=incident_cols), width='stretch', hide_index=True)

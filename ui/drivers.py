@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from core.constants import MONTH_NAMES, NUTRIENT_SOURCES
-from data.sample_data import get_solar_irradiance, get_monthly_table, TEMP_SPECIES_DOMINANCE
+from data.provider import get_solar_irradiance, get_monthly_table, TEMP_SPECIES_DOMINANCE
 from ui.components import page_header, section_header, callout
 
 
@@ -33,7 +33,7 @@ def render():
         yaxis_title="Solar Irradiance (kWh/m²/day)",
         margin=dict(t=40, b=40),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     callout("UAE receives ~6.0 kWh/m²/day average, ~3,500+ sunshine hours/year. "
             "Pre-treat March–April before radiation ramp; maintain May–September.", "info")
 
@@ -59,7 +59,7 @@ def render():
         yaxis_title="Temperature (°C)",
         margin=dict(t=40, b=40),
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width='stretch')
 
     df_temp = pd.DataFrame(TEMP_SPECIES_DOMINANCE)
     df_temp.columns = ["Month", "Temp (°C)", "Cyanobacteria", "Chlorophytes", "Diatoms", "Dominant Group"]
@@ -77,7 +77,7 @@ def render():
         .set_properties(**{"text-align": "center"})
         .hide(axis="index")
     )
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     callout(
         "<strong>Key insight:</strong> Dubai summer water (33°C) sits precisely at cyanobacteria's "
@@ -99,7 +99,7 @@ def render():
         return f"background-color: {bg}" if bg else ""
 
     styled = df_nut.style.map(color_control, subset=["Controllability"]).set_properties(**{"text-align": "left"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     callout(
         "<strong>Critical finding:</strong> Unlike most marine basins where agricultural runoff dominates, "
@@ -126,7 +126,7 @@ def render():
         return f"background-color: {bg}; font-weight: bold" if bg else ""
 
     styled = df_sal.style.map(color_risk, subset=["Risk"]).set_properties(**{"text-align": "center"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     callout(
         "<strong>Stratification Trap:</strong> Low-salinity TSE floats on dense saline lagoon water → "

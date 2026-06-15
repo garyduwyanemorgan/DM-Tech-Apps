@@ -39,7 +39,7 @@ def render():
         return ""
 
     styled = df.style.map(color_level, subset=["Alert Level"]).set_properties(**{"text-align": "center"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Treatment Actions ──
     section_header("Treatment Actions by Alert Level")

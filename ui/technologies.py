@@ -28,7 +28,7 @@ def render():
          "Role": "Foundation (everything depends on this)"},
     ]
     df = pd.DataFrame(techs)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width='stretch', hide_index=True)
 
     # ── Visual integration diagram ──
     st.markdown(
@@ -58,7 +58,7 @@ def render():
         {"#": 4, "Mechanism": "Bacterial Boost", "How": "DO > 4 mg/L enables aerobic bacteria", "Dubai Relevance": "Without this, enzymes = waste of money"},
         {"#": 5, "Mechanism": "CO₂ Off-gassing", "How": "Removes excess CO₂; shifts pH", "Dubai Relevance": "Secondary benefit"},
     ]
-    st.dataframe(pd.DataFrame(mechanisms), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(mechanisms), width='stretch', hide_index=True)
 
     callout(
         "<strong>Under-aeration danger:</strong> Undersized aeration systems bring nutrient-laden "
@@ -71,7 +71,7 @@ def render():
     section_header("Enzyme Toolkit")
     df_enz = pd.DataFrame(ENZYME_TOOLKIT)
     df_enz.columns = ["Enzyme", "Target Substrate", "Optimal pH", "Optimal Temp", "Dubai Working Range", "Species Specificity"]
-    st.dataframe(df_enz, use_container_width=True, hide_index=True)
+    st.dataframe(df_enz, width='stretch', hide_index=True)
 
     # ── Bacterial consortium ──
     section_header("Bacterial Consortium — Halotolerant Strains")
@@ -86,7 +86,7 @@ def render():
         return "background-color: #FFEB9C"
 
     styled = df_bac.style.map(color_suit, subset=["Dubai Suitability"]).set_properties(**{"text-align": "left"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     callout(
         "<strong>Critical:</strong> Standard freshwater bio-enzyme products FAIL at Dubai salinities (45–60 PSU) "

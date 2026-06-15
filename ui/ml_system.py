@@ -26,7 +26,7 @@ def render():
         return f"background-color: {bg}; font-weight: bold" if bg else ""
 
     styled = df.style.map(color_tier, subset=["Tier"]).set_properties(**{"text-align": "center"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Ensemble weights visual ──
     section_header("Ensemble Weights by Forecast Horizon")
@@ -46,12 +46,12 @@ def render():
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         margin=dict(t=50, b=40),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     st.markdown(
         """<div style="display: flex; gap: 1rem; flex-wrap: wrap;">
         <div style="flex: 1; background: #D6E4F0; padding: 0.8rem; border-radius: 8px; min-width: 200px;">
-        <strong>Option A (Start Here):</strong> Horizon-weighted average — calibrate via grid search on validation RMSE</div>
+        <strong>Option A (Start Here):</strong> Horizon-weighted average — tune via grid search on validation RMSE</div>
         <div style="flex: 1; background: #FFEB9C; padding: 0.8rem; border-radius: 8px; min-width: 200px;">
         <strong>Option B (Production):</strong> Stacking meta-learner — logistic regression on out-of-fold predictions</div>
         <div style="flex: 1; background: #C6EFCE; padding: 0.8rem; border-radius: 8px; min-width: 200px;">
@@ -107,7 +107,7 @@ Sensor Data (10-min) → Cleaned Time-Series (TimescaleDB/Redis)
     └── LSTM Path: 7-day hourly sequence (168 timesteps × 7-10 features)
         └── LSTM → Chl-a at +24h, +72h, +168h
 
-Both paths → Ensemble Combiner → Bloom Probability (calibrated sigmoid)
+Both paths → Ensemble Combiner → Bloom Probability (tuned sigmoid)
     └── Alert Engine → Treatment Dispatch → Client Dashboard
         </pre></div>""",
         unsafe_allow_html=True,
@@ -118,8 +118,8 @@ Both paths → Ensemble Combiner → Bloom Probability (calibrated sigmoid)
 
     phases = [
         {"Phase": "Phase 1 (Months 1–3)", "Focus": "Launch", "Action": "Deploy sensors, build RF model, Option A ensemble (RF only)", "Deliverable": "1–3 day alerts"},
-        {"Phase": "Phase 2 (Months 3–6)", "Focus": "LSTM Integration", "Action": "Train first LSTM on 3+ months data, Option A with calibrated weights", "Deliverable": "Integrated prediction-to-treatment"},
-        {"Phase": "Phase 3 (Months 6–12)", "Focus": "Production Ensemble", "Action": "Stacking meta-learner (Option B), calibrate bloom probabilities", "Deliverable": "SHAP dashboard + full season"},
+        {"Phase": "Phase 2 (Months 3–6)", "Focus": "LSTM Integration", "Action": "Train first LSTM on 3+ months data, Option A with tuned weights", "Deliverable": "Integrated prediction-to-treatment"},
+        {"Phase": "Phase 3 (Months 6–12)", "Focus": "Production Ensemble", "Action": "Stacking meta-learner (Option B), tune bloom probabilities", "Deliverable": "SHAP dashboard + full season"},
         {"Phase": "Phase 4 (Year 2+)", "Focus": "Mature Platform", "Action": "Conditional routing (Option C), satellite integration, per-lagoon tuning", "Deliverable": "Multi-lagoon portfolio"},
     ]
     df_phases = pd.DataFrame(phases)
@@ -131,7 +131,7 @@ Both paths → Ensemble Combiner → Bloom Probability (calibrated sigmoid)
         return f"background-color: {bg}; color: white; font-weight: bold" if bg else ""
 
     styled = df_phases.style.map(color_focus, subset=["Focus"]).set_properties(**{"text-align": "left"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     callout(
         "<strong>Key research finding:</strong> Random Forest consistently outperforms benchmarks once "

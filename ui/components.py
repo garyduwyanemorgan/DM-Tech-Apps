@@ -86,7 +86,7 @@ def compliance_table(results: List[ComplianceResult]):
         .set_properties(subset=["Parameter"], **{"text-align": "left", "font-weight": "bold"})
         .hide(axis="index")
     )
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
 
 # ── Generic styled dataframe ──
@@ -100,7 +100,7 @@ def styled_table(df: pd.DataFrame, highlight_col: Optional[str] = None,
             bg = color_map.get(str(val), "")
             return f"background-color: {bg}" if bg else ""
         styler = styler.map(apply_color, subset=[highlight_col])
-    st.dataframe(styler, use_container_width=True, hide_index=True)
+    st.dataframe(styler, width='stretch', hide_index=True)
 
 
 # ── Section header ──

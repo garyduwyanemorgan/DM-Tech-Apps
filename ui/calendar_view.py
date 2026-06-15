@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from core.constants import SEASONAL_PHASES, MONTH_NAMES
-from data.sample_data import TREATMENT_CALENDAR
+from data.provider import TREATMENT_CALENDAR
 from ui.components import page_header, section_header, callout
 
 
@@ -49,7 +49,7 @@ def render():
         template="plotly_white",
         barmode="overlay",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # ── Monthly detail table ──
     section_header("Monthly Treatment Details")
@@ -84,7 +84,7 @@ def render():
         .set_properties(**{"text-align": "left"})
         .hide(axis="index")
     )
-    st.dataframe(styled, use_container_width=True, hide_index=True, height=460)
+    st.dataframe(styled, width='stretch', hide_index=True, height=460)
 
     # ── Phase summary cards ──
     section_header("Phase Summary")

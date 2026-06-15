@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from core.constants import DECCA_LIMITS, MONTH_NAMES
-from data.sample_data import get_monthly_readings, get_monthly_table
+from data.provider import get_monthly_readings, get_monthly_table
 from ui.components import page_header, section_header
 
 
@@ -68,7 +68,7 @@ def render():
     styled = df.style.hide(axis="index")
     for col in ["DO (mg/L)", "TSS (mg/L)", "Turbidity (NTU)", "COD (mg/L)", "Ammonia (mg/L)", "Phosphate (mg/L)"]:
         styled = styled.map(lambda v, c=col: highlight_risk(v, c), subset=[col])
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Multi-axis chart ──
     section_header("Water Quality Trends")
@@ -104,7 +104,7 @@ def render():
     fig.update_yaxes(title_text="DO (mg/L) / Chl-a (µg/L)", secondary_y=False)
     fig.update_yaxes(title_text="Temperature (°C)", secondary_y=True)
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # ── Salinity & Phycocyanin chart ──
     section_header("Salinity & Cyanobacteria Indicators")
@@ -128,7 +128,7 @@ def render():
     )
     fig2.update_yaxes(title_text="Salinity (PSU)", secondary_y=False)
     fig2.update_yaxes(title_text="Phycocyanin (µg/L)", secondary_y=True)
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width='stretch')
 
     # ── Annual statistics ──
     section_header("Annual Statistics")
@@ -143,4 +143,4 @@ def render():
             max(vals),
             min(vals),
         ]
-    st.dataframe(pd.DataFrame(stats), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(stats), width='stretch', hide_index=True)

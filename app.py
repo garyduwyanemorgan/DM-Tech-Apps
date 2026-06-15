@@ -42,12 +42,39 @@ st.sidebar.markdown(
 )
 
 st.sidebar.markdown("---")
+
+# ── Site selector (shown when Supabase is configured) ──
+try:
+    from db.client import is_configured
+    from db.queries import get_site_names
+    if is_configured():
+        sites = get_site_names()
+        if sites:
+            st.sidebar.markdown("**ACTIVE SITE**")
+            active = st.sidebar.selectbox(
+                "Site",
+                ["— Sample data —"] + sites,
+                key="active_site_selector",
+                label_visibility="collapsed",
+            )
+            st.session_state["active_site"] = None if active == "— Sample data —" else active
+            if st.session_state.get("active_site"):
+                st.sidebar.caption(f"Live data: {st.session_state['active_site']}")
+            else:
+                st.sidebar.caption("Showing sample data")
+            st.sidebar.markdown("---")
+except Exception:
+    pass
+
 st.sidebar.markdown("**CLIENT / DECCA**")
 
 PAGES = {
     # Client / DECCA section
     "Executive Dashboard":     "executive",
     "DECCA Reporting":         "decca",
+    # Intelligence (v2 science)
+    "Lagoon Intelligence":     "intelligence",
+    "Predictive Monitoring":   "predictive",
     # Operations section
     "Water Quality Monitoring": "monitoring",
     "Alert & Response Protocol":"alerts",
@@ -59,6 +86,9 @@ PAGES = {
     "Intervention Technologies":"technologies",
     "ML Prediction System":    "ml_system",
 }
+# NOTE: Data entry is intentionally NOT a dashboard page.
+# Field teams submit readings by talking to Claude via the MCP server
+# (agent_server.py). This dashboard is DECCA's read-only compliance view.
 
 page_names = list(PAGES.keys())
 ops_start = 2   # index where Operations section starts
@@ -81,7 +111,7 @@ st.sidebar.markdown("---")
 st.sidebar.markdown(
     """<div style="font-size: 0.75rem; opacity: 0.6; text-align: center; padding-top: 1rem;">
     GDM Enviro Consultants<br>
-    Dubai Holdings — Dubai Lands<br>
+    Compliance Reporting — Dubai Lands<br>
     © 2026
     </div>""",
     unsafe_allow_html=True,
@@ -94,6 +124,10 @@ if module_name == "executive":
     from ui.executive import render
 elif module_name == "decca":
     from ui.decca import render
+elif module_name == "intelligence":
+    from ui.intelligence import render
+elif module_name == "predictive":
+    from ui.predictive import render
 elif module_name == "monitoring":
     from ui.monitoring import render
 elif module_name == "alerts":

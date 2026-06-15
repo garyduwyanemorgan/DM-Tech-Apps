@@ -1,10 +1,13 @@
 """Executive Dashboard — high-level overview for DECCA / Client."""
 import streamlit as st
 
+from datetime import date
+
 from core.alert_engine import evaluate_alert_level
 from core.calculations import check_all_compliance, compliance_summary, bloom_probability
-from core.constants import AlertLevel, ALERT_COLORS, ALERT_LABELS, ALERT_THRESHOLDS
-from data.sample_data import get_current_reading
+from core.constants import (AlertLevel, ALERT_COLORS, ALERT_LABELS, ALERT_THRESHOLDS,
+                            SEASONAL_PHASES, MONTH_NAMES)
+from data.provider import get_current_reading, get_monthly_readings
 from ui.components import page_header, metric_card, alert_level_badge, compliance_table, section_header, callout
 
 import pandas as pd
@@ -17,10 +20,26 @@ def render():
         icon="🏛️",
     )
 
-    reading = get_current_reading(month_index=2)  # March
+    month_idx = min(max(date.today().month - 1, 0), 11)   # current month
+    reading = get_current_reading(month_index=month_idx)
     alert = evaluate_alert_level(reading)
     results = check_all_compliance(reading)
     summary = compliance_summary(results)
+
+    # ── Derived KPIs (from data, no hardcoded figures) ──
+    # Compliance streak: consecutive compliant months up to and including now.
+    monthly = get_monthly_readings()
+    streak = 0
+    for m in range(month_idx, -1, -1):
+        if compliance_summary(check_all_compliance(monthly[m]))["overall_status"] == "COMPLIANT":
+            streak += 1
+        else:
+            break
+    # Treatment posture from the current alert level.
+    posture = {AlertLevel.GREEN: "Preventive", AlertLevel.WATCH: "Active",
+               AlertLevel.WARNING: "Intensive", AlertLevel.CRITICAL: "Emergency"}[AlertLevel(alert.level)]
+    # Current seasonal phase from the calendar.
+    phase = next((p for p in SEASONAL_PHASES if (month_idx + 1) in p.months), None)
 
     # ── KPI Row ──
     cols = st.columns(5)
@@ -30,13 +49,17 @@ def render():
         color = "#27ae60" if summary["overall_status"] == "COMPLIANT" else "#e74c3c"
         metric_card("DECCA Compliance", summary["overall_status"], color)
     with cols[2]:
-        metric_card("Days Since Incident", "47", "#1B3A5C", "Last: None recorded")
+        metric_card("Compliance Streak", f"{streak} mo",
+                     "#27ae60" if streak >= 3 else "#f39c12",
+                     "Consecutive compliant months")
     with cols[3]:
-        metric_card("Active Interventions", "3", "#2E5D8A",
+        metric_card("Treatment Posture", posture, "#2E5D8A",
                      "Aeration • Enzymes • Ultrasound")
     with cols[4]:
-        metric_card("Next Maintenance", "15 Apr 2026", "#1B3A5C",
-                     "Phase 2 Ramp begins")
+        if phase:
+            metric_card("Current Phase", phase.name.split(":")[0], "#1B3A5C", phase.objective)
+        else:
+            metric_card("Current Phase", "—", "#1B3A5C", "")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -81,7 +104,7 @@ def render():
         return ""
 
     styled = df.style.map(color_level, subset=["Level"]).set_properties(**{"text-align": "center"}).hide(axis="index")
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Current conditions ──
     section_header("Current Conditions Summary")

@@ -53,7 +53,7 @@ def render():
         .set_properties(**{"text-align": "left"})
         .hide(axis="index")
     )
-    st.dataframe(styled, use_container_width=True, hide_index=True)
+    st.dataframe(styled, width='stretch', hide_index=True)
 
     # ── Species ID indicators ──
     section_header("Sensor-Based Species Identification")
@@ -117,4 +117,4 @@ def render():
         {"Year": "2018", "Location": "Al Qudra Lakes", "Species": "Cyanobacteria", "Impact": "Recreational system", "Lesson": "MPC-Buoy reduced cyano 73% in 60 days"},
         {"Year": "2021", "Location": "Kuwait Bay", "Species": "Chattonella", "Impact": "435,000 cells/L", "Lesson": "Dust storms trigger blooms within days"},
     ])
-    st.dataframe(events, use_container_width=True, hide_index=True)
+    st.dataframe(events, width='stretch', hide_index=True)
