@@ -1,0 +1,13 @@
+# Streamlit server config for hosting behind a reverse proxy (Render).
+# Safe to commit — contains no secrets.
+[server]
+headless = true
+address = "0.0.0.0"
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"

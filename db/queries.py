@@ -72,12 +72,24 @@ def get_readings_for_site(site_name: str, year: int | None = None) -> List:
 
 
 def get_site_names() -> List[str]:
-    """Return site names from st.secrets, or empty list."""
+    """Return configured site names.
+
+    Resolved from, in order:
+      1. Streamlit secrets  [site_passwords] keys   (Streamlit Cloud / local)
+      2. Env var  LAGOON_SITES="Emaar,Damac,Nakheel" (Render / headless hosts)
+    """
+    # 1. Streamlit secrets
     try:
         import streamlit as st
-        return list(st.secrets.get("site_passwords", {}).keys())
+        names = list(st.secrets.get("site_passwords", {}).keys())
+        if names:
+            return names
     except Exception:
-        return []
+        pass
+    # 2. Environment variable
+    import os
+    raw = os.environ.get("LAGOON_SITES", "")
+    return [s.strip() for s in raw.split(",") if s.strip()]
 
 
 def reading_exists(site_name: str, year: int, month: int) -> bool:
