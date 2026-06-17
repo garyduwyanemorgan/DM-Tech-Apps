@@ -10,6 +10,9 @@ plotly==6.7.0
 # ── Shared data layer ──
 supabase==2.30.0
 
+# ── PDF report generation (the paid deliverable) ──
+reportlab==4.5.1
+
 # ── HTTP API (for Vonage/n8n voice pipeline + Android app) ──
 fastapi==0.136.3
 uvicorn[standard]==0.34.0

@@ -18,6 +18,9 @@ def render():
 
     readings = get_monthly_readings()
 
+    # ── Official report generation (the paid step — open for now) ──
+    _render_report_download(readings)
+
     # ── Annual compliance by parameter ──
     section_header("Monthly Compliance Summary")
 
@@ -122,3 +125,40 @@ def render():
                      "Duration (hr)", "Root Cause", "Corrective Action",
                      "Resolution Date", "Days to Resolve"]
     st.dataframe(pd.DataFrame(columns=incident_cols), width='stretch', hide_index=True)
+
+
+def _render_report_download(readings):
+    """Official DECCA report download. Open for now; the paywall hooks onto the
+    `draft` flag (watermarked free preview vs clean official report)."""
+    from datetime import date
+    from reporting import build_decca_report
+
+    site = st.session_state.get("active_site") or "Sample Lagoon"
+    year = readings[0].timestamp.year if readings else date.today().year
+
+    section_header("📄 Official DECCA Report")
+    st.markdown(
+        f"Generate a formatted, submission-ready DECCA compliance report for "
+        f"**{site} — {year}**: compliance summary, exceedance log, and bloom-risk "
+        "assessment in a single PDF.")
+
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        try:
+            official = build_decca_report(site, year, readings, draft=False)
+            st.download_button(
+                "⬇ Download Official Report (PDF)", data=official,
+                file_name=f"DECCA_Report_{site}_{year}.pdf", mime="application/pdf",
+                width='stretch')
+        except Exception as exc:
+            st.error(f"Could not generate report: {exc}")
+    with c2:
+        try:
+            draft = build_decca_report(site, year, readings, draft=True)
+            st.download_button(
+                "Preview (watermarked draft)", data=draft,
+                file_name=f"DECCA_Report_{site}_{year}_DRAFT.pdf", mime="application/pdf")
+        except Exception:
+            pass
+    st.caption("The report is the formal regulatory deliverable. Dashboard access is free; "
+               "report generation is the premium step.")
