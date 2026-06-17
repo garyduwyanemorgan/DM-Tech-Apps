@@ -75,6 +75,7 @@ PAGES = {
     # Intelligence (v2 science)
     "Lagoon Intelligence":     "intelligence",
     "Predictive Monitoring":   "predictive",
+    "Upload Lab Report":       "upload_report",
     # Operations section
     "Water Quality Monitoring": "monitoring",
     "Alert & Response Protocol":"alerts",
@@ -128,6 +129,8 @@ elif module_name == "intelligence":
     from ui.intelligence import render
 elif module_name == "predictive":
     from ui.predictive import render
+elif module_name == "upload_report":
+    from ui.upload_report import render
 elif module_name == "monitoring":
     from ui.monitoring import render
 elif module_name == "alerts":
