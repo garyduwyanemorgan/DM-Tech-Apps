@@ -66,47 +66,66 @@ try:
 except Exception:
     pass
 
-st.sidebar.markdown("**CLIENT / DECCA**")
-
-PAGES = {
-    # Client / DECCA section
-    "Executive Dashboard":     "executive",
-    "DECCA Reporting":         "decca",
-    # Intelligence (v2 science)
-    "Lagoon Intelligence":     "intelligence",
-    "Predictive Monitoring":   "predictive",
-    "Upload Lab Report":       "upload_report",
-    # Operations section
-    "Water Quality Monitoring": "monitoring",
-    "Alert & Response Protocol":"alerts",
-    "Seasonal Treatment Calendar":"calendar_view",
-    "Sludge & Sediment Mgmt":  "sludge",
-    # Reference section
-    "Environmental Drivers":   "drivers",
-    "Species Threat Matrix":   "species",
-    "Intervention Technologies":"technologies",
-    "ML Prediction System":    "ml_system",
+# ── Workflow-grouped navigation: enter data → monitor → analyse → report → reference ──
+NAV = {
+    "DATA ENTRY": [
+        ("Upload Lab Report", "upload_report"),
+    ],
+    "MONITORING": [
+        ("Executive Dashboard", "executive"),
+        ("Water Quality Monitoring", "monitoring"),
+        ("Alert & Response Protocol", "alerts"),
+    ],
+    "INTELLIGENCE": [
+        ("Lagoon Intelligence", "intelligence"),
+        ("Predictive Monitoring", "predictive"),
+    ],
+    "REPORTING": [
+        ("DECCA Reporting", "decca"),
+    ],
+    "REFERENCE": [
+        ("Seasonal Treatment Calendar", "calendar_view"),
+        ("Sludge & Sediment Mgmt", "sludge"),
+        ("Environmental Drivers", "drivers"),
+        ("Species Threat Matrix", "species"),
+        ("Intervention Technologies", "technologies"),
+        ("ML Prediction System", "ml_system"),
+    ],
 }
-# NOTE: Data entry is intentionally NOT a dashboard page.
-# Field teams submit readings by talking to Claude via the MCP server
-# (agent_server.py). This dashboard is DECCA's read-only compliance view.
 
-page_names = list(PAGES.keys())
-ops_start = 2   # index where Operations section starts
-ref_start = 6   # index where Reference section starts
+if "active_page" not in st.session_state:
+    st.session_state["active_page"] = "executive"
 
-# Build selection with section headers
-selected = st.sidebar.radio(
-    "Navigate",
-    page_names,
-    format_func=lambda x: x,
-    label_visibility="collapsed",
-)
 
-# Show section labels
-idx = page_names.index(selected)
-if idx == ops_start:
-    pass  # handled below
+def _nav_change(section):
+    """Single-selection across grouped radios: set the active page, clear the rest."""
+    picked = st.session_state.get(f"nav_{section}")
+    if not picked:
+        return
+    for label, key in NAV[section]:
+        if label == picked:
+            st.session_state["active_page"] = key
+            break
+    for other in NAV:
+        if other != section:
+            st.session_state[f"nav_{other}"] = None
+
+
+_active = st.session_state["active_page"]
+for _section, _items in NAV.items():
+    _labels = [lbl for lbl, _k in _items]
+    _active_label = next((lbl for lbl, k in _items if k == _active), None)
+    # Seed each radio once: the active label in its section, None elsewhere.
+    if f"nav_{_section}" not in st.session_state:
+        st.session_state[f"nav_{_section}"] = _active_label
+    st.sidebar.markdown(
+        f"<p style='color:#9FB6CC; font-size:0.7rem; font-weight:700; "
+        f"letter-spacing:1.5px; margin:0.7rem 0 0.1rem 0;'>{_section}</p>",
+        unsafe_allow_html=True,
+    )
+    st.sidebar.radio(_section, _labels, key=f"nav_{_section}",
+                     label_visibility="collapsed",
+                     on_change=_nav_change, args=(_section,))
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
@@ -119,7 +138,7 @@ st.sidebar.markdown(
 )
 
 # ── Render selected page ──
-module_name = PAGES[selected]
+module_name = st.session_state["active_page"]
 
 if module_name == "executive":
     from ui.executive import render
