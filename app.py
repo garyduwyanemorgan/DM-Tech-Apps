@@ -94,7 +94,13 @@ NAV = {
 }
 
 if "active_page" not in st.session_state:
-    st.session_state["active_page"] = "executive"
+    st.session_state["active_page"] = "home"
+
+# ── Home button (always returns to the landing page) ──
+if st.sidebar.button("🏠  Home", width='stretch'):
+    st.session_state["active_page"] = "home"
+    for _s in NAV:
+        st.session_state[f"nav_{_s}"] = None
 
 
 def _nav_change(section):
@@ -140,7 +146,9 @@ st.sidebar.markdown(
 # ── Render selected page ──
 module_name = st.session_state["active_page"]
 
-if module_name == "executive":
+if module_name == "home":
+    from ui.home import render
+elif module_name == "executive":
     from ui.executive import render
 elif module_name == "decca":
     from ui.decca import render
