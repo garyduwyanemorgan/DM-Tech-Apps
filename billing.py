@@ -108,7 +108,15 @@ def get_org_billing(org_id: str) -> dict:
         res = client.table("organizations").select(
             "site_limit, plan_name, stripe_customer_id, stripe_subscription_id"
         ).eq("id", org_id).single().execute()
-        return res.data or {"site_limit": 1, "plan_name": "starter"}
+        data = res.data or {}
+        # Coalesce NULLs so downstream arithmetic on site_limit never sees None
+        # (legacy orgs created before billing defaults were enforced).
+        return {
+            "site_limit": data.get("site_limit") or 1,
+            "plan_name": data.get("plan_name") or "starter",
+            "stripe_customer_id": data.get("stripe_customer_id"),
+            "stripe_subscription_id": data.get("stripe_subscription_id"),
+        }
     except Exception:
         return {"site_limit": 1, "plan_name": "starter"}
 

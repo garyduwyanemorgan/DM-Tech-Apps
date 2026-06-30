@@ -290,16 +290,32 @@ def get_validated_predictions(site_name: str | None = None, organization_id: str
 # ── Tenant provisioning helpers ──
 
 def create_organization(name: str, token: str | None = None) -> str | None:
-    """Create a tenant organization and return its UUID."""
+    """Create a tenant organization and return its UUID.
+
+    Sets billing defaults explicitly (Starter plan, 1 site) so the row is always
+    valid even when the DB column defaults were never applied — billing_status
+    does arithmetic on site_limit and would raise on a NULL.
+    """
     client = get_client()
     if not client:
         return None
     try:
-        res = client.table("organizations").insert({"name": name}).execute()
+        res = client.table("organizations").insert({
+            "name": name,
+            "plan_name": "starter",
+            "site_limit": 1,
+        }).execute()
         if res.data:
             return res.data[0]["id"]
     except Exception:
-        pass
+        # Billing columns may not exist yet (001_billing.sql not applied) —
+        # retry name-only so org creation still succeeds.
+        try:
+            res = client.table("organizations").insert({"name": name}).execute()
+            if res.data:
+                return res.data[0]["id"]
+        except Exception:
+            pass
     return None
 
 

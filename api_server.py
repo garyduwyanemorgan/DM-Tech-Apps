@@ -193,23 +193,58 @@ def get_user_profile(user_id: str, email: str = "", token: str | None = None) ->
     return None
 
 
-def _create_super_admin_profile(user_id: str, email: str) -> None:
-    """Auto-create a super_admin profile for new uninvited users on first sign-in."""
+def _personal_org_name(email: str, user_id: str) -> str:
+    """Deterministic personal-organization name for an uninvited user."""
+    return f"{email or user_id}'s Organization"
+
+
+def _create_super_admin_profile(user_id: str, email: str) -> str | None:
+    """Auto-provision a new uninvited user on first sign-in: create a personal
+    organization (default Starter plan, 1 site) and a super_admin profile linked
+    to it. Returns the new organization_id (or None if the DB is unavailable)."""
     from db.client import get_client
+    from db.queries import create_organization
     import uuid as _uuid
     client = get_client()
     if not client:
-        return
+        return None
+    org_id = create_organization(_personal_org_name(email, user_id))
     try:
         client.table("user_profiles").insert({
             "id": str(_uuid.uuid4()),
             "clerk_id": user_id,
             "email": email,
             "role": "super_admin",
-            "organization_id": None,
+            "organization_id": org_id,
         }).execute()
     except Exception:
         pass
+    return org_id
+
+
+def _ensure_org_for_profile(profile: dict, email: str, user_id: str) -> str | None:
+    """Ensure an existing profile has an organization. Uninvited users (and any
+    user left without a role/org) get a personal organization auto-created and
+    linked on sign-in. Returns the profile's organization_id."""
+    org_id = profile.get("organization_id")
+    if org_id:
+        return org_id
+    from db.client import get_client
+    from db.queries import create_organization
+    client = get_client()
+    if not client:
+        return None
+    org_id = create_organization(_personal_org_name(email, user_id))
+    if not org_id:
+        return None
+    updates = {"organization_id": org_id}
+    if not profile.get("role"):
+        updates["role"] = "super_admin"
+    try:
+        client.table("user_profiles").update(updates).eq("id", profile["id"]).execute()
+    except Exception:
+        pass
+    return org_id
 
 
 def get_current_user_profile(
@@ -228,19 +263,23 @@ def get_current_user_profile(
         email = x_user_email or user.get("email") or ""
         profile = get_user_profile(user["id"], email=email, token=token)
         if profile:
+            # Auto-provision a personal org for users left without one
+            # (uninvited / role-less); invited users already carry an org.
+            org_id = _ensure_org_for_profile(profile, email, user["id"])
             return {
                 "user_id": user["id"],
                 "email": email,
-                "organization_id": profile.get("organization_id"),
-                "role": profile.get("role", "super_admin"),
+                "organization_id": org_id,
+                "role": profile.get("role") or "super_admin",
                 "token": token,
             }
-        # No profile and no matching invite — new user, grant super_admin
-        _create_super_admin_profile(user["id"], email)
+        # No profile and no matching invite — new uninvited user: create a
+        # super_admin profile + personal organization.
+        org_id = _create_super_admin_profile(user["id"], email)
         return {
             "user_id": user["id"],
             "email": email,
-            "organization_id": None,
+            "organization_id": org_id,
             "role": "super_admin",
             "token": token,
         }
