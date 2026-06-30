@@ -122,6 +122,11 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
 
   if (!status) return null
 
+  // Defensive defaults — a partial backend response must never crash the Settings page
+  const planName = status.plan_name || 'No Plan'
+  const planDescription = status.plan_description || ''
+  const availablePlans = status.available_plans || {}
+
   const pc = PLAN_COLORS[status.plan] || PLAN_COLORS.starter
   const usedPct = Math.min(100, status.site_limit > 0 ? (status.sites_used / status.site_limit) * 100 : 100)
   const atLimit = !status.can_add_site
@@ -140,14 +145,14 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
         <div style={{ flex: 1, minWidth: 240, background: '#f8fafc', border: `1px solid ${pc.border}`, borderRadius: 10, padding: '1rem 1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
             <span style={{ background: pc.bg, color: pc.color, fontWeight: 700, fontSize: '0.78rem', borderRadius: 4, padding: '2px 10px', border: `1px solid ${pc.border}` }}>
-              {status.plan_name.toUpperCase()}
+              {planName.toUpperCase()}
             </span>
             {status.has_subscription && (
               <span style={{ fontSize: '0.72rem', color: '#27ae60', fontWeight: 600 }}>● Active</span>
             )}
           </div>
           <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '1rem', lineHeight: 1.5 }}>
-            {status.plan_description}
+            {planDescription}
           </div>
 
           {/* Site usage bar */}
@@ -203,7 +208,7 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
-          {Object.entries(status.available_plans)
+          {Object.entries(availablePlans)
             .filter(([key]) => key !== 'dev')
             .map(([key, plan]) => {
               const isCurrent = key === status.plan

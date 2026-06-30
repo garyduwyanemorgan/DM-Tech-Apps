@@ -578,10 +578,22 @@ class PortalRequest(BaseModel):
 @app.get("/billing/status", tags=["Billing"])
 def billing_status(profile: dict = Depends(get_current_user_profile)):
     """Return current plan, site usage, and whether Stripe is configured."""
+    from billing import get_org_billing, count_sites, PLANS, is_configured
     org_id = profile.get("organization_id")
     if not org_id:
-        return {"plan": "none", "site_limit": 0, "sites_used": 0, "can_add_site": False}
-    from billing import get_org_billing, count_sites, PLANS, is_configured
+        # No org yet (e.g. fresh super_admin). Return a complete, well-formed shape so the
+        # billing panel renders the plan catalog instead of crashing on missing fields.
+        return {
+            "plan":              "none",
+            "plan_name":         "No Plan",
+            "plan_description":  "Create or join an organization to manage a subscription.",
+            "site_limit":        0,
+            "sites_used":        0,
+            "can_add_site":      False,
+            "has_subscription":  False,
+            "stripe_configured": is_configured(),
+            "available_plans":   PLANS,
+        }
     billing = get_org_billing(org_id)
     plan_key = billing.get("plan_name", "starter")
     site_limit = billing.get("site_limit", 1)
