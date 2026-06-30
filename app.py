@@ -43,26 +43,110 @@ st.sidebar.markdown(
 
 st.sidebar.markdown("---")
 
-# ── Site selector (shown when Supabase is configured) ──
+# ── Authenticated Session Management (SaaS Phase 3) ──
 try:
-    from db.client import is_configured
+    from db.client import get_client, is_configured
     from db.queries import get_site_names
+
+    # Initialize session states
+    if "user_token" not in st.session_state:
+        st.session_state["user_token"] = None
+    if "user_email" not in st.session_state:
+        st.session_state["user_email"] = None
+    if "user_org_id" not in st.session_state:
+        st.session_state["user_org_id"] = None
+    if "user_role" not in st.session_state:
+        st.session_state["user_role"] = "operator"
+    if "use_sample_data" not in st.session_state:
+        st.session_state["use_sample_data"] = False
+
     if is_configured():
-        sites = get_site_names()
-        if sites:
-            st.sidebar.markdown("**ACTIVE SITE**")
-            active = st.sidebar.selectbox(
-                "Site",
-                ["— Sample data —"] + sites,
-                key="active_site_selector",
-                label_visibility="collapsed",
-            )
-            st.session_state["active_site"] = None if active == "— Sample data —" else active
-            if st.session_state.get("active_site"):
-                st.sidebar.caption(f"Live data: {st.session_state['active_site']}")
-            else:
-                st.sidebar.caption("Showing sample data")
+        client = get_client()
+
+        # 1. User is not authenticated and hasn't chosen sample data
+        if not st.session_state["user_token"] and not st.session_state["use_sample_data"]:
+            st.sidebar.markdown("### 🔐 Tenant Login")
+            email = st.sidebar.text_input("Email", key="login_email")
+            password = st.sidebar.text_input("Password", type="password", key="login_password")
+
+            col1, col2 = st.sidebar.columns(2)
+            with col1:
+                if st.button("Log In", use_container_width=True):
+                    try:
+                        res = client.auth.sign_in_with_password({"email": email, "password": password})
+                        if res.session:
+                            st.session_state["user_token"] = res.session.access_token
+                            st.session_state["user_email"] = res.user.email
+                            st.session_state["user_id"] = res.user.id
+                            st.session_state["use_sample_data"] = False
+
+                            # Load user profile for organization_id and role
+                            scoped_client = get_client(res.session.access_token)
+                            prof = scoped_client.table("user_profiles").select("*").eq("id", res.user.id).execute()
+                            if prof.data:
+                                st.session_state["user_org_id"] = prof.data[0].get("organization_id")
+                                st.session_state["user_role"] = prof.data[0].get("role", "operator")
+
+                            st.success("Success!")
+                            st.rerun()
+                    except Exception as e:
+                        st.sidebar.error(f"Login failed: {str(e)}")
+            with col2:
+                if st.button("Sample Data", use_container_width=True):
+                    st.session_state["use_sample_data"] = True
+                    st.rerun()
             st.sidebar.markdown("---")
+
+            # Pause dashboard rendering
+            st.info("Please log in or click 'Sample Data' to access the dashboard.")
+            st.stop()
+
+        # 2. User is logged in
+        elif st.session_state["user_token"]:
+            st.sidebar.markdown(f"👤 **{st.session_state['user_email']}**")
+            st.sidebar.caption(f"Role: {st.session_state['user_role'].upper()}")
+
+            if st.sidebar.button("Sign Out", use_container_width=True):
+                try:
+                    client.auth.sign_out()
+                except Exception:
+                    pass
+                st.session_state["user_token"] = None
+                st.session_state["user_email"] = None
+                st.session_state["user_org_id"] = None
+                st.session_state["user_role"] = "operator"
+                st.session_state["use_sample_data"] = False
+                st.session_state["active_site"] = None
+                st.rerun()
+
+            st.sidebar.markdown("---")
+
+            # Dynamic site selectbox scoped to the tenant
+            sites = get_site_names(organization_id=st.session_state["user_org_id"], token=st.session_state["user_token"])
+            if sites:
+                st.sidebar.markdown("**ACTIVE SITE**")
+                active = st.sidebar.selectbox(
+                    "Site",
+                    sites,
+                    key="active_site_selector",
+                    label_visibility="collapsed",
+                )
+                st.session_state["active_site"] = active
+                st.sidebar.caption(f"Tenant site: {active}")
+                st.sidebar.markdown("---")
+            else:
+                st.sidebar.warning("No sites registered for this tenant.")
+                st.session_state["active_site"] = None
+                st.sidebar.markdown("---")
+
+        # 3. Sample data mode bypass
+        elif st.session_state["use_sample_data"]:
+            st.sidebar.markdown("📊 **Sample Data Mode**")
+            if st.sidebar.button("Return to Login", use_container_width=True):
+                st.session_state["use_sample_data"] = False
+                st.rerun()
+            st.sidebar.markdown("---")
+            st.session_state["active_site"] = None
 except Exception:
     pass
 
@@ -175,4 +259,11 @@ elif module_name == "technologies":
 elif module_name == "ml_system":
     from ui.ml_system import render
 
-render()
+# ── Role-based Access Control (UI Level Gate) ──
+write_pages = ["upload_report"]
+current_role = st.session_state.get("user_role", "operator")
+
+if module_name in write_pages and current_role == "auditor":
+    st.error("🔐 Access Denied: Your account role (Auditor) does not have permission to upload/modify data.")
+else:
+    render()

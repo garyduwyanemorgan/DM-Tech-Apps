@@ -33,6 +33,14 @@ def _active_site() -> str | None:
         return None
 
 
+def _user_session() -> tuple[str | None, str | None]:
+    try:
+        import streamlit as st
+        return st.session_state.get("user_token"), st.session_state.get("user_org_id")
+    except Exception:
+        return None, None
+
+
 def _merge_with_sample(live: List[WaterReading], year: int) -> List[WaterReading]:
     """Fill any missing months from live data with sample values."""
     sample = _sample.get_monthly_readings(year)
@@ -48,7 +56,8 @@ def get_monthly_readings(year: int = 2026) -> List[WaterReading]:
     if site:
         try:
             from db.queries import get_readings_for_site
-            live = get_readings_for_site(site, year=year)
+            token, org_id = _user_session()
+            live = get_readings_for_site(site, year=year, organization_id=org_id, token=token)
             if live:
                 return _merge_with_sample(live, year)
         except Exception:
@@ -89,6 +98,7 @@ def is_live() -> bool:
         return False
     try:
         from db.queries import get_readings_for_site
-        return bool(get_readings_for_site(site))
+        token, org_id = _user_session()
+        return bool(get_readings_for_site(site, organization_id=org_id, token=token))
     except Exception:
         return False

@@ -9,6 +9,7 @@ plotly==6.7.0
 
 # ── Shared data layer ──
 supabase==2.30.0
+stripe==15.3.0
 
 # ── PDF report generation (the paid deliverable) ──
 reportlab==4.5.1
@@ -19,6 +20,7 @@ anthropic==0.109.2
 # ── HTTP API (for Vonage/n8n voice pipeline + Android app) ──
 fastapi==0.136.3
 uvicorn[standard]==0.34.0
+PyJWT[crypto]==2.10.1      # Clerk JWT verification via JWKS
 
 # ── Agent input (MCP server for Claude Desktop; not used by the web services) ──
 mcp[cli]==1.27.2
