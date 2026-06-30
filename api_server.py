@@ -74,9 +74,13 @@ security_jwt = HTTPBearer(auto_error=False)
 _clerk_jwks_cache: dict | None = None
 
 
-def _clerk_jwks_url() -> str:
-    """Derive per-instance JWKS URL from the publishable key stored in secrets.toml."""
-    import base64
+def _clerk_publishable_key() -> str:
+    """Resolve the Clerk publishable key from secrets.toml or the env var.
+
+    On Render/serverless there is no secrets.toml, so CLERK_PUBLISHABLE_KEY must
+    be set as an environment variable; locally the .streamlit/secrets.toml value
+    takes precedence.
+    """
     try:
         import tomllib
     except ImportError:
@@ -85,6 +89,18 @@ def _clerk_jwks_url() -> str:
         with open(os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml"), "rb") as f:
             secrets = tomllib.load(f)
         pk = secrets.get("clerk", {}).get("publishable_key", "")
+        if pk:
+            return pk
+    except Exception:
+        pass
+    return os.environ.get("CLERK_PUBLISHABLE_KEY", "")
+
+
+def _clerk_jwks_url() -> str:
+    """Derive the per-instance JWKS URL from the Clerk publishable key."""
+    import base64
+    try:
+        pk = _clerk_publishable_key()
         if pk.startswith("pk_"):
             b64 = pk.split("_", 2)[2]
             b64 += "=" * (4 - len(b64) % 4)
@@ -940,3 +956,55 @@ def science_interventions():
             for iv in DIGITAL_TWIN_INTERVENTIONS.values()
         ]
     }
+
+
+# ── Serve React Frontend directly from the FastAPI backend ──
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+api_app = app  # Keep original app with all its registered routes under the name api_app
+
+app = FastAPI(
+    title="Dubai Lagoon Management Plan",
+    description="Portal serving the React frontend and backing FastAPI endpoints.",
+)
+
+# Enable CORS on the outer app to allow cross-origin API calls if needed
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount the FastAPI endpoints under the /api prefix
+app.mount("/api", api_app)
+
+# Serve the static build assets under /assets prefix
+# We resolve the absolute path relative to this file
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "dist")
+ASSETS_DIR = os.path.join(FRONTEND_DIR, "assets")
+
+if os.path.exists(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+
+@app.get("/{catchall:path}")
+def serve_react_app(catchall: str):
+    # Prevent accessing files outside of FRONTEND_DIR for security
+    # Clean the path to avoid directory traversal
+    safe_path = os.path.normpath(catchall).lstrip(os.path.sep)
+    if safe_path.startswith("..") or safe_path.startswith("/") or safe_path.startswith("\\"):
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+    # Check if the requested file exists in frontend/dist (like favicon.svg, icons.svg)
+    file_path = os.path.join(FRONTEND_DIR, safe_path)
+    if safe_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+
+    # Otherwise return index.html for React router
+    index_path = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+
+    return {"message": "React frontend is not built. Please run 'npm run build' inside frontend directory."}
+

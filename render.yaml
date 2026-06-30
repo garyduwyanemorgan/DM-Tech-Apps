@@ -3,28 +3,12 @@
 # vars (SUPABASE_URL, SUPABASE_KEY, LAGOON_SITES) in the dashboard, and add the
 # custom domain lagoons.gdm-enviro.com.
 services:
+  # ── Unified Application: React Frontend + FastAPI Backend ──
   - type: web
-    name: lagoon-dashboard
+    name: lagoon-app
     runtime: python
     plan: free                      # upgrade to 'starter' ($7/mo) to keep it always-on
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
-    envVars:
-      - key: SUPABASE_URL
-        sync: false                 # set the value in the Render dashboard
-      - key: SUPABASE_KEY
-        sync: false
-      - key: LAGOON_SITES
-        value: "Emaar,Damac,Nakheel"
-      - key: PYTHON_VERSION
-        value: "3.12.7"
-
-  # ── Backend REST API (for the Vonage/n8n voice pipeline + integrations) ──
-  - type: web
-    name: lagoon-api
-    runtime: python
-    plan: free                      # upgrade to 'starter' to keep always-on
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && npm --prefix frontend ci && npm --prefix frontend run build
     startCommand: uvicorn api_server:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: SUPABASE_URL
@@ -33,7 +17,25 @@ services:
         sync: false
       - key: LAGOON_SITES
         value: "Emaar,Damac,Nakheel"
-      - key: API_KEY                # auth: callers must send X-API-Key header
+      - key: API_KEY                # auth: callers must send X-API-Key header (optional)
         sync: false
       - key: PYTHON_VERSION
         value: "3.12.7"
+
+  # ── Deprecated Streamlit Service (Legacy) ──
+  # - type: web
+  #   name: lagoon-dashboard
+  #   runtime: python
+  #   plan: free
+  #   buildCommand: pip install -r requirements.txt
+  #   startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+  #   envVars:
+  #     - key: SUPABASE_URL
+  #       sync: false
+  #     - key: SUPABASE_KEY
+  #       sync: false
+  #     - key: LAGOON_SITES
+  #       value: "Emaar,Damac,Nakheel"
+  #     - key: PYTHON_VERSION
+  #       value: "3.12.7"
+
