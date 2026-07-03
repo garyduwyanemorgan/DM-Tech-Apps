@@ -132,19 +132,46 @@ def extract_lab_report(file_bytes: bytes, media_type: str, model: str | None = N
     else:
         raise ValueError(f"Unsupported file type '{media_type}'. Upload an image or PDF.")
 
+    # Forced tool-use instead of structured outputs (messages.parse):
+    # the 15-optional-field schema trips "Schema is too complex" on smaller
+    # models via output_format, while the same schema as a tool input works
+    # across the whole model family.
+    tool_schema = {
+        "type": "object",
+        "properties": {
+            name: {
+                "type": ["string", "null"] if name == "notes" else ["number", "null"],
+                "description": f.description or "",
+            }
+            for name, f in LabReadings.model_fields.items()
+        },
+        "required": list(LabReadings.model_fields),
+    }
+
     try:
-        resp = client.messages.parse(
+        resp = client.messages.create(
             model=model,
             max_tokens=1024,
             messages=[{"role": "user",
                        "content": [source_block, {"type": "text", "text": _PROMPT}]}],
-            output_format=LabReadings,
+            tools=[{
+                "name": "record_lab_readings",
+                "description": "Record the extracted water-quality readings.",
+                "input_schema": tool_schema,
+            }],
+            tool_choice={"type": "tool", "name": "record_lab_readings"},
         )
     except anthropic.AuthenticationError:
         raise RuntimeError("Invalid or missing ANTHROPIC_API_KEY.")
     except anthropic.APIStatusError as exc:
         raise RuntimeError(f"Extraction service error ({exc.status_code}). Try again.")
 
-    if resp.parsed_output is None:
+    tool_input = next(
+        (block.input for block in resp.content if block.type == "tool_use"), None
+    )
+    if tool_input is None:
         raise RuntimeError("Could not read the report. Try a clearer photo or enter manually.")
-    return resp.parsed_output.model_dump()
+    try:
+        return LabReadings.model_validate(tool_input).model_dump()
+    except Exception:
+        raise RuntimeError("Could not read the report. Try a clearer photo or enter manually.")
