@@ -933,7 +933,10 @@ async def extract_lab_report_endpoint(
     content = await file.read()
     media_type = file.content_type or "image/jpeg"
     try:
-        result = extract_lab_report(content, media_type)
+        # Blocking SDK call — run off the event loop so one extraction
+        # doesn't freeze every other request on the server.
+        from fastapi.concurrency import run_in_threadpool
+        result = await run_in_threadpool(extract_lab_report, content, media_type)
         return result
     except ValueError as exc:
         raise HTTPException(status_code=415, detail=str(exc))

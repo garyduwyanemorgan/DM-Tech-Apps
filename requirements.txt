@@ -9,13 +9,17 @@ plotly==6.7.0
 
 # ── Shared data layer ──
 supabase==2.30.0
-stripe==15.3.0
+
+# ── Payments (payments/ provider abstraction) ──
+stripe==15.3.0             # Stripe provider (disabled by default; PAYMENT_PROVIDER=stripe re-enables)
+httpx==0.28.1              # Checkout.com provider (REST) — also a supabase dependency
 
 # ── PDF report generation (the paid deliverable) ──
 reportlab==4.5.1
 
 # ── Lab-report photo/PDF extraction (Claude vision) ──
 anthropic==0.109.2
+pillow==12.2.0            # image downscale before vision call (extract.py)
 
 # ── HTTP API (for Vonage/n8n voice pipeline + Android app) ──
 fastapi==0.136.3

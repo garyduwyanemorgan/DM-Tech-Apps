@@ -5,20 +5,31 @@ DECCA parameters as JSON. A human reviews/corrects the values before they are
 saved (required for regulatory data) — this module only does the recognition.
 
 Cost: one report is ~1-2K input tokens + a small JSON output — a fraction of a
-cent. Model is configurable via LAB_EXTRACT_MODEL (default claude-opus-4-8);
-set it to claude-haiku-4-5 to cut cost ~5x for this OCR-style task.
+cent. Model is configurable via LAB_EXTRACT_MODEL (default claude-haiku-4-5 —
+fast and accurate for this OCR-style task; set claude-opus-4-8 if a report
+proves too hard for it).
+
+Images are downscaled/re-encoded before the API call: a 10MB phone photo adds
+seconds of transfer + vision tokens for zero accuracy gain at lab-report text
+sizes.
 
 Requires the ANTHROPIC_API_KEY environment variable.
 """
 from __future__ import annotations
 
 import base64
+import io
 import os
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-DEFAULT_MODEL = "claude-opus-4-8"
+DEFAULT_MODEL = "claude-haiku-4-5"
+
+# Longest side after downscale. 1568px is the max dimension Anthropic vision
+# uses before resizing server-side anyway — larger uploads are pure waste.
+_MAX_IMAGE_PX = 1568
+_JPEG_QUALITY = 82
 
 _IMAGE_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"}
 
@@ -68,6 +79,37 @@ def is_configured() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 
+def _shrink_image(file_bytes: bytes, media_type: str) -> tuple[bytes, str]:
+    """Downscale + re-encode an image for vision extraction.
+
+    Returns (bytes, media_type) — the original pair if Pillow is unavailable
+    or the image is already small. Never raises: extraction proceeds with the
+    original bytes on any failure.
+    """
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        return file_bytes, media_type
+
+    try:
+        img = Image.open(io.BytesIO(file_bytes))
+        img = ImageOps.exif_transpose(img)  # phone photos carry rotation in EXIF
+        needs_resize = max(img.size) > _MAX_IMAGE_PX
+        # Re-encode anything over ~500KB even if dimensions are fine (huge
+        # PNGs / low-compression JPEGs); below that the transfer win is noise.
+        if not needs_resize and len(file_bytes) <= 500_000:
+            return file_bytes, media_type
+        if needs_resize:
+            img.thumbnail((_MAX_IMAGE_PX, _MAX_IMAGE_PX), Image.LANCZOS)
+        if img.mode not in ("RGB", "L"):
+            img = img.convert("RGB")
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=_JPEG_QUALITY, optimize=True)
+        return buf.getvalue(), "image/jpeg"
+    except Exception:
+        return file_bytes, media_type
+
+
 def extract_lab_report(file_bytes: bytes, media_type: str, model: str | None = None) -> dict:
     """Extract readings from a lab-report image or PDF. Returns a dict of the
     14 fields (+ notes). Raises with a clear message on failure."""
@@ -75,6 +117,9 @@ def extract_lab_report(file_bytes: bytes, media_type: str, model: str | None = N
 
     model = model or os.environ.get("LAB_EXTRACT_MODEL", DEFAULT_MODEL)
     client = anthropic.Anthropic()   # reads ANTHROPIC_API_KEY
+
+    if media_type in _IMAGE_TYPES:
+        file_bytes, media_type = _shrink_image(file_bytes, media_type)
 
     b64 = base64.standard_b64encode(file_bytes).decode("utf-8")
     if media_type in _IMAGE_TYPES:

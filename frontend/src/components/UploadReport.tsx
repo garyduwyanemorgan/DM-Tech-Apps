@@ -1,7 +1,63 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Save, Upload, Sparkles, FileText } from 'lucide-react'
 import { PageHeader } from './PageHeader'
+
+// ── Extraction progress ───────────────────────────────────────────────────────
+// Stages: compress (client-side) → upload (real %) → ai (indeterminate + timer)
+type ExtractStage = 'idle' | 'compress' | 'upload' | 'ai'
+
+const MAX_UPLOAD_PX = 1600
+const JPEG_QUALITY = 0.82
+
+/** Downscale/re-encode a photo on-device before upload. A 10MB phone photo
+ *  becomes ~300KB — the single biggest win for field connections. Falls back
+ *  to the original file on any failure (and skips PDFs / small files). */
+async function compressImage(file: File): Promise<File> {
+  if (!file.type.startsWith('image/') || file.size < 400_000) return file
+  try {
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, MAX_UPLOAD_PX / Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(bitmap.width * scale)
+    canvas.height = Math.round(bitmap.height * scale)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return file
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    bitmap.close()
+    const blob = await new Promise<Blob | null>(resolve =>
+      canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY)
+    )
+    if (!blob || blob.size >= file.size) return file
+    return new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' })
+  } catch {
+    return file
+  }
+}
+
+/** POST a file with real upload progress (fetch can't report upload %). */
+function uploadWithProgress(
+  url: string,
+  form: FormData,
+  headers: Record<string, string>,
+  onProgress: (pct: number) => void,
+): Promise<{ ok: boolean; status: number; json: any }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', url)
+    Object.entries(headers).forEach(([k, v]) => xhr.setRequestHeader(k, v))
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      let json: any = null
+      try { json = JSON.parse(xhr.responseText) } catch { /* non-JSON error body */ }
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, json })
+    }
+    xhr.onerror = () => reject(new Error('Network error during upload'))
+    xhr.send(form)
+  })
+}
 
 const FIELDS = [
   { key: 'ph',              label: 'pH',               unit: '',          hint: '6.0–9.0',   default: 7.5  },
@@ -37,6 +93,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [extracting, setExtracting] = useState(false)
+  const [stage, setStage] = useState<ExtractStage>('idle')
+  const [uploadPct, setUploadPct] = useState(0)
+  const [aiSeconds, setAiSeconds] = useState(0)
   const [extractNotes, setExtractNotes] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -62,23 +121,38 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     if (f) handleFile(f)
   }
 
+  // Elapsed-seconds ticker for the AI stage.
+  useEffect(() => {
+    if (stage !== 'ai') return
+    setAiSeconds(0)
+    const t = setInterval(() => setAiSeconds(s => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [stage])
+
   const handleExtract = async () => {
     if (!file) return
     setExtracting(true)
     setError(null)
     setExtractNotes(null)
+    setUploadPct(0)
     try {
+      setStage('compress')
+      const compact = await compressImage(file)
+
+      setStage('upload')
       const form = new FormData()
-      form.append('file', file)
-      const headers: HeadersInit = {}
+      form.append('file', compact)
+      const headers: Record<string, string> = {}
       if (organizationId) headers['X-Organization-ID'] = organizationId
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch('/api/extract', { method: 'POST', headers, body: form })
+      const res = await uploadWithProgress('/api/extract', form, headers, pct => {
+        setUploadPct(pct)
+        if (pct >= 100) setStage('ai') // request sent — model is now reading
+      })
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.detail || 'Extraction failed')
+        throw new Error(res.json?.detail || 'Extraction failed')
       }
-      const extracted = await res.json()
+      const extracted = res.json
       const updated = { ...fields }
       FIELDS.forEach(f => {
         if (extracted[f.key] != null) updated[f.key] = extracted[f.key]
@@ -90,6 +164,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       setError(e.message || 'AI extraction failed. Enter values manually.')
     } finally {
       setExtracting(false)
+      setStage('idle')
     }
   }
 
@@ -169,8 +244,43 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
         {file && (
           <button onClick={handleExtract} disabled={extracting} style={{ marginTop: '1rem', gap: '0.5rem' }}>
             <Sparkles size={16} />
-            {extracting ? 'Reading report with AI…' : 'Extract Values with AI'}
+            {extracting ? 'Working…' : 'Extract Values with AI'}
           </button>
+        )}
+
+        {extracting && (
+          <div style={{ marginTop: '1rem' }}>
+            {/* Stage label */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#1B3A5C', fontWeight: 600, marginBottom: 6 }}>
+              <span>
+                {stage === 'compress' && 'Preparing photo…'}
+                {stage === 'upload' && `Uploading… ${uploadPct}%`}
+                {stage === 'ai' && `AI reading the report… ${aiSeconds}s`}
+              </span>
+              <span style={{ color: '#64748b', fontWeight: 400 }}>
+                {stage === 'compress' && 'step 1 of 3'}
+                {stage === 'upload' && 'step 2 of 3'}
+                {stage === 'ai' && 'step 3 of 3 — usually 5–15s'}
+              </span>
+            </div>
+            {/* Progress track */}
+            <div style={{ height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+              {stage === 'ai' ? (
+                <div style={{
+                  position: 'absolute', top: 0, bottom: 0, width: '35%',
+                  background: 'linear-gradient(90deg, #2E5D8A, #4C9AD4)', borderRadius: 4,
+                  animation: 'extract-slide 1.2s ease-in-out infinite',
+                }} />
+              ) : (
+                <div style={{
+                  height: '100%', borderRadius: 4, background: 'linear-gradient(90deg, #2E5D8A, #4C9AD4)',
+                  width: stage === 'compress' ? '8%' : `${Math.max(8, uploadPct * 0.9)}%`,
+                  transition: 'width 0.2s ease',
+                }} />
+              )}
+            </div>
+            <style>{'@keyframes extract-slide { 0% { left: -35%; } 100% { left: 100%; } }'}</style>
+          </div>
         )}
 
         {extractNotes && (
