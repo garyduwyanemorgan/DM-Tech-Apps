@@ -51,6 +51,32 @@ class BloomForecast:
 
 
 @dataclass
+class CommunityForecast:
+    """Engine 6 — likely phytoplankton community / algae type.
+
+    Predicts which algae group is favoured (and the ecological succession stage)
+    from the water-quality drivers alone — no lab species ID required. The
+    measured phycocyanin:chlorophyll-a ratio is used only as an observational
+    anchor (a cyanobacteria pigment proxy), never as a required input.
+    """
+    dominant_group: str                        # cyanobacteria / green_algae / diatoms / dinoflagellates
+    group_probabilities: Dict[str, float]      # group -> 0–1 (sums ~1)
+    succession_stage: str                      # stable_diatoms → … → post_bloom_collapse
+    cyano_advantage: float                     # 0–1 competitive advantage of cyanobacteria
+    trophic_state: str                         # oligotrophic / mesotrophic / eutrophic / hypereutrophic
+    n_p_ratio: Optional[float]                 # ammonia:phosphate (reduced-N proxy)
+    phyco_chla_ratio: Optional[float]          # measured cyanobacteria pigment marker
+    observed_signal: str                       # what the pigment says + agreement with the prediction
+    confidence_pct: float                      # 0–100
+    lab_test_recommended: bool = False         # SaaS should request a confirmatory lab test
+    lab_test_reason: str = ""                  # what test to run and why (empty when not recommended)
+    missing_inputs: List[str] = field(default_factory=list)      # required drivers absent from the reading
+    enhancing_inputs: List[str] = field(default_factory=list)    # params not captured that would strengthen the call
+    recommended_tests: List[str] = field(default_factory=list)   # confirmatory lab tests (when cyano-favoured)
+    reasoning: List[str] = field(default_factory=list)
+
+
+@dataclass
 class TwinScenarioResult:
     """Engine 5 — what-if scenario outcome."""
     scenario: str

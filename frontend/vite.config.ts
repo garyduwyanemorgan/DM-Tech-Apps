@@ -9,7 +9,9 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // 8000 collides with the los_backend Docker container on this machine;
+        // Compliance's local dev backend runs on 8010 instead.
+        target: 'http://localhost:8010',
         changeOrigin: true,
       }
     }

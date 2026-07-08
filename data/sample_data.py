@@ -73,11 +73,11 @@ def get_solar_irradiance() -> List[float]:
 
 def get_sludge_zones() -> List[SludgeZone]:
     return [
-        SludgeZone("Zone A — Inlet",        10, 2.5, date(2026, 1, 15)),
-        SludgeZone("Zone B — Central",       10, 1.8, date(2026, 1, 15)),
-        SludgeZone("Zone C — Deep Basin",    12, 3.2, date(2026, 1, 15)),
-        SludgeZone("Zone D — Shallow Edge",   6, 2.0, date(2026, 1, 15)),
-        SludgeZone("Zone E — Outlet",         8, 1.5, date(2026, 1, 15)),
+        SludgeZone("Zone A — Inlet",        3.0, 0.75, date(2026, 1, 15)),
+        SludgeZone("Zone B — Central",      3.0, 0.45, date(2026, 1, 15)),
+        SludgeZone("Zone C — Deep Basin",   3.5, 1.20, date(2026, 1, 15)),
+        SludgeZone("Zone D — Shallow Edge", 2.0, 0.55, date(2026, 1, 15)),
+        SludgeZone("Zone E — Outlet",       2.5, 0.40, date(2026, 1, 15)),
     ]
 
 

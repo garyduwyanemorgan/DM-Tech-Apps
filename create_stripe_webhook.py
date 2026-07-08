@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create Stripe Webhook Endpoint for DECCA Lagoons Dashboard SaaS.
+Create Stripe Webhook Endpoint for Dubai Lagoons Dashboard SaaS.
 Updates .streamlit/secrets.toml with the newly created Webhook Secret.
 """
 
@@ -61,7 +61,7 @@ def update_webhook_secret_toml(filepath: pathlib.Path, webhook_secret: str):
 
 def main():
     print("=" * 60)
-    print("      DECCA SaaS Stripe Live Webhook Creator")
+    print("      Compliance SaaS Stripe Live Webhook Creator")
     print("=" * 60)
 
     secrets_path = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
@@ -102,7 +102,7 @@ def main():
                 "customer.subscription.deleted",
                 "checkout.session.completed"
             ],
-            description="DECCA Lagoons Dashboard Live Webhook Endpoint"
+            description="Dubai Lagoons Dashboard Live Webhook Endpoint"
         )
         print(f"  [OK] Success! Webhook Endpoint ID: {webhook.id}")
         

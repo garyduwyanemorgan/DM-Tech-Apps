@@ -2,7 +2,7 @@
 # A rebuild on Render installs exactly these — no surprise breakage from a new
 # upstream release. Bump deliberately, then re-run the test suites.
 
-# ── Dashboard (DECCA read-only view) ──
+# ── Dashboard (Compliance read-only view) ──
 streamlit==1.57.0
 pandas==2.3.1
 plotly==6.7.0

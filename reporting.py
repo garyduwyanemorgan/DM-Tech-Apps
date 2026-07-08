@@ -1,4 +1,4 @@
-"""DECCA compliance report — polished PDF, generated in-app and downloadable.
+"""compliance report — polished PDF, generated in-app and downloadable.
 
 This is the monetisation artifact: the dashboard is free, generating the
 official report is the paid step (payment gate added later). The `draft` flag
@@ -21,7 +21,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table,
                                 TableStyle, PageBreak)
 
-from core.constants import DECCA_LIMITS, MONTH_NAMES
+from core.constants import COMPLIANCE_LIMITS, MONTH_NAMES
 from core.calculations import check_compliance, monthly_compliance_rate
 from core.alert_engine import evaluate_alert_level
 
@@ -33,7 +33,7 @@ RED = colors.HexColor("#FFC7CE")
 RED_TX = colors.HexColor("#9C0006")
 GREY = colors.HexColor("#555555")
 
-_ATTR = {k: k for k in DECCA_LIMITS}   # DECCA keys map 1:1 to WaterReading attrs
+_ATTR = {k: k for k in COMPLIANCE_LIMITS}   # Compliance keys map 1:1 to WaterReading attrs
 
 
 def _styles():
@@ -65,7 +65,7 @@ def _watermark(canvas, doc, draft: bool):
 
 
 def _summary_table(readings: list, ss) -> Table:
-    head = ["Parameter", "Unit", "DECCA Limit", "Avg", "Max", "Min", "Months", "Status"]
+    head = ["Parameter", "Unit", "Compliance Limit", "Avg", "Max", "Min", "Months", "Status"]
     data = [head]
     styles = [
         ("BACKGROUND", (0, 0), (-1, 0), NAVY),
@@ -76,7 +76,7 @@ def _summary_table(readings: list, ss) -> Table:
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F4F7FA")]),
     ]
-    for r_i, (key, lim) in enumerate(DECCA_LIMITS.items(), start=1):
+    for r_i, (key, lim) in enumerate(COMPLIANCE_LIMITS.items(), start=1):
         vals = [getattr(rr, _ATTR[key]) for rr in readings]
         cm = sum(1 for v in vals if check_compliance(key, v).compliant)
         full = cm == len(vals)
@@ -95,40 +95,40 @@ def _summary_table(readings: list, ss) -> Table:
 
 def _exceedance_rows(readings: list) -> list:
     by_month = {r.timestamp.month: r for r in readings}
-    rows = [["Month", "Parameter", "Value", "DECCA Limit"]]
+    rows = [["Month", "Parameter", "Value", "Compliance Limit"]]
     for m in range(1, 13):
         r = by_month.get(m)
         if not r:
             continue
-        for key, lim in DECCA_LIMITS.items():
+        for key, lim in COMPLIANCE_LIMITS.items():
             res = check_compliance(key, getattr(r, _ATTR[key]))
             if not res.compliant:
                 rows.append([MONTH_NAMES[m-1], lim.parameter, f"{res.value}", lim.display])
     return rows
 
 
-def build_decca_report(site: str, year: int, readings: list, draft: bool = False) -> bytes:
-    """Build the DECCA compliance report PDF. Returns PDF bytes."""
+def build_compliance_report(site: str, year: int, readings: list, draft: bool = False) -> bytes:
+    """Build the compliance report PDF. Returns PDF bytes."""
     if not readings:
         raise ValueError("No readings to report.")
     ss = _styles()
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=18*mm, bottomMargin=20*mm,
                             leftMargin=18*mm, rightMargin=18*mm,
-                            title=f"DECCA Report {site} {year}")
+                            title=f"Compliance Report {site} {year}")
     el = []
 
     # ── Header ──
-    el.append(Paragraph("DECCA Water Quality Compliance Report", ss["H1"]))
+    el.append(Paragraph("Water Quality Compliance Report", ss["H1"]))
     el.append(Paragraph(
         f"Site: <b>{site}</b> &nbsp;|&nbsp; Reporting Year: <b>{year}</b> &nbsp;|&nbsp; "
         f"Generated: {date.today().isoformat()} &nbsp;|&nbsp; GDM Enviro Consultants",
         ss["Sub"]))
 
     # ── Annual scorecard ──
-    total_params = len(DECCA_LIMITS)
+    total_params = len(COMPLIANCE_LIMITS)
     full_params = 0
-    for key in DECCA_LIMITS:
+    for key in COMPLIANCE_LIMITS:
         vals = [getattr(rr, _ATTR[key]) for rr in readings]
         if all(check_compliance(key, v).compliant for v in vals):
             full_params += 1
@@ -148,7 +148,7 @@ def build_decca_report(site: str, year: int, readings: list, draft: bool = False
     exc = _exceedance_rows(readings)
     if len(exc) == 1:
         el.append(Paragraph("No exceedances recorded — all parameters remained within "
-                            "DECCA limits throughout the reporting period.", ss["Body"]))
+                            "compliance limits throughout the reporting period.", ss["Body"]))
     else:
         t = Table(exc, colWidths=[24*mm, 40*mm, 28*mm, 30*mm])
         t.setStyle(TableStyle([
@@ -177,7 +177,7 @@ def build_decca_report(site: str, year: int, readings: list, draft: bool = False
     # ── Attestation ──
     el.append(Spacer(1, 10*mm))
     el.append(Paragraph(
-        "<i>This report summarises water quality monitoring data against DECCA / Dubai "
+        "<i>This report summarises water quality monitoring data against Compliance / Dubai "
         "Municipality limits. Prepared by GDM Enviro Consultants for regulatory "
         "compliance purposes.</i>", ss["Foot"]))
 

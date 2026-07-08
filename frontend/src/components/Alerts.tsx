@@ -1,6 +1,11 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ALERT_COLORS, ALERT_LABELS, ALERT_THRESHOLDS, TREATMENT_ACTIONS } from '../constants'
 import { PageHeader } from './PageHeader'
+import { useAuth } from '../context/AuthContext'
+
+interface AlertsProps {
+  activeSite: string
+}
 
 const levels = [1, 2, 3, 4] as const
 
@@ -25,7 +30,69 @@ const TD: React.CSSProperties = {
   verticalAlign: 'top',
 }
 
-export const Alerts: React.FC = () => {
+const alertText: Record<number, string> = { 1: '#006100', 2: '#856404', 3: '#7A3B00', 4: '#9C0006' }
+
+interface LiveState {
+  level: 1 | 2 | 3 | 4
+  label: string
+  month: string
+  failing: string[]
+  compliancePct: number
+}
+
+export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
+  const { organizationId, token } = useAuth()
+  const [live, setLive] = useState<LiveState | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [checked, setChecked] = useState(false)
+
+  useEffect(() => {
+    if (!activeSite) {
+      setLive(null)
+      setChecked(true)
+      return
+    }
+    let cancelled = false
+    const run = async () => {
+      setLoading(true)
+      setChecked(false)
+      try {
+        const headers: HeadersInit = {}
+        if (organizationId) headers['X-Organization-ID'] = organizationId
+        if (token) headers['Authorization'] = `Bearer ${token}`
+        const res = await fetch(`/api/status/${encodeURIComponent(activeSite)}`, { headers })
+        const data = await res.json()
+        if (cancelled) return
+        if (data.readings && data.readings.length > 0) {
+          const latest = data.readings[data.readings.length - 1]
+          const lvl = (latest.alert_level ?? 1) as 1 | 2 | 3 | 4
+          setLive({
+            level: lvl,
+            label: latest.alert_label ?? ALERT_LABELS[lvl],
+            month: latest.month ?? '',
+            failing: latest.failing_params ?? [],
+            compliancePct: latest.compliance_pct ?? 0,
+          })
+        } else {
+          setLive(null)
+        }
+      } catch {
+        if (!cancelled) setLive(null)
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+          setChecked(true)
+        }
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [activeSite, organizationId, token])
+
+  const liveLevel = live?.level ?? null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <PageHeader
@@ -34,15 +101,120 @@ export const Alerts: React.FC = () => {
         icon="🚨"
       />
 
+      {/* ── Alert-level colour legend (always shown) ────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 8,
+          padding: '0.85rem 1rem',
+          borderRadius: 12,
+          background: 'linear-gradient(135deg, #C6EFCE 0%, #FFEB9C 34%, #FFD5A8 67%, #FFC7CE 100%)',
+          border: '1px solid #e2e8f0',
+        }}
+      >
+        {levels.map(level => {
+          const active = level === liveLevel
+          return (
+            <div
+              key={level}
+              style={{
+                flex: '1 1 150px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#ffffff',
+                borderRadius: 8,
+                padding: '0.5rem 0.75rem',
+                border: `2px solid ${active ? ALERT_COLORS[level] : 'transparent'}`,
+                boxShadow: active ? `0 0 0 3px ${ALERT_COLORS[level]}33` : 'none',
+                transform: active ? 'translateY(-1px)' : 'none',
+                transition: 'all 0.2s',
+              }}
+            >
+              <span style={{ width: 12, height: 12, borderRadius: '50%', background: ALERT_COLORS[level], flexShrink: 0 }} />
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: alertText[level] }}>{ALERT_LABELS[level]}</span>
+              {active && <span style={{ marginLeft: 'auto', fontSize: '0.62rem', fontWeight: 800, color: ALERT_COLORS[level], letterSpacing: '0.05em' }}>LIVE</span>}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── LIVE status banner ──────────────────────────────────────────────── */}
+      {loading && (
+        <div style={{ padding: '1.25rem 1.5rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, color: '#64748b', fontSize: '0.9rem' }}>
+          Checking current alert status for {activeSite || 'the selected site'}…
+        </div>
+      )}
+
+      {!loading && live && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'stretch',
+            gap: '1rem',
+            background: `linear-gradient(135deg, ${ALERT_COLORS[live.level]}26 0%, ${ALERT_COLORS[live.level]}0d 100%)`,
+            border: `2px solid ${ALERT_COLORS[live.level]}`,
+            borderRadius: 12,
+            padding: '1.25rem 1.5rem',
+          }}
+        >
+          <div style={{ minWidth: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: alertText[live.level], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: ALERT_COLORS[live.level], display: 'inline-block', boxShadow: `0 0 0 3px ${ALERT_COLORS[live.level]}33` }} />
+              Live · {activeSite}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: alertText[live.level], lineHeight: 1.15 }}>{live.label}</div>
+            <div style={{ fontSize: '0.8rem', color: alertText[live.level], opacity: 0.85, marginTop: 4 }}>
+              Latest reading: {live.month || '—'} · {Math.round(live.compliancePct)}% compliant
+            </div>
+          </div>
+
+          <div style={{ flex: 1, minWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8 }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: alertText[live.level], letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Triggering factors
+            </div>
+            {live.failing.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {live.failing.map((f, i) => (
+                  <span key={i} style={{ fontSize: '0.78rem', fontWeight: 700, color: '#9C0006', background: '#fff', border: '1px solid #fecaca', borderRadius: 6, padding: '3px 9px' }}>
+                    {f}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '0.85rem', color: alertText[live.level] }}>
+                {live.level === 1 ? 'All parameters within limits — no active triggers.' : 'Bloom-indicator thresholds crossed (Chl-a / DO / phycocyanin).'}
+              </div>
+            )}
+            <div style={{ fontSize: '0.82rem', color: alertText[live.level], fontWeight: 600, marginTop: 2 }}>
+              ▶ Active protocol below: <strong>{ALERT_LABELS[live.level]}</strong>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!loading && checked && !live && (
+        <div style={{ padding: '1rem 1.25rem', background: '#EFF6FF', border: '1px solid #bfdbfe', borderRadius: 10, color: '#1e3a5c', fontSize: '0.9rem', lineHeight: 1.5 }}>
+          {activeSite
+            ? <>No submitted readings for <strong>{activeSite}</strong> yet — showing the reference protocol below. Upload a lab report to activate a live alert level.</>
+            : <>No site selected — showing the reference protocol below. Choose a site in the sidebar to see its live alert status.</>}
+        </div>
+      )}
+
       {/* Alert Level Decision Matrix */}
       <div className="glass-card">
-        <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Alert Level Decision Matrix</h2>
+        <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 5, height: 20, borderRadius: 3, background: 'linear-gradient(#27ae60,#e74c3c)', display: 'inline-block' }} />
+          Alert Level Decision Matrix
+        </h2>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px', fontSize: '0.875rem' }}>
             <thead>
               <tr>
-                {['Alert Level', 'Bloom Prob.', 'Chl-a', 'DO', 'Phycocyanin', 'Temp'].map(col => (
-                  <th key={col} style={TH}>{col}</th>
+                {['', 'Alert Level', 'Bloom Prob.', 'Chl-a', 'DO', 'Phycocyanin', 'Temp'].map((col, i) => (
+                  <th key={i} style={{ ...TH, ...(i === 0 ? { width: 34, padding: '10px 6px' } : {}) }}>{col}</th>
                 ))}
               </tr>
             </thead>
@@ -50,8 +222,12 @@ export const Alerts: React.FC = () => {
               {levels.map(level => {
                 const t = ALERT_THRESHOLDS[level]
                 const color = ALERT_COLORS[level]
+                const isActive = level === liveLevel
                 return (
-                  <tr key={level}>
+                  <tr key={level} style={isActive ? { background: `${color}14` } : undefined}>
+                    <td style={{ ...TD, padding: '8px 6px', textAlign: 'center' }}>
+                      {isActive && <span title="Current level" style={{ color, fontWeight: 900 }}>▶</span>}
+                    </td>
                     <td style={{ ...TD, padding: '8px 14px' }}>
                       <span style={{
                         display: 'inline-block',
@@ -62,9 +238,11 @@ export const Alerts: React.FC = () => {
                         borderRadius: '5px',
                         padding: '4px 10px',
                         whiteSpace: 'nowrap',
+                        boxShadow: isActive ? `0 0 0 3px ${color}44` : undefined,
                       }}>
                         {ALERT_LABELS[level]}
                       </span>
+                      {isActive && <span style={{ marginLeft: 8, fontSize: '0.7rem', fontWeight: 800, color, letterSpacing: '0.04em' }}>CURRENT</span>}
                     </td>
                     <td style={TD}>{t.bloomRange}</td>
                     <td style={TD}>{t.chla}</td>
@@ -77,16 +255,25 @@ export const Alerts: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {liveLevel && (
+          <div style={{ marginTop: '0.85rem', fontSize: '0.8rem', color: '#64748b' }}>
+            ▶ marks <strong>{activeSite}</strong>’s current level from its latest submitted reading.
+          </div>
+        )}
       </div>
 
       {/* Treatment Actions by Alert Level */}
       <div>
-        <h2 style={{ fontSize: '1.1rem', color: '#1B3A5C', marginBottom: '1rem' }}>Treatment Actions by Alert Level</h2>
+        <h2 style={{ fontSize: '1.1rem', color: '#1B3A5C', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 5, height: 20, borderRadius: 3, background: liveLevel ? ALERT_COLORS[liveLevel] : '#6366f1', display: 'inline-block' }} />
+          Treatment Actions by Alert Level
+        </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {levels.map(level => {
             const actions = TREATMENT_ACTIONS[level]
             const color = ALERT_COLORS[level]
             const label = ALERT_LABELS[level]
+            const isActive = level === liveLevel
             const rows = [
               { label: 'Enzymes',    value: actions.enzyme },
               { label: 'Aeration',   value: actions.aeration },
@@ -94,7 +281,23 @@ export const Alerts: React.FC = () => {
               { label: 'Monitoring', value: actions.monitoring },
             ]
             return (
-              <div key={level} className="glass-card" style={{ borderLeft: `4px solid ${color}`, padding: '1.25rem 1.5rem' }}>
+              <div
+                key={level}
+                className="glass-card"
+                style={{
+                  borderLeft: `4px solid ${color}`,
+                  padding: '1.25rem 1.5rem',
+                  position: 'relative',
+                  boxShadow: isActive ? `0 0 0 2px ${color}, 0 8px 24px ${color}22` : undefined,
+                  opacity: liveLevel && !isActive ? 0.72 : 1,
+                  transition: 'opacity 0.2s, box-shadow 0.2s',
+                }}
+              >
+                {isActive && (
+                  <span style={{ position: 'absolute', top: 14, right: 16, background: color, color: '#fff', fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.05em', padding: '3px 10px', borderRadius: 6 }}>
+                    ▶ ACTIVE NOW
+                  </span>
+                )}
                 <h3 style={{ margin: '0 0 0.85rem 0', color, fontWeight: 700, fontSize: '1rem' }}>{label}</h3>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                   <tbody>
@@ -133,7 +336,10 @@ export const Alerts: React.FC = () => {
 
       {/* Escalation Rules */}
       <div>
-        <h2 style={{ fontSize: '1.1rem', color: '#1B3A5C', marginBottom: '1rem' }}>Escalation Rules</h2>
+        <h2 style={{ fontSize: '1.1rem', color: '#1B3A5C', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 5, height: 20, borderRadius: 3, background: 'linear-gradient(#ef4444,#16a34a)', display: 'inline-block' }} />
+          Escalation Rules
+        </h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
           <div className="glass-card" style={{ flex: '1 1 280px', borderLeft: '4px solid #ef4444' }}>
             <h3 style={{ marginBottom: '0.85rem', color: '#9C0006' }}>Fast Escalation</h3>

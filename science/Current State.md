@@ -37,7 +37,7 @@ queries.py
 ### Dashboard
 
 - Executive Dashboard
-- DECCA Reporting
+- Compliance Reporting
 - Water Quality Monitoring
 - Alert & Response
 - Seasonal Calendar

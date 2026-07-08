@@ -16,7 +16,7 @@ interface SiteManagerProps {
 }
 
 export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveSite, onSitesChanged, embedded }) => {
-  const { organizationId, token, role } = useAuth()
+  const { organizationId, getToken, email, role } = useAuth()
   const [sites, setSites] = useState<SiteInfo[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,18 +35,22 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
 
   const isAdmin = role === 'admin' || role === 'super_admin'
 
-  const makeHeaders = useCallback((): HeadersInit => {
+  // Fetch a FRESH token per request — the cached one can be expired, which the
+  // backend treats as an anonymous operator (→ 403 on admin-only writes).
+  const makeHeaders = useCallback(async (): Promise<HeadersInit> => {
     const h: HeadersInit = { 'Content-Type': 'application/json' }
-    if (token) h['Authorization'] = `Bearer ${token}`
+    const t = await getToken()
+    if (t) h['Authorization'] = `Bearer ${t}`
     if (organizationId) h['X-Organization-ID'] = organizationId
+    if (email) h['X-User-Email'] = email
     return h
-  }, [token, organizationId])
+  }, [getToken, organizationId, email])
 
   const fetchSites = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/sites', { headers: makeHeaders() })
+      const res = await fetch('/api/sites', { headers: await makeHeaders() })
       const data = await res.json()
       if (data.sites) {
         const normalised: SiteInfo[] = data.sites.map((s: any) =>
@@ -72,7 +76,7 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
     try {
       const res = await fetch('/api/sites', {
         method: 'POST',
-        headers: makeHeaders(),
+        headers: await makeHeaders(),
         body: JSON.stringify({
           name: newName.trim(),
           volume_m3: parseFloat(newVolume) || 0,
@@ -104,7 +108,7 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
     try {
       const res = await fetch(`/api/sites/${encodeURIComponent(pendingDelete.name)}`, {
         method: 'DELETE',
-        headers: makeHeaders(),
+        headers: await makeHeaders(),
       })
       const data = await res.json()
       if (!res.ok) {

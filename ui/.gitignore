@@ -1,0 +1,24 @@
+# ── Secrets — NEVER commit (Supabase key + site passwords live here) ──
+.streamlit/secrets.toml
+*.env
+*.key
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Local data / outputs
+backups/
+reports/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -82,7 +82,7 @@ def render():
     callout(
         "<strong>Key insight:</strong> Dubai summer water (33°C) sits precisely at cyanobacteria's "
         "thermal optimum (30.6 ± 2.3°C) while suppressing all competitors. "
-        "DO saturation at 33°C is only ~7.1 mg/L — leaving just 3 mg/L margin above the DECCA limit.",
+        "DO saturation at 33°C is only ~7.1 mg/L — leaving just 3 mg/L margin above the compliance limit.",
         "danger",
     )
 

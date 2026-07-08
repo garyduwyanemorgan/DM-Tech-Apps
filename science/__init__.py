@@ -20,6 +20,9 @@ Engines:
   sediment_loading  — Fe-P redox internal phosphorus release risk
   residence_time    — hydraulic residence time + flushing efficiency
   bloom_forecast    — bloom probability / severity / recovery time
+  community         — favoured algae group / type + ecological succession stage,
+                      anchored by the measured phycocyanin:chlorophyll ratio;
+                      recommends a confirmatory lab test when cyano-favoured
   digital_twin      — what-if scenario simulation over the chain
 """
 

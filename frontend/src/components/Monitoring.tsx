@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
 import { MONTH_NAMES, MONTHLY_DATA } from '../constants'
@@ -9,15 +9,44 @@ import {
 
 type MonthlyDataShape = typeof MONTHLY_DATA
 
+interface LiveRow {
+  month: number
+  month_name: string
+  ph: number; do: number; tss: number; turbidity: number; cod: number
+  ammonia: number; phosphate: number; oil_grease: number; ecoli: number
+  total_coliforms: number; chla: number; phycocyanin: number
+  salinity: number; water_temp: number
+}
+
 export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean }> = ({ activeSite, useSampleData = true }) => {
   const { organizationId, token } = useAuth()
-  // Monthly chart data always uses the static baseline — the /status API returns compliance
-  // summaries, not raw 12-month parameter arrays. Live per-site readings overlay the
-  // Dashboard view; a dedicated monthly-series endpoint is needed to drive these charts.
+  // The trend charts and annual stats use the static seasonal baseline (they need a full
+  // 12-month series). The Monthly Data Log table below shows live saved readings for the
+  // active site when they exist, falling back to sample data otherwise.
   const data = MONTHLY_DATA
 
-  // Suppress unused-var warnings — kept for future live-data wiring
-  void organizationId; void token
+  const [liveRows, setLiveRows] = useState<LiveRow[] | null>(null)
+
+  useEffect(() => {
+    if (!activeSite) { setLiveRows(null); return }
+    let cancelled = false
+    const load = async () => {
+      try {
+        const headers: HeadersInit = {}
+        if (organizationId) headers['X-Organization-ID'] = organizationId
+        if (token) headers['Authorization'] = `Bearer ${token}`
+        const res = await fetch(`/api/readings/${encodeURIComponent(activeSite)}?year=${new Date().getFullYear()}`, { headers })
+        const json = await res.json()
+        if (!cancelled) setLiveRows(res.ok && Array.isArray(json.rows) ? json.rows : null)
+      } catch {
+        if (!cancelled) setLiveRows(null)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [activeSite, organizationId, token])
+
+  const hasLive = !!liveRows && liveRows.length > 0
 
   const chartData = MONTH_NAMES.map((m, i) => ({
     month: m.slice(0, 3),
@@ -112,9 +141,14 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
 
       {/* SECTION 1: MONTHLY DATA TABLE */}
       <div className="glass-card">
-        <h3 style={{ marginBottom: '1.25rem', fontSize: '1.05rem', fontWeight: 600 }}>
-          Monthly Water Quality Data
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>
+            Monthly Water Quality Data
+          </h3>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, borderRadius: 4, padding: '2px 10px', ...(hasLive ? { background: '#C6EFCE', color: '#006100' } : { background: '#f1f5f9', color: '#64748b' }) }}>
+            {hasLive ? `● Live — ${activeSite}` : '○ Sample data'}
+          </span>
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '900px' }}>
             <thead>
@@ -125,29 +159,53 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
               </tr>
             </thead>
             <tbody>
-              {MONTH_NAMES.map((month, i) => (
-                <tr key={month}>
-                  <td style={{ ...tdStyle, fontWeight: 500, whiteSpace: 'nowrap' }}>{month.slice(0, 3)}</td>
-                  <td style={tdStyle}>{data.ph[i].toFixed(1)}</td>
-                  <td style={getCellStyle('do', data.do[i])}>{data.do[i].toFixed(1)}</td>
-                  <td style={getCellStyle('tss', data.tss[i])}>{data.tss[i]}</td>
-                  <td style={tdStyle}>{data.turbidity[i]}</td>
-                  <td style={getCellStyle('cod', data.cod[i])}>{data.cod[i]}</td>
-                  <td style={getCellStyle('ammonia', data.ammonia[i])}>{data.ammonia[i].toFixed(1)}</td>
-                  <td style={getCellStyle('phosphate', data.phosphate[i])}>{data.phosphate[i].toFixed(1)}</td>
-                  <td style={tdStyle}>{data.chla[i]}</td>
-                  <td style={tdStyle}>{data.phycocyanin[i]}</td>
-                  <td style={tdStyle}>{data.salinity[i]}</td>
-                  <td style={tdStyle}>{data.water_temp[i]}</td>
-                </tr>
-              ))}
+              {hasLive ? (
+                liveRows!.map(r => (
+                  <tr key={r.month}>
+                    <td style={{ ...tdStyle, fontWeight: 500, whiteSpace: 'nowrap' }}>{r.month_name.slice(0, 3)}</td>
+                    <td style={tdStyle}>{r.ph.toFixed(1)}</td>
+                    <td style={getCellStyle('do', r.do)}>{r.do.toFixed(1)}</td>
+                    <td style={getCellStyle('tss', r.tss)}>{r.tss}</td>
+                    <td style={tdStyle}>{r.turbidity}</td>
+                    <td style={getCellStyle('cod', r.cod)}>{r.cod}</td>
+                    <td style={getCellStyle('ammonia', r.ammonia)}>{r.ammonia.toFixed(1)}</td>
+                    <td style={getCellStyle('phosphate', r.phosphate)}>{r.phosphate.toFixed(1)}</td>
+                    <td style={tdStyle}>{r.chla}</td>
+                    <td style={tdStyle}>{r.phycocyanin}</td>
+                    <td style={tdStyle}>{r.salinity}</td>
+                    <td style={tdStyle}>{r.water_temp}</td>
+                  </tr>
+                ))
+              ) : (
+                MONTH_NAMES.map((month, i) => (
+                  <tr key={month}>
+                    <td style={{ ...tdStyle, fontWeight: 500, whiteSpace: 'nowrap' }}>{month.slice(0, 3)}</td>
+                    <td style={tdStyle}>{data.ph[i].toFixed(1)}</td>
+                    <td style={getCellStyle('do', data.do[i])}>{data.do[i].toFixed(1)}</td>
+                    <td style={getCellStyle('tss', data.tss[i])}>{data.tss[i]}</td>
+                    <td style={tdStyle}>{data.turbidity[i]}</td>
+                    <td style={getCellStyle('cod', data.cod[i])}>{data.cod[i]}</td>
+                    <td style={getCellStyle('ammonia', data.ammonia[i])}>{data.ammonia[i].toFixed(1)}</td>
+                    <td style={getCellStyle('phosphate', data.phosphate[i])}>{data.phosphate[i].toFixed(1)}</td>
+                    <td style={tdStyle}>{data.chla[i]}</td>
+                    <td style={tdStyle}>{data.phycocyanin[i]}</td>
+                    <td style={tdStyle}>{data.salinity[i]}</td>
+                    <td style={tdStyle}>{data.water_temp[i]}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+        {hasLive && (
+          <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
+            Showing {liveRows!.length} saved reading{liveRows!.length === 1 ? '' : 's'} for {activeSite}. The trend charts and annual statistics below still use the seasonal baseline.
+          </div>
+        )}
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.8rem', opacity: 0.7 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#64748b' }}>
             <span style={{ width: 12, height: 12, borderRadius: 2, background: '#FFC7CE', border: '1px solid #f87171', display: 'inline-block' }} />
-            Exceeds DECCA limit
+            Exceeds compliance limit
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#64748b' }}>
             <span style={{ width: 12, height: 12, borderRadius: 2, background: '#FFEB9C', border: '1px solid #fcd34d', display: 'inline-block' }} />
@@ -172,7 +230,7 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
               itemStyle={tooltipStyle.itemStyle}
             />
             <Legend wrapperStyle={{ paddingTop: '1rem', fontSize: '0.85rem' }} />
-            <ReferenceLine y={4.0} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'DECCA DO Limit (4.0)', fill: '#ef4444', fontSize: 11, position: 'insideTopLeft' }} />
+            <ReferenceLine y={4.0} stroke="#ef4444" strokeDasharray="4 4" label={{ value: 'Compliance DO Limit (4.0)', fill: '#ef4444', fontSize: 11, position: 'insideTopLeft' }} />
             <Line
               type="monotone"
               dataKey="do"

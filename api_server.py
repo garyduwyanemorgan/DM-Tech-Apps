@@ -1,4 +1,4 @@
-"""Lagoon DECCA — FastAPI HTTP server.
+"""Lagoon Compliance — FastAPI HTTP server.
 
 Exposes the same compliance + alert logic as the MCP server but over
 HTTP, so Sakhile's Vonage/n8n voice pipeline can call it with a simple
@@ -44,7 +44,7 @@ from core.models import WaterReading
 # ── App setup ─────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="Lagoon DECCA API",
+    title="Lagoon Compliance API",
     description="Water quality compliance + alert engine for Dubai lagoon field teams.",
     version="1.0.0",
 )
@@ -94,6 +94,32 @@ def _clerk_publishable_key() -> str:
     except Exception:
         pass
     return os.environ.get("CLERK_PUBLISHABLE_KEY", "")
+
+
+def _read_secrets_toml() -> dict:
+    """Load .streamlit/secrets.toml if present (local dev); {} on Render/serverless."""
+    try:
+        import tomllib
+    except ImportError:
+        import tomli as tomllib  # Python < 3.11 fallback
+    try:
+        with open(os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml"), "rb") as f:
+            return tomllib.load(f)
+    except Exception:
+        return {}
+
+
+def _clerk_secret_key() -> str:
+    """Clerk Backend API secret key from secrets.toml or CLERK_SECRET_KEY env."""
+    sk = _read_secrets_toml().get("clerk", {}).get("secret_key", "")
+    return sk or os.environ.get("CLERK_SECRET_KEY", "")
+
+
+def _admin_notify_email() -> str:
+    """The single gatekeeper email address. New-user access requests are sent here,
+    and only this address is allowed to bootstrap itself as super_admin."""
+    email = _read_secrets_toml().get("admin", {}).get("notify_email", "")
+    return (email or os.environ.get("ADMIN_NOTIFY_EMAIL", "")).strip().lower()
 
 
 def _clerk_jwks_url() -> str:
@@ -239,7 +265,7 @@ def _ensure_org_for_profile(profile: dict, email: str, user_id: str) -> str | No
         return None
     updates = {"organization_id": org_id}
     if not profile.get("role"):
-        updates["role"] = "super_admin"
+        updates["role"] = "operator"
     try:
         client.table("user_profiles").update(updates).eq("id", profile["id"]).execute()
     except Exception:
@@ -255,7 +281,8 @@ def get_current_user_profile(
     """
     Validate Bearer token or fallback to API Key / headers.
     Returns dict with {"user_id", "organization_id", "role", "token"}.
-    New uninvited users are auto-created as super_admin; invited users keep the role set by host.
+    Access is admin-controlled: only invited users (pre-created profiles) and the
+    configured gatekeeper email get in; anyone else is left in a pending state.
     """
     token = credentials.credentials if credentials else None
     user = get_user_from_token(token)
@@ -263,24 +290,32 @@ def get_current_user_profile(
         email = x_user_email or user.get("email") or ""
         profile = get_user_profile(user["id"], email=email, token=token)
         if profile:
-            # Auto-provision a personal org for users left without one
-            # (uninvited / role-less); invited users already carry an org.
             org_id = _ensure_org_for_profile(profile, email, user["id"])
             return {
                 "user_id": user["id"],
                 "email": email,
                 "organization_id": org_id,
-                "role": profile.get("role") or "super_admin",
+                "role": profile.get("role") or "operator",
                 "token": token,
             }
-        # No profile and no matching invite — new uninvited user: create a
-        # super_admin profile + personal organization.
-        org_id = _create_super_admin_profile(user["id"], email)
+        # No profile and no matching invite. Only the configured gatekeeper
+        # email may bootstrap itself as super_admin; everyone else stays
+        # pending until an admin creates their account.
+        admin_email = _admin_notify_email()
+        if admin_email and email.strip().lower() == admin_email:
+            org_id = _create_super_admin_profile(user["id"], email)
+            return {
+                "user_id": user["id"],
+                "email": email,
+                "organization_id": org_id,
+                "role": "super_admin",
+                "token": token,
+            }
         return {
             "user_id": user["id"],
             "email": email,
-            "organization_id": org_id,
-            "role": "super_admin",
+            "organization_id": None,
+            "role": "pending",
             "token": token,
         }
 
@@ -296,16 +331,16 @@ def get_current_user_profile(
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
 
 class ReadingFields(BaseModel):
-    ph:               float = Field(..., description="pH units (DECCA: 6.0–9.0)")
-    do:               float = Field(..., description="Dissolved oxygen mg/L (DECCA: >4.0)")
-    tss:              float = Field(..., description="Total suspended solids mg/L (DECCA: <50)")
-    turbidity:        float = Field(..., description="Turbidity NTU (DECCA: <75)")
-    cod:              float = Field(..., description="Chemical oxygen demand mg/L (DECCA: <50)")
-    ammonia:          float = Field(..., description="Ammonia as N mg/L (DECCA: <5.0)")
-    phosphate:        float = Field(..., description="Total phosphate mg/L (DECCA: <5.0)")
-    oil_grease:       float = Field(..., description="Oils & grease mg/L (DECCA: <10)")
-    ecoli:            float = Field(..., description="E. coli CFU/100mL (DECCA: <200)")
-    total_coliforms:  float = Field(..., description="Total coliforms CFU/100mL (DECCA: <1000)")
+    ph:               float = Field(..., description="pH units (Limit: 6.0–9.0)")
+    do:               float = Field(..., description="Dissolved oxygen mg/L (Limit: >4.0)")
+    tss:              float = Field(..., description="Total suspended solids mg/L (Limit: <50)")
+    turbidity:        float = Field(..., description="Turbidity NTU (Limit: <75)")
+    cod:              float = Field(..., description="Chemical oxygen demand mg/L (Limit: <50)")
+    ammonia:          float = Field(..., description="Ammonia as N mg/L (Limit: <5.0)")
+    phosphate:        float = Field(..., description="Total phosphate mg/L (Limit: <5.0)")
+    oil_grease:       float = Field(..., description="Oils & grease mg/L (Limit: <10)")
+    ecoli:            float = Field(..., description="E. coli CFU/100mL (Limit: <200)")
+    total_coliforms:  float = Field(..., description="Total coliforms CFU/100mL (Limit: <1000)")
     chla:             float = Field(..., description="Chlorophyll-a µg/L (bloom watch >10)")
     phycocyanin:      float = Field(..., description="Phycocyanin µg/L (cyano watch >50)")
     salinity:         float = Field(..., description="Salinity PSU (typical 40–60)")
@@ -383,7 +418,7 @@ def _assess(reading: WaterReading) -> dict:
 @app.get("/health", tags=["System"])
 def health():
     """Liveness check. Returns ok when the server is running."""
-    return {"status": "ok", "service": "lagoon-decca-api"}
+    return {"status": "ok", "service": "lagoon-compliance-api"}
 
 
 class CreateSiteRequest(BaseModel):
@@ -491,7 +526,7 @@ def get_profile(profile: dict = Depends(get_current_user_profile)):
     return {
         "user_id": profile.get("user_id"),
         "organization_id": profile.get("organization_id"),
-        "role": profile.get("role", "super_admin"),
+        "role": profile.get("role", "operator"),
         "pending": profile.get("organization_id") is None and profile.get("user_id") is not None,
     }
 
@@ -519,23 +554,24 @@ def list_users(profile: dict = Depends(get_current_user_profile)):
     if not client:
         raise HTTPException(status_code=503, detail="Database not available.")
     try:
-        profiles_res = client.table("user_profiles").select("id, role").eq("organization_id", org_id).execute()
-        if not profiles_res.data:
-            return {"users": []}
-        profile_map = {p["id"]: p["role"] for p in profiles_res.data}
-        auth_users = client.auth.admin.list_users()
-        users = []
-        for u in auth_users:
-            if u.id not in profile_map:
-                continue
-            users.append({
-                "id": u.id,
-                "email": getattr(u, "email", None) or "",
-                "role": profile_map[u.id],
-                "created_at": str(getattr(u, "created_at", "")),
-                "last_sign_in": str(getattr(u, "last_sign_in_at", "") or ""),
-                "provider": (getattr(u, "app_metadata", {}) or {}).get("provider", "email"),
-            })
+        profiles_res = (
+            client.table("user_profiles")
+            .select("id, email, role, created_at, clerk_id")
+            .eq("organization_id", org_id)
+            .execute()
+        )
+        users = [
+            {
+                "id": p["id"],
+                "clerk_id": p.get("clerk_id"),
+                "email": p.get("email") or "",
+                "role": p["role"],
+                "created_at": str(p.get("created_at") or ""),
+                "last_sign_in": "",
+                "provider": "email" if p.get("clerk_id") else "pending",
+            }
+            for p in (profiles_res.data or [])
+        ]
         return {"users": users}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -550,11 +586,16 @@ def update_user_role(user_id: str, body: UpdateRoleRequest, profile: dict = Depe
         raise HTTPException(status_code=422, detail="Role must be operator, admin, or super_admin.")
     if body.role == "super_admin" and profile.get("role") != "super_admin":
         raise HTTPException(status_code=403, detail="Only super_admin can grant super_admin role.")
-    if user_id == profile.get("user_id"):
-        raise HTTPException(status_code=400, detail="Cannot change your own role.")
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     client = _gc()
+    # user_id is the profile row UUID; the caller is identified by Clerk ID, so
+    # compare the target's clerk_id (not its UUID) to block self-role-changes.
+    target = client.table("user_profiles").select("clerk_id").eq("id", user_id).eq("organization_id", org_id).execute()
+    if not target.data:
+        raise HTTPException(status_code=404, detail="User not found in your organisation.")
+    if target.data[0].get("clerk_id") == profile.get("user_id"):
+        raise HTTPException(status_code=400, detail="Cannot change your own role.")
     res = client.table("user_profiles").update({"role": body.role}).eq("id", user_id).eq("organization_id", org_id).execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="User not found in your organisation.")
@@ -566,15 +607,17 @@ def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile))
     """Remove a user from the organisation (deletes their profile). Requires admin or super_admin."""
     if profile.get("role") not in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Admin access required.")
-    if user_id == profile.get("user_id"):
-        raise HTTPException(status_code=400, detail="Cannot remove yourself.")
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     client = _gc()
     # Ensure target is in same org and not higher-ranked
-    target = client.table("user_profiles").select("role").eq("id", user_id).eq("organization_id", org_id).execute()
+    target = client.table("user_profiles").select("role, clerk_id").eq("id", user_id).eq("organization_id", org_id).execute()
     if not target.data:
         raise HTTPException(status_code=404, detail="User not found in your organisation.")
+    # user_id is the profile row UUID; the caller is identified by Clerk ID, so
+    # compare the target's clerk_id (not its UUID) to block self-removal.
+    if target.data[0].get("clerk_id") == profile.get("user_id"):
+        raise HTTPException(status_code=400, detail="Cannot remove yourself.")
     target_role = target.data[0]["role"]
     if target_role == "super_admin" and profile.get("role") != "super_admin":
         raise HTTPException(status_code=403, detail="Only super_admin can remove a super_admin.")
@@ -582,13 +625,38 @@ def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile))
     return {"removed": True, "user_id": user_id}
 
 
+def _create_clerk_user(email: str, password: str) -> str:
+    """Create a user in Clerk via the Backend API. Returns the new Clerk user ID.
+    Sign-up on the instance is restricted, so this is the only way accounts get made."""
+    sk = _clerk_secret_key()
+    if not sk:
+        raise HTTPException(
+            status_code=503,
+            detail="Clerk secret key not configured (CLERK_SECRET_KEY). Cannot create users.",
+        )
+    import httpx as _httpx
+    r = _httpx.post(
+        "https://api.clerk.com/v1/users",
+        headers={"Authorization": f"Bearer {sk}"},
+        json={"email_address": [email], "password": password},
+        timeout=10,
+    )
+    if r.status_code not in (200, 201):
+        try:
+            msg = r.json()["errors"][0]["message"]
+        except Exception:
+            msg = r.text[:200]
+        raise HTTPException(status_code=502, detail=f"Clerk user creation failed: {msg}")
+    return r.json()["id"]
+
+
 @app.post("/users/invite", tags=["Users"], status_code=201)
 def invite_user(body: InviteRequest, profile: dict = Depends(get_current_user_profile)):
     """
-    Pre-create a pending user profile for an invited email address.
-    The clerk_id is null until the user signs up via Clerk and their first sign-in
-    triggers an email-based profile link in get_user_profile().
-    TODO: send invite email via Clerk Invitations API or a transactional email service.
+    Admin-controlled account creation. Creates the user directly in Clerk with a
+    random temporary password (sign-up mode is 'restricted', so self-signup is
+    impossible) plus a linked profile row. The password is returned ONCE in the
+    response — the admin sends it to the user out-of-band.
     """
     if profile.get("role") not in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Admin access required.")
@@ -598,25 +666,98 @@ def invite_user(body: InviteRequest, profile: dict = Depends(get_current_user_pr
         raise HTTPException(status_code=403, detail="Only super_admin can invite as super_admin.")
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
+    import secrets as _secrets
     import uuid as _uuid
     client = _gc()
+    if not client:
+        raise HTTPException(status_code=503, detail="Database not available.")
+    email = body.email.strip().lower()
     try:
-        # Check for an existing profile with this email
-        existing = client.table("user_profiles").select("id").eq("email", body.email).execute()
+        existing = client.table("user_profiles").select("id").eq("email", email).execute()
         if existing.data:
-            raise HTTPException(status_code=409, detail=f"{body.email} is already invited or registered.")
+            raise HTTPException(status_code=409, detail=f"{email} is already invited or registered.")
+        temp_password = _secrets.token_urlsafe(12)
+        clerk_id = _create_clerk_user(email, temp_password)
         client.table("user_profiles").insert({
             "id": str(_uuid.uuid4()),
             "organization_id": org_id,
             "role": body.role,
-            "email": body.email,
-            # clerk_id left null — linked on first Clerk sign-in
+            "email": email,
+            "clerk_id": clerk_id,
         }).execute()
-        return {"invited": True, "email": body.email, "role": body.role}
+        return {
+            "invited": True,
+            "email": email,
+            "role": body.role,
+            "temp_password": temp_password,
+        }
     except HTTPException:
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Access requests (public) ──────────────────────────────────────────────────
+
+class AccessRequest(BaseModel):
+    email: str
+    name: str = ""
+    message: str = ""
+
+
+def _send_admin_email(subject: str, body_text: str) -> bool:
+    """Email the gatekeeper address via SMTP ([smtp] in secrets.toml or SMTP_* envs).
+    Returns False (after logging the message) when SMTP is not configured."""
+    to_addr = _admin_notify_email()
+    if not to_addr:
+        print(f"[access-request] ADMIN_NOTIFY_EMAIL not set; dropping notification:\n{body_text}", file=sys.stderr)
+        return False
+    smtp_cfg = _read_secrets_toml().get("smtp", {})
+    host = smtp_cfg.get("host") or os.environ.get("SMTP_HOST", "")
+    if not host:
+        print(f"[access-request] SMTP not configured; request for admin ({to_addr}):\n{body_text}", file=sys.stderr)
+        return False
+    port = int(smtp_cfg.get("port") or os.environ.get("SMTP_PORT", "587"))
+    user = smtp_cfg.get("user") or os.environ.get("SMTP_USER", "")
+    password = smtp_cfg.get("password") or os.environ.get("SMTP_PASS", "")
+    from_addr = smtp_cfg.get("from") or os.environ.get("SMTP_FROM", user or to_addr)
+    import smtplib
+    from email.message import EmailMessage
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = from_addr
+    msg["To"] = to_addr
+    msg.set_content(body_text)
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as s:
+            s.starttls()
+            if user:
+                s.login(user, password)
+            s.send_message(msg)
+        return True
+    except Exception as exc:
+        print(f"[access-request] SMTP send failed: {exc}\n{body_text}", file=sys.stderr)
+        return False
+
+
+@app.post("/access-request", tags=["Auth"], status_code=202)
+def request_access(body: AccessRequest):
+    """Public endpoint: a would-be user asks for access. The gatekeeper admin is
+    notified by email and then creates the account (which generates the random
+    password they pass on to the user)."""
+    email = body.email.strip().lower()
+    if "@" not in email:
+        raise HTTPException(status_code=422, detail="Valid email required.")
+    text = (
+        "New access request for Dubai Lagoons.\n\n"
+        f"Email:   {email}\n"
+        f"Name:    {body.name.strip() or '-'}\n"
+        f"Message: {body.message.strip()[:500] or '-'}\n\n"
+        "To grant access: sign in as admin -> Settings -> User Management -> Invite User.\n"
+        "A one-time password will be generated for you to send to them."
+    )
+    _send_admin_email("Dubai Lagoons — access request", text)
+    return {"requested": True}
 
 
 # ── Billing ───────────────────────────────────────────────────────────────────
@@ -632,8 +773,18 @@ class PortalRequest(BaseModel):
 
 @app.get("/billing/status", tags=["Billing"])
 def billing_status(profile: dict = Depends(get_current_user_profile)):
-    """Return current plan, site usage, and whether Stripe is configured."""
-    from billing import get_org_billing, count_sites, PLANS, is_configured
+    """Return current plan, site usage, and whether payments are configured."""
+    from billing import (
+        get_org_billing, count_sites, PLANS, is_configured,
+        has_subscription, provider_name, supports_portal,
+    )
+    configured = is_configured()
+    common = {
+        "payment_provider":   provider_name(),
+        "payments_configured": configured,
+        "portal_available":   supports_portal(),
+        "available_plans":    PLANS,
+    }
     org_id = profile.get("organization_id")
     if not org_id:
         # No org yet (e.g. fresh super_admin). Return a complete, well-formed shape so the
@@ -646,8 +797,7 @@ def billing_status(profile: dict = Depends(get_current_user_profile)):
             "sites_used":        0,
             "can_add_site":      False,
             "has_subscription":  False,
-            "stripe_configured": is_configured(),
-            "available_plans":   PLANS,
+            **common,
         }
     billing = get_org_billing(org_id)
     plan_key = billing.get("plan_name", "starter")
@@ -661,20 +811,20 @@ def billing_status(profile: dict = Depends(get_current_user_profile)):
         "site_limit":        site_limit,
         "sites_used":        sites_used,
         "can_add_site":      sites_used < site_limit,
-        "has_subscription":  bool(billing.get("stripe_subscription_id")),
-        "stripe_configured": is_configured(),
-        "available_plans":   PLANS,
+        "has_subscription":  has_subscription(billing),
+        "subscription_status": billing.get("subscription_status"),
+        **common,
     }
 
 
 @app.post("/billing/checkout", tags=["Billing"])
 def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_user_profile)):
-    """Create a Stripe Checkout session and return the redirect URL."""
+    """Create a hosted checkout session with the payment provider and return the redirect URL."""
     if profile.get("role") not in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Admin access required.")
     from billing import create_checkout_session, is_configured, PLANS
     if not is_configured():
-        raise HTTPException(status_code=503, detail="Stripe is not configured. Add stripe.secret_key to secrets.toml.")
+        raise HTTPException(status_code=503, detail="Payments are not configured. Add your payment provider keys to secrets.toml.")
     if body.plan not in PLANS:
         raise HTTPException(status_code=422, detail=f"Unknown plan '{body.plan}'. Choose: {', '.join(PLANS.keys())}")
     org_id = profile.get("organization_id", "")
@@ -688,37 +838,62 @@ def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_
         cancel_url=body.cancel_url,
     )
     if not url:
-        raise HTTPException(status_code=500, detail=f"No Stripe price ID configured for plan '{body.plan}'.")
+        raise HTTPException(status_code=500, detail=f"Could not create a checkout session for plan '{body.plan}'.")
     return {"checkout_url": url}
 
 
 @app.post("/billing/portal", tags=["Billing"])
 def billing_portal(body: PortalRequest, profile: dict = Depends(get_current_user_profile)):
-    """Create a Stripe Customer Portal session for plan/payment management."""
+    """Create a hosted billing-portal session for plan/payment management
+    (only for providers that offer one)."""
     if profile.get("role") not in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Admin access required.")
-    from billing import create_portal_session, is_configured
+    from billing import create_portal_session, is_configured, supports_portal
     if not is_configured():
-        raise HTTPException(status_code=503, detail="Stripe is not configured.")
+        raise HTTPException(status_code=503, detail="Payments are not configured.")
+    if not supports_portal():
+        raise HTTPException(
+            status_code=400,
+            detail="The current payment provider does not offer a hosted billing portal.",
+        )
     org_id = profile.get("organization_id", "")
     url = create_portal_session(org_id=org_id, return_url=body.return_url)
     if not url:
         raise HTTPException(
             status_code=400,
-            detail="No Stripe customer record found. Complete a checkout first.",
+            detail="No customer record found with the payment provider. Complete a checkout first.",
         )
     return {"portal_url": url}
 
 
+@app.post("/billing/cancel", tags=["Billing"])
+def billing_cancel(profile: dict = Depends(get_current_user_profile)):
+    """Cancel the organization's subscription and downgrade to the starter plan."""
+    if profile.get("role") not in ("admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    from billing import cancel_subscription, get_org_billing, has_subscription, is_configured
+    if not is_configured():
+        raise HTTPException(status_code=503, detail="Payments are not configured.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+    if not has_subscription(get_org_billing(org_id)):
+        raise HTTPException(status_code=400, detail="No active subscription to cancel.")
+    if not cancel_subscription(org_id):
+        raise HTTPException(status_code=500, detail="Cancellation failed. Try again or contact support.")
+    return {"cancelled": True}
+
+
 @app.post("/billing/webhook", tags=["Billing"], include_in_schema=False)
 async def billing_webhook(request: Request):
-    """Stripe webhook — updates org plan and site_limit on subscription events."""
+    """Payment provider webhook — updates org plan and site_limit on
+    subscription/payment events. The active provider verifies its own
+    signature header (e.g. stripe-signature, cko-signature)."""
     from billing import handle_webhook, is_configured
     if not is_configured():
-        raise HTTPException(status_code=503, detail="Stripe not configured.")
+        raise HTTPException(status_code=503, detail="Payments are not configured.")
     payload = await request.body()
-    sig = request.headers.get("stripe-signature", "")
-    result = handle_webhook(payload, sig)
+    result = handle_webhook(payload, dict(request.headers))
     if not result.get("handled") and result.get("error"):
         raise HTTPException(status_code=400, detail=result["error"])
     return {"received": True, "event_type": result.get("event_type")}
@@ -726,7 +901,7 @@ async def billing_webhook(request: Request):
 
 @app.post("/assess", tags=["Compliance"])
 def assess(body: AssessRequest, _=Security(_check_key)):
-    """Check a set of readings against DECCA limits and the alert engine.
+    """Check a set of readings against compliance limits and the alert engine.
     Does NOT save to the database — use this to validate before logging,
     or when a field team just wants a quick compliance check.
     """
@@ -736,7 +911,7 @@ def assess(body: AssessRequest, _=Security(_check_key)):
 
 @app.post("/log", tags=["Compliance"])
 def log_reading(body: LogRequest, _=Security(_check_key), profile: dict = Depends(get_current_user_profile)):
-    """Save a monthly reading for a site, then return the full DECCA
+    """Save a monthly reading for a site, then return the full Compliance
     compliance assessment, alert level, and treatment response.
     Enforces role validation and tenant data isolation.
     """
@@ -773,6 +948,168 @@ def log_reading(body: LogRequest, _=Security(_check_key), profile: dict = Depend
         "period":     f"{MONTH_NAMES[body.month - 1]} {body.year}",
         "assessment": assessment,
     }
+
+
+# ── Sludge & sediment ─────────────────────────────────────────────────────────
+
+class SludgeZoneRequest(BaseModel):
+    zone_name:      str   = Field(..., min_length=1, max_length=80)
+    total_depth_m:  float = Field(..., gt=0, description="Total water column depth (m)")
+    sludge_depth_m: float = Field(..., ge=0, description="Accumulated sludge depth (m)")
+    survey_date:    Optional[str] = Field(None, description="ISO date of the survey (YYYY-MM-DD)")
+
+
+@app.get("/sludge/{site}", tags=["Sludge"])
+def list_sludge_zones(site: str, profile: dict = Depends(get_current_user_profile)):
+    """Return the sludge survey zones for a site, each with derived capacity metrics."""
+    from db.queries import get_sludge_zones
+    zones = get_sludge_zones(site, organization_id=profile.get("organization_id"), token=profile.get("token"))
+    return {"site": site, "zones": zones}
+
+
+@app.post("/sludge/{site}", tags=["Sludge"], status_code=201)
+def save_sludge_zone(site: str, body: SludgeZoneRequest, profile: dict = Depends(get_current_user_profile)):
+    """Add or update a sludge zone survey for a site. Requires operator/admin/super_admin."""
+    if profile.get("role") not in ("operator", "admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Your role cannot record sludge surveys.")
+    if body.sludge_depth_m > body.total_depth_m:
+        raise HTTPException(status_code=422, detail="Sludge depth cannot exceed total depth.")
+    from db.queries import upsert_sludge_zone
+    ok, msg = upsert_sludge_zone(
+        site, body.zone_name.strip(), body.total_depth_m, body.sludge_depth_m,
+        survey_date=body.survey_date,
+        organization_id=profile.get("organization_id"), token=profile.get("token"),
+    )
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    return {"saved": True, "message": msg, "zone_name": body.zone_name.strip()}
+
+
+@app.delete("/sludge/{site}/{zone_name}", tags=["Sludge"])
+def remove_sludge_zone(site: str, zone_name: str, profile: dict = Depends(get_current_user_profile)):
+    """Delete a sludge zone from a site. Requires operator/admin/super_admin."""
+    if profile.get("role") not in ("operator", "admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Your role cannot delete sludge surveys.")
+    from db.queries import delete_sludge_zone
+    ok, msg = delete_sludge_zone(
+        site, zone_name,
+        organization_id=profile.get("organization_id"), token=profile.get("token"),
+    )
+    if not ok:
+        raise HTTPException(status_code=404, detail=msg)
+    return {"deleted": True, "message": msg}
+
+
+@app.get("/readings/{site}", tags=["Compliance"])
+def site_readings(site: str, year: int = 2026, _=Security(_check_key), profile: dict = Depends(get_current_user_profile)):
+    """Return the raw monthly readings for a site (all 14 parameters per month),
+    ordered by month. Drives the live Water Quality Monitoring data log."""
+    try:
+        from db.queries import get_readings_for_site
+        readings = get_readings_for_site(site, year=year, organization_id=profile["organization_id"], token=profile["token"])
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    rows = [
+        {
+            "month":           r.timestamp.month,
+            "month_name":      MONTH_NAMES[r.timestamp.month - 1],
+            "ph":              r.ph,
+            "do":              r.do,
+            "tss":             r.tss,
+            "turbidity":       r.turbidity,
+            "cod":             r.cod,
+            "ammonia":         r.ammonia,
+            "phosphate":       r.phosphate,
+            "oil_grease":      r.oil_grease,
+            "ecoli":           r.ecoli,
+            "total_coliforms": r.total_coliforms,
+            "chla":            r.chla,
+            "phycocyanin":     r.phycocyanin,
+            "salinity":        r.salinity,
+            "water_temp":      r.water_temp,
+        }
+        for r in sorted(readings, key=lambda x: x.timestamp.month)
+    ]
+    return {"site": site, "year": year, "rows": rows}
+
+
+@app.get("/community/{site}", tags=["Science"])
+def site_community(site: str, year: int = 2026, profile: dict = Depends(get_current_user_profile)):
+    """Predict the favoured algae community/type and ecological succession stage
+    for a site from its most recent stored reading. Recommends a confirmatory
+    lab test when conditions favour cyanobacteria."""
+    try:
+        from db.queries import get_readings_for_site
+        readings = get_readings_for_site(site, year=year,
+                                         organization_id=profile.get("organization_id"),
+                                         token=profile.get("token"))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    if not readings:
+        return {"site": site, "available": False,
+                "message": "No readings yet — log a lab report to get an algae & bloom forecast."}
+
+    latest = max(readings, key=lambda r: r.timestamp.month)
+    from dataclasses import asdict
+    from science.community import classify_community
+    forecast = classify_community(
+        temperature=latest.water_temp, dissolved_oxygen=latest.do,
+        ammonia=latest.ammonia, phosphate=latest.phosphate,
+        chla=latest.chla, phycocyanin=latest.phycocyanin, salinity=latest.salinity,
+    )
+    return {
+        "site": site,
+        "available": True,
+        "period": f"{MONTH_NAMES[latest.timestamp.month - 1]} {latest.timestamp.year}",
+        "forecast": asdict(forecast),
+    }
+
+
+class DataRequestBody(BaseModel):
+    items:  list[str] = Field(..., min_length=1, description="Parameters / tests to request")
+    reason: str = Field("", max_length=500)
+
+
+@app.get("/community/{site}/requests", tags=["Science"])
+def list_data_requests(site: str, profile: dict = Depends(get_current_user_profile)):
+    """List open data/lab requests for a site."""
+    from db.queries import get_open_data_requests
+    reqs = get_open_data_requests(site, organization_id=profile.get("organization_id"),
+                                  token=profile.get("token"))
+    return {"site": site, "requests": reqs}
+
+
+@app.post("/community/{site}/requests", tags=["Science"], status_code=201)
+def create_data_request_endpoint(site: str, body: DataRequestBody,
+                                 profile: dict = Depends(get_current_user_profile)):
+    """Create an open data/lab request for a site. Requires operator/admin/super_admin."""
+    if profile.get("role") not in ("operator", "admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Your role cannot raise requests.")
+    from db.queries import create_data_request
+    ok, msg, row = create_data_request(
+        site, [i.strip() for i in body.items if i.strip()], reason=body.reason,
+        organization_id=profile.get("organization_id"), token=profile.get("token"),
+    )
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    return {"created": True, "message": msg, "request": row}
+
+
+@app.delete("/community/{site}/requests/{request_id}", tags=["Science"])
+def dismiss_data_request_endpoint(site: str, request_id: str,
+                                  profile: dict = Depends(get_current_user_profile)):
+    """Mark a data/lab request fulfilled. Requires operator/admin/super_admin."""
+    if profile.get("role") not in ("operator", "admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Your role cannot update requests.")
+    from db.queries import dismiss_data_request
+    ok, msg = dismiss_data_request(request_id, site,
+                                   organization_id=profile.get("organization_id"),
+                                   token=profile.get("token"))
+    if not ok:
+        raise HTTPException(status_code=404, detail=msg)
+    return {"fulfilled": True, "message": msg}
 
 
 @app.get("/status/{site}", tags=["Compliance"])
@@ -815,13 +1152,13 @@ def tool_schemas():
         "tools": [
             {
                 "name": "assess_reading",
-                "description": "Check water quality values against DECCA limits. No save.",
+                "description": "Check water quality values against compliance limits. No save.",
                 "endpoint": "POST /assess",
                 "input_schema": AssessRequest.model_json_schema(),
             },
             {
                 "name": "log_reading",
-                "description": "Save a monthly reading and return DECCA compliance + alert level.",
+                "description": "Save a monthly reading and return compliance + alert level.",
                 "endpoint": "POST /log",
                 "input_schema": LogRequest.model_json_schema(),
             },
@@ -922,13 +1259,13 @@ async def extract_lab_report_endpoint(
     profile: dict = Depends(get_current_user_profile),
 ):
     """Extract water-quality readings from a lab-report photo or PDF using Claude vision.
-    Returns the 14 DECCA parameters as JSON. Human review is required before saving.
+    Returns the 14 Compliance parameters as JSON. Human review is required before saving.
     """
     from extract import extract_lab_report, is_configured
     if not is_configured():
         raise HTTPException(
             status_code=503,
-            detail="AI extraction requires ANTHROPIC_API_KEY — set the environment variable and restart.",
+            detail="AI extraction needs an Anthropic API key. Add it under [anthropic] api_key in .streamlit/secrets.toml (or set the ANTHROPIC_API_KEY env var), then try the upload again.",
         )
     content = await file.read()
     media_type = file.content_type or "image/jpeg"
@@ -945,13 +1282,13 @@ async def extract_lab_report_endpoint(
 
 
 @app.get("/report/{site}", tags=["Reporting"])
-def download_decca_report(
+def download_compliance_report(
     site: str,
     year: int = 2026,
     draft: bool = True,
     profile: dict = Depends(get_current_user_profile),
 ):
-    """Generate a DECCA compliance PDF for the given site and year.
+    """Generate a compliance PDF for the given site and year.
     Pass ?draft=false for a clean (watermark-free) official report.
     Returns application/pdf as an attachment download.
     """
@@ -972,13 +1309,13 @@ def download_decca_report(
         )
 
     try:
-        from reporting import build_decca_report
-        pdf_bytes = build_decca_report(site, year, readings, draft=draft)
+        from reporting import build_compliance_report
+        pdf_bytes = build_compliance_report(site, year, readings, draft=draft)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"PDF generation error: {exc}")
 
     suffix = "_DRAFT" if draft else ""
-    filename = f"DECCA_{site}_{year}{suffix}.pdf"
+    filename = f"Compliance_{site}_{year}{suffix}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",

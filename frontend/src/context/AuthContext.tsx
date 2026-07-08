@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useAuth as useClerkAuth, useUser } from '@clerk/react'
 
 interface AuthContextType {
@@ -7,18 +7,27 @@ interface AuthContextType {
   role: string
   organizationId: string | null
   token: string | null
+  /** Fetch a FRESH Clerk session token. Use this for authenticated writes —
+   *  the cached `token` can expire (Clerk tokens live ~60s). */
+  getToken: () => Promise<string | null>
+  email: string
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Clerk session tokens expire ~60s; refresh comfortably inside that window.
+const TOKEN_REFRESH_MS = 45_000
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isLoaded, isSignedIn, getToken, signOut: clerkSignOut } = useClerkAuth()
+  const { isLoaded, isSignedIn, getToken: clerkGetToken, signOut: clerkSignOut } = useClerkAuth()
   const { user: clerkUser } = useUser()
   const [role, setRole] = useState('operator')
   const [organizationId, setOrganizationId] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [profileLoaded, setProfileLoaded] = useState(false)
+
+  const email = clerkUser?.primaryEmailAddress?.emailAddress ?? ''
 
   useEffect(() => {
     if (!isLoaded) return
@@ -29,38 +38,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfileLoaded(true)
       return
     }
-    fetchProfile()
-  }, [isLoaded, isSignedIn])
 
-  const fetchProfile = async () => {
-    try {
-      const t = await getToken()
-      setToken(t)
-      if (t) {
-        const email = clerkUser?.primaryEmailAddress?.emailAddress ?? ''
+    let cancelled = false
+
+    const refresh = async (): Promise<string | null> => {
+      try {
+        const t = await clerkGetToken()
+        if (!cancelled) setToken(t)
+        return t
+      } catch {
+        return null
+      }
+    }
+
+    const loadProfile = async (t: string | null) => {
+      if (!t) return
+      try {
         const res = await fetch('/api/profile', {
-          headers: {
-            Authorization: `Bearer ${t}`,
-            'X-User-Email': email,
-          },
+          headers: { Authorization: `Bearer ${t}`, 'X-User-Email': email },
         })
-        if (res.ok) {
+        if (res.ok && !cancelled) {
           const data = await res.json()
           setRole(data.role || 'operator')
           setOrganizationId(data.organization_id || null)
         }
+      } catch (err) {
+        console.error('Profile fetch error:', err)
       }
-    } catch (err) {
-      console.error('Profile fetch error:', err)
-    } finally {
-      setProfileLoaded(true)
     }
-  }
 
-  const user =
-    isSignedIn && clerkUser
-      ? { id: clerkUser.id, email: clerkUser.primaryEmailAddress?.emailAddress ?? '' }
-      : null
+    void (async () => {
+      const t = await refresh()
+      await loadProfile(t)
+      if (!cancelled) setProfileLoaded(true)
+    })()
+
+    // Keep the cached token fresh so authenticated writes never send a stale token.
+    const id = setInterval(refresh, TOKEN_REFRESH_MS)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn, email])
+
+  // Always returns a fresh token (Clerk caches/rotates internally) and syncs state.
+  const getToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const t = await clerkGetToken()
+      setToken(t)
+      return t
+    } catch {
+      return null
+    }
+  }, [clerkGetToken])
+
+  const user = isSignedIn && clerkUser ? { id: clerkUser.id, email } : null
 
   return (
     <AuthContext.Provider
@@ -70,6 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role,
         organizationId,
         token,
+        getToken,
+        email,
         signOut: clerkSignOut,
       }}
     >

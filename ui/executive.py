@@ -1,4 +1,4 @@
-"""Executive Dashboard — high-level overview for DECCA / Client."""
+"""Executive Dashboard — high-level overview for Compliance / Client."""
 import streamlit as st
 
 from datetime import date
@@ -16,7 +16,7 @@ import pandas as pd
 def render():
     page_header(
         "DUBAI LAGOON MANAGEMENT PLAN",
-        "Compliance Dashboard — DECCA / Dubai Municipality / Client View",
+        "Compliance Dashboard — Dubai Municipality / Client View",
         icon="🏛️",
     )
 
@@ -47,7 +47,7 @@ def render():
         alert_level_badge(AlertLevel(alert.level))
     with cols[1]:
         color = "#27ae60" if summary["overall_status"] == "COMPLIANT" else "#e74c3c"
-        metric_card("DECCA Compliance", summary["overall_status"], color)
+        metric_card("Compliance", summary["overall_status"], color)
     with cols[2]:
         metric_card("Compliance Streak", f"{streak} mo",
                      "#27ae60" if streak >= 3 else "#f39c12",
@@ -63,8 +63,8 @@ def render():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── DECCA Compliance Table ──
-    section_header("DECCA/DM Water Quality Compliance Status")
+    # ── Compliance Table ──
+    section_header("Dubai Municipality Water Quality Compliance Status")
     compliance_table(results)
 
     # ── Compliance summary bar ──

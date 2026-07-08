@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from core.constants import DECCA_LIMITS, MONTH_NAMES
+from core.constants import COMPLIANCE_LIMITS, MONTH_NAMES
 from data.provider import get_monthly_readings, get_monthly_table
 from ui.components import page_header, section_header
 
@@ -91,9 +91,9 @@ def render():
         secondary_y=True,
     )
 
-    # DECCA DO limit line
+    # Compliance DO limit line
     fig.add_hline(y=4.0, line_dash="dot", line_color="#e74c3c",
-                  annotation_text="DECCA DO Limit (4.0 mg/L)", secondary_y=False)
+                  annotation_text="Compliance DO Limit (4.0 mg/L)", secondary_y=False)
 
     fig.update_layout(
         height=450,

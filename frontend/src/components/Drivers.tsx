@@ -1,5 +1,6 @@
 import React from 'react'
 import { PageHeader } from './PageHeader'
+import { DriversIntelligence } from './DriversIntelligence'
 import {
   MONTH_NAMES,
   SOLAR_IRRADIANCE,
@@ -97,6 +98,9 @@ export const Drivers: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <PageHeader title="Environmental Drivers" subtitle="The Four Key Drivers of Algae Dynamics in Dubai Lagoons" />
+
+      {/* 0. INTELLIGENCE — Bloom Pressure synthesis of the four drivers */}
+      <DriversIntelligence />
 
       {/* 1. SOLAR RADIATION */}
       <div className="glass-card" style={{ padding: '1.5rem' }}>

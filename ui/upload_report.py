@@ -12,7 +12,7 @@ from db.client import is_configured as db_configured
 from db.queries import get_site_names, insert_reading
 from ui.components import page_header, section_header, callout
 
-# (extract key, label, unit, DECCA hint, readings-table column)
+# (extract key, label, unit, Compliance hint, readings-table column)
 _FIELDS = [
     ("ph",              "pH",                "",          "6.0–9.0",      "ph"),
     ("do",              "Dissolved Oxygen",  "mg/L",      "> 4.0",        "do_mgl"),
@@ -97,7 +97,7 @@ def render():
                 values[key] = st.number_input(
                     f"{label}" + (f" ({unit})" if unit else ""),
                     value=float(pre) if isinstance(pre, (int, float)) else 0.0,
-                    step=0.1, format="%.2f", help=f"DECCA: {hint}")
+                    step=0.1, format="%.2f", help=f"Limit: {hint}")
         submitted = st.form_submit_button("Save Reading", type="primary", width='stretch')
 
     if submitted:

@@ -1,4 +1,4 @@
-"""Lagoon DECCA — MCP server.
+"""Lagoon Compliance — MCP server.
 
 Exposes the pure `core/` compliance + alert logic and the Supabase data
 layer as agent tools, so field teams can log readings and query compliance
@@ -33,7 +33,7 @@ from core.constants import (
 )
 from core.models import WaterReading
 
-mcp = FastMCP("lagoon-decca")
+mcp = FastMCP("lagoon-compliance")
 
 # Optional single-site lock for a field team's install.
 LOCKED_SITE = os.environ.get("FAH_SITE")
@@ -131,7 +131,7 @@ def assess_reading(
     total_coliforms: float, chla: float, phycocyanin: float,
     salinity: float, water_temp: float,
 ) -> dict:
-    """Check a set of water-quality values against DECCA limits and the alert
+    """Check a set of water-quality values against compliance limits and the alert
     engine WITHOUT saving. Returns compliance status, alert level, and the
     recommended treatment response. Use this to sanity-check before logging.
 
@@ -157,7 +157,7 @@ def log_reading(
     overwrite: bool = False,
 ) -> dict:
     """Save a monthly water-quality reading for a site to the database, then
-    return the DECCA compliance assessment + alert level + treatment response.
+    return the compliance assessment + alert level + treatment response.
 
     `month` is 1–12. Set `overwrite=True` to replace an existing reading for
     the same site/year/month. If the server is locked to a site via FAH_SITE,
@@ -196,7 +196,7 @@ def log_reading(
 
 @mcp.tool()
 def get_site_status(site: str | None = None, year: int = 2026) -> dict:
-    """Return all stored readings for a site this year, each with its DECCA
+    """Return all stored readings for a site this year, each with its Compliance
     compliance status and alert level. Use this to answer 'is <site>
     compliant?' or 'what's the trend at <site>?'.
     """

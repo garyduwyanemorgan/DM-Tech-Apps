@@ -50,7 +50,7 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
             DUBAI LAGOON MANAGEMENT PLATFORM
           </h1>
           <p style={{ margin: '0.4rem 0 0', color: 'rgba(255,255,255,0.72)', fontSize: '0.9rem' }}>
-            Predictive water-quality monitoring &amp; DECCA compliance — GDM Enviro Consultants
+            Predictive water-quality monitoring &amp; compliance — GDM Enviro Consultants
           </p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
             COMPLIANCE STANDARD
           </div>
           <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1B3A5C', lineHeight: 1 }}>
-            DECCA / DM
+            Dubai Municipality (DM)
           </div>
           <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>Dubai Municipality norms</div>
         </div>
@@ -125,9 +125,9 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
             {
               icon: '📄',
               title: 'Produce a report',
-              desc: 'Submission-ready DECCA compliance PDF.',
-              btn: 'DECCA Reporting',
-              tab: 'decca',
+              desc: 'Submission-ready compliance PDF.',
+              btn: 'Compliance Reporting',
+              tab: 'compliance',
             },
           ].map(item => (
             <div
@@ -171,7 +171,7 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
             { word: 'Record', rest: 'field readings (upload a lab report, or via the field app).' },
             { word: 'Monitor', rest: 'current compliance and alert status across your lagoons.' },
             { word: 'Analyse', rest: '— the intelligence engine forecasts blooms and recommends the cheapest effective intervention.' },
-            { word: 'Report', rest: '— generate the official DECCA compliance document.' },
+            { word: 'Report', rest: '— generate the official compliance document.' },
             { word: 'Reference', rest: '— treatment calendar, species, sludge and technology guidance.' },
           ].map(({ word, rest }) => (
             <li key={word} style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.6 }}>

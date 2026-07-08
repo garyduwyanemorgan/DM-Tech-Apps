@@ -397,3 +397,179 @@ def get_site_reading_count(site_name: str, organization_id: str | None = None, t
     except Exception:
         return 0
 
+
+# ── Sludge & sediment surveys ────────────────────────────────────────────────
+
+# Depth columns may be named *_m (post-metric-rename) or the original *_ft; the
+# VALUES are always metres. Detect once which pair the table actually has so the
+# feature works whether or not migration 004 has been applied.
+_SLUDGE_DEPTH_COLS: tuple[str, str] | None = None
+
+
+def _sludge_depth_cols(client) -> tuple[str, str]:
+    """Return (total_col, sludge_col) — whichever naming the table currently uses."""
+    global _SLUDGE_DEPTH_COLS
+    if _SLUDGE_DEPTH_COLS:
+        return _SLUDGE_DEPTH_COLS
+    for total_col, sludge_col in (("total_depth_m", "sludge_depth_m"),
+                                  ("total_depth_ft", "sludge_depth_ft")):
+        try:
+            client.table("sludge_surveys").select(total_col).limit(1).execute()
+            _SLUDGE_DEPTH_COLS = (total_col, sludge_col)
+            return _SLUDGE_DEPTH_COLS
+        except Exception:
+            continue
+    _SLUDGE_DEPTH_COLS = ("total_depth_m", "sludge_depth_m")
+    return _SLUDGE_DEPTH_COLS
+
+
+def _zone_with_metrics(row: dict) -> dict:
+    """Attach derived capacity metrics to a raw sludge_surveys row. Depths in metres."""
+    total = row.get("total_depth_m") or row.get("total_depth_ft") or 0.0
+    sludge = row.get("sludge_depth_m") or row.get("sludge_depth_ft") or 0.0
+    effective = total - sludge
+    loss_pct = (sludge / total * 100.0) if total else 0.0
+    status = "CRITICAL" if loss_pct > 30 else "WARNING" if loss_pct > 20 else "OK"
+    return {
+        "zone_name": row.get("zone_name", ""),
+        "total_depth_m": total,
+        "sludge_depth_m": sludge,
+        "effective_depth_m": round(effective, 2),
+        "capacity_loss_pct": round(loss_pct, 1),
+        "status": status,
+        "survey_date": str(row.get("survey_date") or ""),
+    }
+
+
+def get_sludge_zones(site_name: str, organization_id: str | None = None,
+                     token: str | None = None) -> List[dict]:
+    """Return the sludge survey zones for a site, each with derived metrics.
+    Empty list if the table is absent, the site is unknown, or on any error."""
+    client = get_client()
+    if not client:
+        return []
+    try:
+        site_id = get_or_create_site_id(site_name, organization_id, token)
+        if not site_id:
+            return []
+        res = (client.table("sludge_surveys").select("*")
+               .eq("site_id", site_id).order("zone_name").execute())
+        return [_zone_with_metrics(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def upsert_sludge_zone(site_name: str, zone_name: str, total_depth_m: float,
+                       sludge_depth_m: float, survey_date: str | None = None,
+                       organization_id: str | None = None,
+                       token: str | None = None) -> tuple[bool, str]:
+    """Insert or update one sludge zone for a site (keyed on site_id + zone_name).
+    Depths in metres. Returns (success, message)."""
+    client = get_client()
+    if not client:
+        return False, "Supabase not configured."
+    site_id = get_or_create_site_id(site_name, organization_id, token)
+    if not site_id:
+        return False, "Site not found for this organization."
+    total_col, sludge_col = _sludge_depth_cols(client)
+    row = {
+        "site_id": site_id,
+        "zone_name": zone_name,
+        total_col: total_depth_m,   # value is metres regardless of column name
+        sludge_col: sludge_depth_m,
+    }
+    if survey_date:
+        row["survey_date"] = survey_date
+    try:
+        client.table("sludge_surveys").upsert(row, on_conflict="site_id,zone_name").execute()
+        return True, "Zone saved."
+    except Exception as exc:
+        msg = str(exc)
+        if "sludge_surveys" in msg and ("does not exist" in msg or "not find the table" in msg.lower()):
+            return False, "Sludge table not found — run migration 003_sludge_surveys.sql in Supabase."
+        return False, f"Database error: {msg}"
+
+
+def delete_sludge_zone(site_name: str, zone_name: str, organization_id: str | None = None,
+                       token: str | None = None) -> tuple[bool, str]:
+    """Delete one sludge zone from a site. Returns (success, message)."""
+    client = get_client()
+    if not client:
+        return False, "Supabase not configured."
+    site_id = get_or_create_site_id(site_name, organization_id, token)
+    if not site_id:
+        return False, "Site not found for this organization."
+    try:
+        res = (client.table("sludge_surveys").delete()
+               .eq("site_id", site_id).eq("zone_name", zone_name).execute())
+        if not res.data:
+            return False, f"Zone '{zone_name}' not found."
+        return True, f"Zone '{zone_name}' deleted."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+# ── Data & lab requests ──────────────────────────────────────────────────────
+
+def create_data_request(site_name: str, items: List[str], reason: str = "",
+                        organization_id: str | None = None,
+                        token: str | None = None) -> tuple[bool, str, dict | None]:
+    """Persist an open data/lab request for a site. Returns (ok, message, row)."""
+    client = get_client()
+    if not client:
+        return False, "Supabase not configured.", None
+    site_id = get_or_create_site_id(site_name, organization_id, token)
+    if not site_id:
+        return False, "Site not found for this organization.", None
+    if not items:
+        return False, "Nothing to request — no items supplied.", None
+    try:
+        res = client.table("data_requests").insert({
+            "site_id": site_id, "items": items, "reason": reason, "status": "open",
+        }).execute()
+        row = res.data[0] if res.data else None
+        return True, "Request created.", row
+    except Exception as exc:
+        msg = str(exc)
+        if "data_requests" in msg and ("does not exist" in msg or "not find the table" in msg.lower()):
+            return False, "Requests table not found — run migration 005_data_requests.sql in Supabase.", None
+        return False, f"Database error: {msg}", None
+
+
+def get_open_data_requests(site_name: str, organization_id: str | None = None,
+                          token: str | None = None) -> List[dict]:
+    """Return open data/lab requests for a site (newest first). [] if none/absent."""
+    client = get_client()
+    if not client:
+        return []
+    try:
+        site_id = get_or_create_site_id(site_name, organization_id, token)
+        if not site_id:
+            return []
+        res = (client.table("data_requests").select("*")
+               .eq("site_id", site_id).eq("status", "open")
+               .order("created_at", desc=True).execute())
+        return res.data or []
+    except Exception:
+        return []
+
+
+def dismiss_data_request(request_id: str, site_name: str,
+                        organization_id: str | None = None,
+                        token: str | None = None) -> tuple[bool, str]:
+    """Mark a request fulfilled (scoped to the site's organization)."""
+    client = get_client()
+    if not client:
+        return False, "Supabase not configured."
+    site_id = get_or_create_site_id(site_name, organization_id, token)
+    if not site_id:
+        return False, "Site not found for this organization."
+    try:
+        res = (client.table("data_requests").update({"status": "fulfilled"})
+               .eq("id", request_id).eq("site_id", site_id).execute())
+        if not res.data:
+            return False, "Request not found."
+        return True, "Request marked fulfilled."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+

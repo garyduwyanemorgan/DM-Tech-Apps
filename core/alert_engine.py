@@ -59,11 +59,11 @@ def evaluate_alert_level(reading: WaterReading) -> AlertState:
             level = AlertLevel.WATCH
             reasons.append(f"Water temp {temp}°C > 28")
 
-    # ── DECCA compliance override ──
-    decca_breach = _check_decca_breach(reading)
-    if decca_breach and level < AlertLevel.WARNING:
+    # ── compliance override ──
+    compliance_breach = _check_compliance_breach(reading)
+    if compliance_breach and level < AlertLevel.WARNING:
         level = AlertLevel.WARNING
-        reasons.append(f"DECCA breach: {decca_breach}")
+        reasons.append(f"Compliance breach: {compliance_breach}")
 
     # ── Species classification ──
     if reading.chla > 0.1:
@@ -85,8 +85,8 @@ def evaluate_alert_level(reading: WaterReading) -> AlertState:
     )
 
 
-def _check_decca_breach(r: WaterReading) -> Optional[str]:
-    """Return the name of the first breached DECCA parameter, or None."""
+def _check_compliance_breach(r: WaterReading) -> Optional[str]:
+    """Return the name of the first breached Compliance parameter, or None."""
     if not (6.0 <= r.ph <= 9.0):
         return f"pH {r.ph}"
     if r.do <= 4.0:
@@ -119,7 +119,7 @@ DE_ESCALATION_RULES = {
 }
 
 ESCALATION_OVERRIDES = [
-    {"trigger": "Any DECCA threshold breach",  "min_level": 3, "response": "Immediate"},
+    {"trigger": "Any Compliance threshold breach",  "min_level": 3, "response": "Immediate"},
     {"trigger": "Toxin detection (any level)", "min_level": 4, "response": "Immediate"},
     {"trigger": "DO < 2 mg/L for > 2 hours",  "min_level": 4, "response": "Immediate"},
 ]

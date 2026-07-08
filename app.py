@@ -165,7 +165,7 @@ NAV = {
         ("Predictive Monitoring", "predictive"),
     ],
     "REPORTING": [
-        ("DECCA Reporting", "decca"),
+        ("Compliance Reporting", "compliance"),
     ],
     "REFERENCE": [
         ("Seasonal Treatment Calendar", "calendar_view"),
@@ -234,8 +234,8 @@ if module_name == "home":
     from ui.home import render
 elif module_name == "executive":
     from ui.executive import render
-elif module_name == "decca":
-    from ui.decca import render
+elif module_name == "compliance":
+    from ui.compliance import render
 elif module_name == "intelligence":
     from ui.intelligence import render
 elif module_name == "predictive":

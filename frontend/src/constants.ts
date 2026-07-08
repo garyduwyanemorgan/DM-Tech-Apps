@@ -5,7 +5,7 @@ export const MONTH_NAMES = [
   'July','August','September','October','November','December',
 ]
 
-export const DECCA_LIMITS: Record<string, { parameter: string; unit: string; min: number|null; max: number|null; display: string }> = {
+export const COMPLIANCE_LIMITS: Record<string, { parameter: string; unit: string; min: number|null; max: number|null; display: string }> = {
   ph:              { parameter: 'pH',                 unit: 'pH Units',    min: 6.0,  max: 9.0,   display: '6.0 – 9.0' },
   do:              { parameter: 'Dissolved Oxygen',   unit: 'mg/L',        min: 4.0,  max: null,  display: '> 4.0' },
   tss:             { parameter: 'TSS',                unit: 'mg/L',        min: null, max: 50,    display: '< 50' },
@@ -67,7 +67,7 @@ export const TREATMENT_ACTIONS: Record<number, { enzyme: string; aeration: strin
 export const SEASONAL_PHASES = [
   { name: 'Phase 1: Pre-load', months: [1,2,3],     color: '#5dade2', objective: 'Establish bacterial populations before heat' },
   { name: 'Phase 2: Ramp',     months: [4,5],        color: '#f4d03f', objective: 'Transition to active bloom prevention' },
-  { name: 'Phase 3: Peak',     months: [6,7,8,9],   color: '#e74c3c', objective: 'Continuous bloom suppression; DECCA compliance' },
+  { name: 'Phase 3: Peak',     months: [6,7,8,9],   color: '#e74c3c', objective: 'Continuous bloom suppression; compliance' },
   { name: 'Phase 4: Recovery', months: [10,11,12],  color: '#27ae60', objective: 'System recovery; Sludge management; Planning' },
 ]
 

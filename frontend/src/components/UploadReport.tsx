@@ -88,7 +88,7 @@ function defaultValues(): FieldValues {
 }
 
 export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) => {
-  const { organizationId, token, role } = useAuth()
+  const { organizationId, getToken, email, role } = useAuth()
   const [fields, setFields] = useState<FieldValues>(defaultValues())
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -144,7 +144,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       form.append('file', compact)
       const headers: Record<string, string> = {}
       if (organizationId) headers['X-Organization-ID'] = organizationId
-      if (token) headers['Authorization'] = `Bearer ${token}`
+      const extractToken = await getToken()
+      if (extractToken) headers['Authorization'] = `Bearer ${extractToken}`
+      if (email) headers['X-User-Email'] = email
       const res = await uploadWithProgress('/api/extract', form, headers, pct => {
         setUploadPct(pct)
         if (pct >= 100) setStage('ai') // request sent — model is now reading
@@ -187,7 +189,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     try {
       const headers: HeadersInit = { 'Content-Type': 'application/json' }
       if (organizationId) headers['X-Organization-ID'] = organizationId
-      if (token) headers['Authorization'] = `Bearer ${token}`
+      const logToken = await getToken()
+      if (logToken) headers['Authorization'] = `Bearer ${logToken}`
+      if (email) headers['X-User-Email'] = email
       const payload = { site: activeSite, year: Number(fields.year), month: Number(fields.month), day: Number(fields.day ?? 1), overwrite: true, ...Object.fromEntries(FIELDS.map(f => [f.key, fields[f.key]])) }
       const res = await fetch('/api/log', { method: 'POST', headers, body: JSON.stringify(payload) })
       const data = await res.json()
@@ -319,7 +323,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
               <div key={f.key}>
                 <label style={labelStyle}>{f.label}{f.unit ? ` (${f.unit})` : ''}</label>
                 <input type="number" name={f.key} step="0.01" value={fields[f.key]} onChange={handleChange} />
-                <span style={hintStyle}>DECCA: {f.hint}</span>
+                <span style={hintStyle}>Limit: {f.hint}</span>
               </div>
             ))}
           </div>

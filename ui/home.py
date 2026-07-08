@@ -16,7 +16,7 @@ def _go(page: str):
 def render():
     page_header(
         "DUBAI LAGOON MANAGEMENT PLATFORM",
-        "Predictive water-quality monitoring & DECCA compliance — GDM Enviro Consultants",
+        "Predictive water-quality monitoring & compliance — GDM Enviro Consultants",
         icon="🌊",
     )
 
@@ -39,7 +39,7 @@ def render():
         metric_card("Data Source", "Live" if live else "Sample", "#27ae60" if live else "#f39c12",
                      "Select a site in the sidebar for live data")
     with k[2]:
-        metric_card("Compliance Standard", "DECCA / DM", "#1B3A5C", "Dubai Municipality limits")
+        metric_card("Compliance Standard", "Dubai Municipality (DM)", "#1B3A5C", "Dubai Municipality limits")
 
     # ── Quick actions ──
     section_header("Start here")
@@ -61,9 +61,9 @@ def render():
             _go("intelligence")
     with c[3]:
         st.markdown("**📄 Produce a report**")
-        st.caption("Submission-ready DECCA compliance PDF.")
-        if st.button("DECCA Reporting", width='stretch'):
-            _go("decca")
+        st.caption("Submission-ready compliance PDF.")
+        if st.button("Compliance Reporting", width='stretch'):
+            _go("compliance")
 
     # ── How it flows ──
     section_header("How the platform works")
@@ -72,7 +72,7 @@ def render():
         "2. **Monitor** current compliance and alert status across your lagoons.\n"
         "3. **Analyse** — the intelligence engine forecasts blooms and recommends "
         "the cheapest effective intervention.\n"
-        "4. **Report** — generate the official DECCA compliance document.\n"
+        "4. **Report** — generate the official compliance document.\n"
         "5. **Reference** — treatment calendar, species, sludge and technology guidance."
     )
 

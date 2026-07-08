@@ -1,7 +1,7 @@
 """Lab-report extraction — photo/PDF → structured water-quality readings.
 
 Uses Claude vision to read a laboratory report image or PDF and return the 14
-DECCA parameters as JSON. A human reviews/corrects the values before they are
+Compliance parameters as JSON. A human reviews/corrects the values before they are
 saved (required for regulatory data) — this module only does the recognition.
 
 Cost: one report is ~1-2K input tokens + a small JSON output — a fraction of a
@@ -13,7 +13,9 @@ Images are downscaled/re-encoded before the API call: a 10MB phone photo adds
 seconds of transfer + vision tokens for zero accuracy gain at lab-report text
 sizes.
 
-Requires the ANTHROPIC_API_KEY environment variable.
+Requires an Anthropic API key: either the `[anthropic] api_key` entry in
+.streamlit/secrets.toml (local dev) or the ANTHROPIC_API_KEY environment
+variable (Render/serverless).
 """
 from __future__ import annotations
 
@@ -35,7 +37,7 @@ _IMAGE_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif
 
 
 class LabReadings(BaseModel):
-    """The 14 DECCA water-quality parameters. Null where absent/unreadable."""
+    """The 14 Compliance water-quality parameters. Null where absent/unreadable."""
     ph:               Optional[float] = Field(None, description="pH (units)")
     do:               Optional[float] = Field(None, description="Dissolved oxygen, mg/L")
     tss:              Optional[float] = Field(None, description="Total suspended solids, mg/L")
@@ -70,13 +72,33 @@ _PROMPT = (
 )
 
 
+def _anthropic_api_key() -> str:
+    """Resolve the Anthropic API key from .streamlit/secrets.toml [anthropic] or
+    the ANTHROPIC_API_KEY env var (secrets.toml wins locally; env var is used on
+    Render/serverless, matching how the rest of the app resolves secrets)."""
+    try:
+        import tomllib
+    except ImportError:
+        import tomli as tomllib  # Python < 3.11 fallback
+    try:
+        import pathlib
+        toml_path = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
+        with open(toml_path, "rb") as f:
+            key = tomllib.load(f).get("anthropic", {}).get("api_key", "")
+        if key:
+            return key
+    except Exception:
+        pass
+    return os.environ.get("ANTHROPIC_API_KEY", "")
+
+
 def is_configured() -> bool:
     """True when the API key + SDK are available."""
     try:
         import anthropic  # noqa: F401
     except ImportError:
         return False
-    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    return bool(_anthropic_api_key())
 
 
 def _shrink_image(file_bytes: bytes, media_type: str) -> tuple[bytes, str]:
@@ -116,7 +138,7 @@ def extract_lab_report(file_bytes: bytes, media_type: str, model: str | None = N
     import anthropic
 
     model = model or os.environ.get("LAB_EXTRACT_MODEL", DEFAULT_MODEL)
-    client = anthropic.Anthropic()   # reads ANTHROPIC_API_KEY
+    client = anthropic.Anthropic(api_key=_anthropic_api_key())
 
     if media_type in _IMAGE_TYPES:
         file_bytes, media_type = _shrink_image(file_bytes, media_type)

@@ -1,4 +1,4 @@
-"""DECCA/DM regulatory limits, alert thresholds, and reference data.
+"""Dubai Municipality regulatory limits, alert thresholds, and reference data.
 
 All values sourced from Dubai_Lagoon_Algae_Management_System.md.
 Zero UI dependencies — pure data.
@@ -7,27 +7,27 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Dict, List, Tuple
 
-# ── DECCA/DM Water Quality Standards ──
+# ── Dubai Municipality Water Quality Standards ──
 
 @dataclass(frozen=True)
-class DECCALimit:
+class ComplianceLimit:
     parameter: str
     unit: str
     min_val: float | None  # None = no lower bound
     max_val: float | None  # None = no upper bound
     display: str            # Human-readable limit string
 
-DECCA_LIMITS: Dict[str, DECCALimit] = {
-    "ph":               DECCALimit("pH",                  "pH Units",   6.0,  9.0,  "6.0 – 9.0"),
-    "do":               DECCALimit("Dissolved Oxygen",    "mg/L",       4.0,  None, "> 4.0"),
-    "tss":              DECCALimit("TSS",                 "mg/L",       None, 50,   "< 50"),
-    "turbidity":        DECCALimit("Turbidity",           "NTU",        None, 75,   "< 75"),
-    "cod":              DECCALimit("COD",                 "mg/L",       None, 50,   "< 50"),
-    "ammonia":          DECCALimit("Ammonia (as N)",      "mg/L",       None, 5.0,  "< 5.0"),
-    "phosphate":        DECCALimit("Total Phosphate",     "mg/L",       None, 5.0,  "< 5.0"),
-    "oil_grease":       DECCALimit("Oils & Grease",       "mg/L",       None, 10,   "< 10"),
-    "ecoli":            DECCALimit("E. coli",             "CFU/100mL",  None, 200,  "< 200"),
-    "total_coliforms":  DECCALimit("Total Coliforms",     "CFU/100mL",  None, 1000, "< 1000"),
+COMPLIANCE_LIMITS: Dict[str, ComplianceLimit] = {
+    "ph":               ComplianceLimit("pH",                  "pH Units",   6.0,  9.0,  "6.0 – 9.0"),
+    "do":               ComplianceLimit("Dissolved Oxygen",    "mg/L",       4.0,  None, "> 4.0"),
+    "tss":              ComplianceLimit("TSS",                 "mg/L",       None, 50,   "< 50"),
+    "turbidity":        ComplianceLimit("Turbidity",           "NTU",        None, 75,   "< 75"),
+    "cod":              ComplianceLimit("COD",                 "mg/L",       None, 50,   "< 50"),
+    "ammonia":          ComplianceLimit("Ammonia (as N)",      "mg/L",       None, 5.0,  "< 5.0"),
+    "phosphate":        ComplianceLimit("Total Phosphate",     "mg/L",       None, 5.0,  "< 5.0"),
+    "oil_grease":       ComplianceLimit("Oils & Grease",       "mg/L",       None, 10,   "< 10"),
+    "ecoli":            ComplianceLimit("E. coli",             "CFU/100mL",  None, 200,  "< 200"),
+    "total_coliforms":  ComplianceLimit("Total Coliforms",     "CFU/100mL",  None, 1000, "< 1000"),
 }
 
 # ── Alert Levels ──
@@ -126,7 +126,7 @@ class SeasonalPhase:
 SEASONAL_PHASES = [
     SeasonalPhase("Phase 1: Pre-load",  [1, 2, 3],        "#5dade2", "Establish bacterial populations before heat"),
     SeasonalPhase("Phase 2: Ramp",      [4, 5],           "#f4d03f", "Transition to active bloom prevention"),
-    SeasonalPhase("Phase 3: Peak",      [6, 7, 8, 9],    "#e74c3c", "Continuous bloom suppression; DECCA compliance"),
+    SeasonalPhase("Phase 3: Peak",      [6, 7, 8, 9],    "#e74c3c", "Continuous bloom suppression; compliance"),
     SeasonalPhase("Phase 4: Recovery",  [10, 11, 12],     "#27ae60", "System recovery; Sludge management; Planning"),
 ]
 

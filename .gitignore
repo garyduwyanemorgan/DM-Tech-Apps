@@ -1,7 +1,16 @@
-# ── Secrets — NEVER commit (Supabase key + site passwords live here) ──
+# ── Secrets — NEVER commit (Supabase key, Clerk/Stripe/Anthropic keys live here) ──
 .streamlit/secrets.toml
+.env
+.env.*
 *.env
 *.key
+
+# Node / frontend build
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+*.tsbuildinfo
 
 # Python
 __pycache__/

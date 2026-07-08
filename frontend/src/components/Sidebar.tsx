@@ -19,8 +19,10 @@ const DOT_COLORS: Record<string, string> = {
   monitoring: '#27ae60',
   alerts: '#e74c3c',
   drivers: '#6366f1',
+  chemistry: '#f59e0b',
+  ecology: '#22c55e',
   simulation: '#6366f1',
-  decca: '#2E5D8A',
+  compliance: '#2E5D8A',
   calendar: '#64748b',
   sludge: '#64748b',
   technologies: '#64748b',
@@ -52,19 +54,23 @@ const navSections: { label: string; items: NavItem[] }[] = [
     items: [
       { id: 'dashboard',  label: 'Executive Dashboard' },
       { id: 'monitoring', label: 'Water Quality Monitoring' },
+      { id: 'sludge',     label: 'Sludge & Sediment Mgmt' },
+      { id: 'community',  label: 'Algae & Bloom Forecast' },
       { id: 'alerts',     label: 'Alert & Response Protocol' },
     ],
   },
   {
     label: 'REPORTING',
     items: [
-      { id: 'decca', label: 'DECCA Reporting' },
+      { id: 'compliance', label: 'Compliance Reporting' },
     ],
   },
   {
     label: 'INTELLIGENCE',
     items: [
       { id: 'drivers',    label: 'Environmental Drivers' },
+      { id: 'chemistry',  label: 'Chemistry Loop' },
+      { id: 'ecology',    label: 'Ecology Loop' },
       { id: 'simulation', label: 'Digital Twin Simulator' },
     ],
   },
@@ -72,7 +78,6 @@ const navSections: { label: string; items: NavItem[] }[] = [
     label: 'REFERENCE',
     items: [
       { id: 'calendar',     label: 'Seasonal Treatment Calendar' },
-      { id: 'sludge',       label: 'Sludge & Sediment Mgmt' },
       { id: 'technologies', label: 'Intervention Technologies' },
       { id: 'species',      label: 'Species Threat Matrix' },
       { id: 'mlsystem',     label: 'ML Prediction System' },

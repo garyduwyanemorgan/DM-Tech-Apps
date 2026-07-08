@@ -23,9 +23,9 @@ def render():
     for z in zones:
         rows.append({
             "Zone": z.zone_name,
-            "Total Depth (ft)": z.total_depth_ft,
-            "Sludge Depth (ft)": z.sludge_depth_ft,
-            "Effective Depth (ft)": z.effective_depth_ft,
+            "Total Depth (m)": z.total_depth_m,
+            "Sludge Depth (m)": z.sludge_depth_m,
+            "Effective Depth (m)": z.effective_depth_m,
             "Capacity Loss %": f"{z.capacity_loss_pct:.1f}%",
             "Status": z.status,
         })
@@ -44,16 +44,16 @@ def render():
     fig = go.Figure()
     names = [z.zone_name for z in zones]
     fig.add_trace(go.Bar(
-        x=names, y=[z.effective_depth_ft for z in zones],
+        x=names, y=[z.effective_depth_m for z in zones],
         name="Effective Depth", marker_color="#4472C4",
     ))
     fig.add_trace(go.Bar(
-        x=names, y=[z.sludge_depth_ft for z in zones],
+        x=names, y=[z.sludge_depth_m for z in zones],
         name="Sludge Depth", marker_color="#e74c3c",
     ))
     fig.update_layout(
         barmode="stack", height=350, template="plotly_white",
-        yaxis_title="Depth (ft)",
+        yaxis_title="Depth (m)",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         margin=dict(t=50, b=40),
     )
@@ -105,7 +105,7 @@ def render():
          "P Contribution": "30–60% of total P", "Prevention": "Bottom aeration to keep DO > 2"},
         {"Condition": "Water Temp > 30°C", "Mechanism": "Accelerated sediment P release",
          "P Contribution": "Proportional to temp", "Prevention": "Manage via aeration (can't control temp)"},
-        {"Condition": "Sludge Depth > 3 ft", "Mechanism": "Large nutrient reservoir in water contact",
+        {"Condition": "Sludge Depth > 0.9 m", "Mechanism": "Large nutrient reservoir in water contact",
          "P Contribution": "Can feed blooms for years", "Prevention": "Enzyme bio-dredging + physical removal"},
         {"Condition": "Sediment DOM release", "Mechanism": "Dissolved organic matter stimulates algae",
          "P Contribution": "Difficult to quantify", "Prevention": "Sludge reduction programme"},

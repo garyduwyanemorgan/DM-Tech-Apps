@@ -1,16 +1,26 @@
-"""Stripe billing helpers — per-site SaaS enforcement.
+"""Billing facade — per-site SaaS enforcement, provider-agnostic.
 
-All billing state is stored in the `organizations` table:
-  site_limit              int     — max sites allowed on current plan
-  plan_name               text    — starter / growth / professional / dev
-  stripe_customer_id      text    — Stripe Customer ID (cus_...)
-  stripe_subscription_id  text    — Stripe Subscription ID (sub_...)
+Plan catalogue and organization billing state live here; all payment
+operations are delegated to the active PaymentProvider (see payments/).
+The active provider is chosen by configuration (PAYMENT_PROVIDER env var or
+[payments] provider in secrets.toml) — Checkout.com by default, Stripe
+available by switching config. Nothing outside payments/ touches a provider
+SDK.
+
+Billing state is stored in the `organizations` table:
+  site_limit               int    — max sites allowed on current plan
+  plan_name                text   — starter / growth / professional / dev
+  payment_provider         text   — provider that owns the subscription
+  payment_customer_id      text   — provider customer ID
+  payment_subscription_id  text   — provider subscription / series anchor ID
+  payment_source_id        text   — stored payment instrument (recurring)
+  subscription_status      text   — active / past_due / cancelled / refunded
+  next_billing_at          timestamptz — next merchant-initiated charge
+  stripe_customer_id       text   — legacy Stripe columns (kept intact)
+  stripe_subscription_id   text
 """
 from __future__ import annotations
 
-import os
-import pathlib
-import tomllib
 from typing import Optional
 
 
@@ -44,59 +54,38 @@ PLANS: dict[str, dict] = {
 }
 
 
-# ── Secrets ───────────────────────────────────────────────────────────────────
+# ── Active payment provider ───────────────────────────────────────────────────
 
-def _stripe_secrets() -> dict:
-    """Read Stripe keys from secrets.toml or env vars."""
-    try:
-        toml_path = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
-        with open(toml_path, "rb") as f:
-            data = tomllib.load(f)
-        block = data.get("stripe", {})
-        if block.get("secret_key"):
-            return block
-    except Exception:
-        pass
-    return {
-        "secret_key":        os.environ.get("STRIPE_SECRET_KEY", ""),
-        "webhook_secret":    os.environ.get("STRIPE_WEBHOOK_SECRET", ""),
-        "price_starter":     os.environ.get("STRIPE_PRICE_STARTER", ""),
-        "price_growth":      os.environ.get("STRIPE_PRICE_GROWTH", ""),
-        "price_professional":os.environ.get("STRIPE_PRICE_PROFESSIONAL", ""),
-    }
+def get_provider():
+    """Return the configured PaymentProvider instance."""
+    from payments import get_provider as _get_provider
+    return _get_provider()
+
+
+def provider_name() -> str:
+    from payments import provider_name as _provider_name
+    return _provider_name()
 
 
 def is_configured() -> bool:
-    return bool(_stripe_secrets().get("secret_key"))
+    return get_provider().is_configured()
 
 
-def _stripe():
-    import stripe as _stripe_lib
-    secrets = _stripe_secrets()
-    _stripe_lib.api_key = secrets["secret_key"]
-    return _stripe_lib
-
-
-def price_id_for_plan(plan_key: str) -> Optional[str]:
-    secrets = _stripe_secrets()
-    return secrets.get(f"price_{plan_key}") or None
-
-
-def plan_key_for_price_id(price_id: str) -> Optional[str]:
-    """Reverse-map a Stripe price ID back to a plan key. Used for portal-driven plan changes
-    where Stripe does not update subscription metadata."""
-    secrets = _stripe_secrets()
-    for key in PLANS:
-        if secrets.get(f"price_{key}") == price_id:
-            return key
-    return None
-
-
-def webhook_secret() -> str:
-    return _stripe_secrets().get("webhook_secret", "")
+def supports_portal() -> bool:
+    return get_provider().supports_portal
 
 
 # ── Org helpers ───────────────────────────────────────────────────────────────
+
+_BILLING_COLUMNS = (
+    "site_limit, plan_name, stripe_customer_id, stripe_subscription_id, "
+    "payment_provider, payment_customer_id, payment_subscription_id, "
+    "payment_source_id, subscription_status, next_billing_at"
+)
+# Pre-002-migration column set — fallback so orgs keep working until
+# db/migrations/002_payment_provider.sql has been applied.
+_LEGACY_COLUMNS = "site_limit, plan_name, stripe_customer_id, stripe_subscription_id"
+
 
 def get_org_billing(org_id: str) -> dict:
     """Fetch billing fields from the organizations table."""
@@ -104,21 +93,30 @@ def get_org_billing(org_id: str) -> dict:
     client = get_client()
     if not client:
         return {"site_limit": 1, "plan_name": "starter"}
-    try:
-        res = client.table("organizations").select(
-            "site_limit, plan_name, stripe_customer_id, stripe_subscription_id"
-        ).eq("id", org_id).single().execute()
-        data = res.data or {}
-        # Coalesce NULLs so downstream arithmetic on site_limit never sees None
-        # (legacy orgs created before billing defaults were enforced).
-        return {
-            "site_limit": data.get("site_limit") or 1,
-            "plan_name": data.get("plan_name") or "starter",
-            "stripe_customer_id": data.get("stripe_customer_id"),
-            "stripe_subscription_id": data.get("stripe_subscription_id"),
-        }
-    except Exception:
+    data: dict = {}
+    for columns in (_BILLING_COLUMNS, _LEGACY_COLUMNS):
+        try:
+            res = client.table("organizations").select(columns).eq("id", org_id).single().execute()
+            data = res.data or {}
+            break
+        except Exception:
+            continue
+    if not data:
         return {"site_limit": 1, "plan_name": "starter"}
+    # Coalesce NULLs so downstream arithmetic on site_limit never sees None
+    # (legacy orgs created before billing defaults were enforced).
+    return {
+        "site_limit": data.get("site_limit") or 1,
+        "plan_name": data.get("plan_name") or "starter",
+        "stripe_customer_id": data.get("stripe_customer_id"),
+        "stripe_subscription_id": data.get("stripe_subscription_id"),
+        "payment_provider": data.get("payment_provider"),
+        "payment_customer_id": data.get("payment_customer_id"),
+        "payment_subscription_id": data.get("payment_subscription_id"),
+        "payment_source_id": data.get("payment_source_id"),
+        "subscription_status": data.get("subscription_status"),
+        "next_billing_at": data.get("next_billing_at"),
+    }
 
 
 def update_org_billing(org_id: str, **fields) -> bool:
@@ -146,22 +144,16 @@ def count_sites(org_id: str) -> int:
         return 0
 
 
-# ── Stripe operations ─────────────────────────────────────────────────────────
+def has_subscription(billing: dict) -> bool:
+    """True if the org has an active subscription with any provider."""
+    return bool(billing.get("payment_subscription_id") or billing.get("stripe_subscription_id"))
+
+
+# ── Payment operations (delegated to the active provider) ────────────────────
 
 def get_or_create_customer(org_id: str, email: str, org_name: str = "") -> Optional[str]:
-    """Return existing Stripe customer ID or create one."""
-    billing = get_org_billing(org_id)
-    existing_cust = billing.get("stripe_customer_id")
-    if existing_cust:
-        return existing_cust
-    s = _stripe()
-    cust = s.Customer.create(
-        email=email,
-        name=org_name or email,
-        metadata={"organization_id": org_id},
-    )
-    update_org_billing(org_id, stripe_customer_id=cust.id)
-    return cust.id
+    """Return the provider customer ID for an org, creating it if needed."""
+    return get_provider().get_or_create_customer(org_id, email, org_name)
 
 
 def create_checkout_session(
@@ -171,97 +163,53 @@ def create_checkout_session(
     success_url: str,
     cancel_url: str,
 ) -> Optional[str]:
-    """Create a Stripe Checkout Session. Returns the session URL."""
-    price = price_id_for_plan(plan_key)
-    if not price:
-        return None
-    s = _stripe()
-    customer_id = get_or_create_customer(org_id, user_email)
-    session = s.checkout.Session.create(
-        customer=customer_id,
-        mode="subscription",
-        line_items=[{"price": price, "quantity": 1}],
+    """Start a subscription purchase. Returns the hosted payment page URL."""
+    return get_provider().create_checkout_session(
+        org_id=org_id,
+        plan_key=plan_key,
+        user_email=user_email,
         success_url=success_url,
         cancel_url=cancel_url,
-        subscription_data={"metadata": {"organization_id": org_id, "plan": plan_key}},
-        metadata={"organization_id": org_id, "plan": plan_key},
-        allow_promotion_codes=True,
     )
-    return session.url
 
 
 def create_portal_session(org_id: str, return_url: str) -> Optional[str]:
-    """Create a Stripe Customer Portal session. Returns the portal URL."""
+    """Hosted billing-portal URL, or None if the provider has no portal."""
+    return get_provider().create_portal_session(org_id, return_url)
+
+
+def _owning_provider(org_id: str):
+    """Provider that owns the org's existing subscription — an org that
+    subscribed via Stripe must still be cancelled/queried through Stripe even
+    while another provider is active for new checkouts. Falls back to the
+    active provider for orgs with no recorded provider."""
+    from payments import get_provider as _get_provider
     billing = get_org_billing(org_id)
-    customer_id = billing.get("stripe_customer_id")
-    if not customer_id:
-        return None
-    s = _stripe()
-    session = s.billing_portal.Session.create(
-        customer=customer_id,
-        return_url=return_url,
-    )
-    return session.url
-
-
-def handle_webhook(payload: bytes, sig_header: str) -> dict:
-    """Verify and process a Stripe webhook event. Returns {"handled": bool, "event_type": str}."""
-    s = _stripe()
+    owner = billing.get("payment_provider")
+    if not owner and billing.get("stripe_subscription_id"):
+        owner = "stripe"
     try:
-        event = s.Webhook.construct_event(payload, sig_header, webhook_secret())
-    except s.error.SignatureVerificationError:
-        return {"handled": False, "error": "Invalid signature"}
+        return _get_provider(owner) if owner else get_provider()
+    except ValueError:
+        return get_provider()
 
-    et = event["type"]
 
-    if et in ("customer.subscription.created", "customer.subscription.updated"):
-        sub = event["data"]["object"]
-        org_id = sub.get("metadata", {}).get("organization_id")
-        if org_id:
-            # Derive plan from the active price ID — metadata is stale after portal plan changes.
-            plan_key = None
-            items = sub.get("items", {}).get("data", [])
-            if items:
-                price_id = items[0].get("price", {}).get("id")
-                if price_id:
-                    plan_key = plan_key_for_price_id(price_id)
-            # Fall back to metadata for subscriptions created before price-ID mapping was in place.
-            if not plan_key:
-                plan_key = sub.get("metadata", {}).get("plan", "starter")
-            plan = PLANS.get(plan_key, PLANS["starter"])
-            update_org_billing(
-                org_id,
-                stripe_subscription_id=sub["id"],
-                plan_name=plan_key,
-                site_limit=plan["site_limit"],
-            )
+def cancel_subscription(org_id: str) -> bool:
+    """Cancel the org's subscription and downgrade its plan."""
+    return _owning_provider(org_id).cancel_subscription(org_id)
 
-    elif et == "customer.subscription.deleted":
-        sub = event["data"]["object"]
-        org_id = sub.get("metadata", {}).get("organization_id")
-        if org_id:
-            # Downgrade to starter on cancellation
-            update_org_billing(
-                org_id,
-                stripe_subscription_id=None,
-                plan_name="starter",
-                site_limit=PLANS["starter"]["site_limit"],
-            )
 
-    elif et == "checkout.session.completed":
-        session = event["data"]["object"]
-        org_id = session.get("metadata", {}).get("organization_id")
-        plan_key = session.get("metadata", {}).get("plan", "starter")
-        customer_id = session.get("customer")
-        sub_id = session.get("subscription")
-        if org_id:
-            plan = PLANS.get(plan_key, PLANS["starter"])
-            update_org_billing(
-                org_id,
-                stripe_customer_id=customer_id,
-                stripe_subscription_id=sub_id,
-                plan_name=plan_key,
-                site_limit=plan["site_limit"],
-            )
+def get_subscription_status(org_id: str) -> dict:
+    """Current payment/subscription status for an org."""
+    return _owning_provider(org_id).get_subscription_status(org_id)
 
-    return {"handled": True, "event_type": et}
+
+def charge_recurring(org_id: str) -> dict:
+    """Charge the next billing cycle (providers with merchant-initiated billing)."""
+    return get_provider().charge_recurring(org_id)
+
+
+def handle_webhook(payload: bytes, headers: dict) -> dict:
+    """Verify and process a payment webhook. `headers` is the full request
+    header mapping — the provider extracts its own signature header."""
+    return get_provider().handle_webhook(payload, headers)

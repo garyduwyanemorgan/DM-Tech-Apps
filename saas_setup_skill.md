@@ -1,4 +1,4 @@
-# SaaS Setup Skill — Dubai Lagoons (DECCA) Compliance Platform
+# SaaS Setup Skill — Dubai Lagoons Compliance Platform
 
 > Purpose: hand this file to Claude to assist with **finalizing the SaaS setup**
 > (Clerk auth + Supabase multi-tenancy + Stripe per-site billing). It records the
@@ -138,7 +138,7 @@ A partial body passes the frontend `if (!status) return null` guard and then
 ## 5. Operational runbook
 
 ```powershell
-# Backend (from project root E:\DECCA-lagoons-dashboard)
+# Backend (from project root E:\Compliance-lagoons-dashboard)
 $env:PYTHONUNBUFFERED = "1"
 python -m uvicorn api_server:app --port 8000      # add --reload only when NOT debugging stderr
 

@@ -61,7 +61,7 @@ def compliance_table(results: List[ComplianceResult]):
         rows.append({
             "Parameter": r.parameter_name,
             "Unit": r.unit,
-            "DECCA Limit": r.limit_display,
+            "Compliance Limit": r.limit_display,
             "Current": r.value,
             "Status": status,
             "Margin %": f"{r.margin_pct:.1f}%",

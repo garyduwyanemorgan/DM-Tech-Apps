@@ -199,6 +199,95 @@ BLOOM_RECOVERY_RESIDENCE_FACTOR = 0.15  # extra days per residence-day
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# ENGINE 6 — ALGAE COMMUNITY / TYPE
+# ════════════════════════════════════════════════════════════════════════════
+# Predicts the FAVOURED phytoplankton group and the ecological succession stage
+# from the water-quality drivers we already collect — no lab species ID needed.
+# Borrows the ecological reasoning (cyanobacteria competitive advantage +
+# succession) as an IDEA; the numbers below are ours and CALIBRATE per site.
+# The measured phycocyanin:chlorophyll-a ratio is used only as an observational
+# anchor (cyanobacteria pigment proxy), never as a required input.
+
+COMMUNITY_GROUPS: Tuple[str, ...] = ("cyanobacteria", "green_algae", "diatoms", "dinoflagellates")
+
+# ── Cyanobacteria competitive advantage (0–1) ──
+# Cyanobacteria win when it is warm, N:P is low (reduced-N favours N-fixers) and
+# DO is low (they tolerate it). Weights sum to 1.0.
+CYANO_ADV_WEIGHTS: Dict[str, float] = {
+    "temperature":      0.40,
+    "n_p_ratio":        0.35,
+    "dissolved_oxygen": 0.25,
+}
+CYANO_TEMP_TRACE = 15.0        # °C below which cyano advantage ≈ 0
+CYANO_TEMP_MIN   = 25.0        # advantage starts ramping above here
+CYANO_TEMP_FULL  = 30.0        # full thermal advantage at/above here
+CYANO_NP_FULL    = 5.0         # N:P ≤ this → full advantage (strong N limitation)
+CYANO_NP_MOD     = 10.0        # N:P between FULL and MOD → ramps down
+CYANO_NP_REDFIELD = 16.0       # ~Redfield; above here → no N-limitation advantage
+CYANO_DO_FULL    = 2.0         # DO ≤ this mg/L → full low-oxygen advantage
+CYANO_DO_NONE    = 5.0         # DO ≥ this mg/L → no low-oxygen advantage
+
+# ── Trophic state from chlorophyll-a (µg/L), Carlson-style bands ──
+TROPHIC_CHLA_BANDS: Tuple[Tuple[float, str], ...] = (
+    (2.0,  "oligotrophic"),
+    (8.0,  "mesotrophic"),
+    (25.0, "eutrophic"),
+    (1e9,  "hypereutrophic"),
+)
+
+# ── Phycocyanin:chlorophyll-a pigment marker (both µg/L → dimensionless) ──
+# The direct MEASURED signal of cyanobacteria dominance. Below LOW → no cyano
+# pigment signal; above HIGH → biomass is strongly cyanobacteria.
+PHYCO_CHLA_LOW  = 0.8
+PHYCO_CHLA_HIGH = 3.0
+# How much the measured pigment anchor is trusted vs the driver model (0–1).
+COMMUNITY_PIGMENT_WEIGHT = 0.5
+
+# ── Per-group driver preferences (each factor a 0–1 favourability) ──
+# Diatoms: cooler, well-oxygenated/mixed, N-replete (higher N:P), lower trophic.
+# Green algae: the transitional "greening" middle — moderate everything.
+# Dinoflagellates: warm + more saline + stratified (low DO), but NOT N-limited.
+GREEN_TEMP_LOW, GREEN_TEMP_HIGH = 18.0, 30.0
+DIATOM_DO_GOOD = 6.0           # DO ≥ this favours diatoms (well-mixed)
+DINO_SAL_LOW, DINO_SAL_HIGH = 45.0, 60.0   # dinoflagellates favoured in the saltier lens
+
+# ── Ecological succession thresholds ──
+SUCCESSION_COLLAPSE_DO    = 1.5   # DO below this mg/L → post-bloom collapse
+SUCCESSION_ACTIVE_PROB    = 0.70  # bloom probability at/above → active bloom
+SUCCESSION_CYANO_PROB     = 0.45  # cyano-favoured risk zone
+SUCCESSION_GREEN_PROB     = 0.25  # greening
+
+# ── Lab-test recommendation triggers ──
+# When conditions favour cyanobacteria (the toxin-formers), recommend the SaaS
+# request a confirmatory phytoplankton ID + cyanotoxin lab test.
+CYANO_LAB_TEST_ADVANTAGE = 0.55   # cyano advantage at/above → recommend a test
+PHYCO_CHLA_LAB_TEST      = 1.5    # measured pigment ratio at/above → recommend a test
+
+# ── Data-request items ──
+# Parameters REQUIRED to make the algae-community prediction. If a reading is
+# missing any of these, they belong in the data request (measure them).
+COMMUNITY_REQUIRED_INPUTS: Dict[str, str] = {
+    "temperature":      "Water temperature (°C)",
+    "dissolved_oxygen": "Dissolved oxygen (mg/L)",
+    "ammonia":          "Ammonia as N (mg/L)",
+    "phosphate":        "Phosphate (mg/L)",
+    "salinity":         "Salinity (PSU)",
+    "chla":             "Chlorophyll-a (µg/L)",
+    "phycocyanin":      "Phycocyanin (µg/L)",
+}
+# Parameters we do not currently capture that would STRENGTHEN the algae call.
+COMMUNITY_ENHANCING_INPUTS: Dict[str, str] = {
+    "nitrate": "Nitrate/nitrite as N (mg/L) — gives a true total-N:P instead of the ammonia-only proxy",
+    "orp":     "ORP / redox potential (mV) — sediment low-oxygen & internal-loading signal",
+}
+# Confirmatory lab tests recommended when cyanobacteria are favoured.
+COMMUNITY_CONFIRMATORY_TESTS: Tuple[str, ...] = (
+    "Phytoplankton identification / cell count",
+    "Cyanotoxin screen (e.g. microcystin ELISA)",
+)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # ENGINE 5 — DIGITAL TWIN
 # ════════════════════════════════════════════════════════════════════════════
 # Scenario interventions and how they propagate through the chain. Each
@@ -242,7 +331,7 @@ DIGITAL_TWIN_INTERVENTIONS: Dict[str, Intervention] = {
 # model (predicted-vs-actual), building the track record that earns the right
 # to stretch the interval — but NEVER below the regulatory floor.
 
-# Parameters the predictor/validator track (key bloom & DECCA indicators).
+# Parameters the predictor/validator track (key bloom & compliance indicators).
 # Each maps to a WaterReading attribute. Typical seasonal spread (1 std, in the
 # parameter's own units) is a literature/baseline estimate — CALIBRATE per site.
 PREDICTED_PARAMETERS: dict[str, dict] = {
@@ -269,13 +358,13 @@ PREDICT_SENTINEL_PENALTY = 1.4   # band multiplier when value is extrapolated
 PREDICT_CONF_MAX = 95.0
 PREDICT_CONF_MIN = 40.0
 
-# ── Regulatory floor (DECCA mandates a minimum sampling cadence) ──
+# ── Regulatory floor (Compliance mandates a minimum sampling cadence) ──
 # The optimizer may stretch intervals UP TO this floor but never beyond it.
-DECCA_MIN_SAMPLING_DAYS = 90        # every lagoon physically sampled ≥ quarterly
-DECCA_SENTINEL_SAMPLING_DAYS = 30   # designated sentinel lagoons sampled monthly
+COMPLIANCE_MIN_SAMPLING_DAYS = 90        # every lagoon physically sampled ≥ quarterly
+Compliance_SENTINEL_SAMPLING_DAYS = 30   # designated sentinel lagoons sampled monthly
 
 # ── Sampling economics (for the ROI / savings view) ──
-SAMPLING_COST_AED = 2000.0          # cost of one full DECCA lab analysis (AED). CALIBRATE.
+SAMPLING_COST_AED = 2000.0          # cost of one full Compliance lab analysis (AED). CALIBRATE.
 
 
 # ════════════════════════════════════════════════════════════════════════════

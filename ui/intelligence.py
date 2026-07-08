@@ -1,6 +1,6 @@
 """Lagoon Intelligence — the v2 scientific decision-support page.
 
-Surfaces the science engines (science/) for DECCA and operators: runs the full
+Surfaces the science engines (science/) for Compliance and operators: runs the full
 diagnostic chain on the selected reading and renders bloom forecast, nutrient
 source attribution, Fe-P internal loading, hydraulic residence time, and a
 ranked list of digital-twin interventions — each with the reasoning shown

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create Stripe Products and Prices for DECCA Lagoons Dashboard SaaS.
+Create Stripe Products and Prices for Dubai Lagoons Dashboard SaaS.
 Updates .streamlit/secrets.toml with the newly created Price IDs.
 """
 
@@ -104,7 +104,7 @@ def update_secrets_toml(filepath: pathlib.Path, secret_key: str, prices: dict):
 
 def main():
     print("=" * 60)
-    print("      DECCA SaaS Stripe Live Product Setup Assistant")
+    print("      Compliance SaaS Stripe Live Product Setup Assistant")
     print("=" * 60)
 
     secrets_path = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
@@ -143,7 +143,7 @@ def main():
         try:
             print(f"- Creating {plan_info['name']} (${plan_info['price_usd']}/mo)...")
             product = stripe.Product.create(
-                name=f"DECCA - {plan_info['name']}",
+                name=f"Compliance - {plan_info['name']}",
                 description=plan_info['description'],
                 metadata={"plan_key": plan_key}
             )

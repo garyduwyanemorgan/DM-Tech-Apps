@@ -35,7 +35,7 @@ class WaterReading:
 
 @dataclass
 class ComplianceResult:
-    """Result of checking one parameter against its DECCA limit."""
+    """Result of checking one parameter against its compliance limit."""
     parameter_key: str
     parameter_name: str
     value: float
@@ -60,19 +60,19 @@ class AlertState:
 class SludgeZone:
     """Sludge measurement for one lagoon zone."""
     zone_name: str
-    total_depth_ft: float
-    sludge_depth_ft: float
+    total_depth_m: float
+    sludge_depth_m: float
     last_survey: date
 
     @property
-    def effective_depth_ft(self) -> float:
-        return self.total_depth_ft - self.sludge_depth_ft
+    def effective_depth_m(self) -> float:
+        return self.total_depth_m - self.sludge_depth_m
 
     @property
     def capacity_loss_pct(self) -> float:
-        if self.total_depth_ft == 0:
+        if self.total_depth_m == 0:
             return 0
-        return (self.sludge_depth_ft / self.total_depth_ft) * 100
+        return (self.sludge_depth_m / self.total_depth_m) * 100
 
     @property
     def status(self) -> str:
@@ -86,11 +86,11 @@ class SludgeZone:
 
 @dataclass
 class Incident:
-    """DECCA compliance incident record."""
+    """compliance incident record."""
     date: date
     parameter: str
     measured_value: float
-    decca_limit: str
+    compliance_limit: str
     duration_hours: float
     root_cause: str
     corrective_action: str

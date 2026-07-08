@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { DECCA_LIMITS, MONTHLY_DATA, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS } from '../constants'
+import { COMPLIANCE_LIMITS, MONTHLY_DATA, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS } from '../constants'
 
 interface DashboardProps {
   activeSite: string
@@ -22,7 +22,7 @@ const SAMPLE_CURRENT: Record<string, number> = {
 }
 
 function isPass(key: string, value: number): boolean {
-  const limit = DECCA_LIMITS[key]
+  const limit = COMPLIANCE_LIMITS[key]
   if (!limit) return true
   if (limit.min !== null && value < limit.min) return false
   if (limit.max !== null && value > limit.max) return false
@@ -30,7 +30,7 @@ function isPass(key: string, value: number): boolean {
 }
 
 function marginPct(key: string, value: number): number {
-  const limit = DECCA_LIMITS[key]
+  const limit = COMPLIANCE_LIMITS[key]
   if (!limit) return 100
   if (limit.max !== null) return ((limit.max - value) / limit.max) * 100
   if (limit.min !== null) return ((value - limit.min) / limit.min) * 100
@@ -123,7 +123,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
   if (!currentValues) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <PageHeader title="Dubai Lagoon Management Plan" subtitle="DECCA / Dubai Municipality / Client View" icon="🏝️" />
+        <PageHeader title="Dubai Lagoon Management Plan" subtitle="Dubai Municipality / Client View" icon="🏝️" />
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📊</div>
           <div style={{ fontWeight: 600, color: '#64748b', marginBottom: '0.5rem' }}>No data to display</div>
@@ -133,7 +133,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
     )
   }
 
-  const paramKeys = Object.keys(DECCA_LIMITS)
+  const paramKeys = Object.keys(COMPLIANCE_LIMITS)
   const allPass = paramKeys.every(k => isPass(k, currentValues[k] ?? 0))
 
   // Current month for phase info
@@ -151,7 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <PageHeader
         title="Dubai Lagoon Management Plan"
-        subtitle="DECCA / Dubai Municipality / Client View"
+        subtitle="Dubai Municipality / Client View"
         icon="🏝️"
       />
 
@@ -187,7 +187,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
         {/* KPI cards */}
         <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <div className="glass-card" style={{ flex: '1 1 140px', textAlign: 'center', padding: '1rem' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>DECCA Compliance</div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>Compliance</div>
             <div style={{ fontSize: '1.05rem', fontWeight: 800 }}>
               <span style={{ background: allPass ? '#C6EFCE' : '#FFC7CE', color: allPass ? '#006100' : '#9C0006', padding: '4px 14px', borderRadius: 5, fontWeight: 700 }}>
                 {allPass ? 'COMPLIANT' : 'NON-COMPLIANT'}
@@ -211,21 +211,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
         </div>
       </div>
 
-      {/* DECCA/DM Water Quality Compliance Status table */}
+      {/* Dubai Municipality Water Quality Compliance Status table */}
       <div className="glass-card">
-        <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>DECCA/DM Water Quality Compliance Status</h2>
+        <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Dubai Municipality Water Quality Compliance Status</h2>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', minWidth: '700px' }}>
             <thead>
               <tr>
-                {['Parameter', 'Unit', 'DECCA Limit', 'Current', 'Status', 'Margin %', 'Risk'].map(h => (
+                {['Parameter', 'Unit', 'Compliance Limit', 'Current', 'Status', 'Margin %', 'Risk'].map(h => (
                   <th key={h} style={TH}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {paramKeys.map(key => {
-                const limit = DECCA_LIMITS[key]
+                const limit = COMPLIANCE_LIMITS[key]
                 const val = currentValues[key] ?? 0
                 const pass = isPass(key, val)
                 const mPct = marginPct(key, val)

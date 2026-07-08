@@ -9,7 +9,7 @@ state, it answers the questions the client pays for:
   • What does that save versus sampling everything?
   • If we sample one more, which lagoon most reduces portfolio uncertainty?
 
-It NEVER goes below the DECCA regulatory floor: any lagoon overdue against the
+It NEVER goes below the regulatory floor: any lagoon overdue against the
 mandated cadence is always sampled. The confidence numbers it consumes are
 produced by the (hidden) driver model + calibration layer; this module only
 sees confidence in, recommendation out.
@@ -57,7 +57,7 @@ class PortfolioPlan:
 
 
 def recommend_one(status: LagoonStatus,
-                  floor_days: float = config.DECCA_MIN_SAMPLING_DAYS) -> SamplingRecommendation:
+                  floor_days: float = config.COMPLIANCE_MIN_SAMPLING_DAYS) -> SamplingRecommendation:
     """Decide SAMPLE/SKIP for a single lagoon, honouring the regulatory floor."""
     s = status
     if s.days_since_sample >= floor_days:
@@ -75,7 +75,7 @@ def recommend_one(status: LagoonStatus,
 
 def optimize_portfolio(
     statuses: List[LagoonStatus],
-    floor_days: float = config.DECCA_MIN_SAMPLING_DAYS,
+    floor_days: float = config.COMPLIANCE_MIN_SAMPLING_DAYS,
     cost_per_sample: float = config.SAMPLING_COST_AED,
     cycles_per_year: int = 12,
 ) -> PortfolioPlan:

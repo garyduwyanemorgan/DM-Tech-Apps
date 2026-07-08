@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { Trash2, UserPlus, Shield, AlertTriangle, Mail } from 'lucide-react'
+import { Trash2, UserPlus, Shield, AlertTriangle, Mail, Copy, Check, KeyRound } from 'lucide-react'
 
 interface OrgUser {
   id: string
+  clerk_id: string | null
   email: string
   role: string
   created_at: string
@@ -63,6 +64,8 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('operator')
   const [inviting, setInviting] = useState(false)
+  const [tempCredentials, setTempCredentials] = useState<{ email: string; password: string } | null>(null)
+  const [copied, setCopied] = useState(false)
 
   // Role change
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -129,8 +132,12 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
         body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to send invite.'); return }
-      setSuccess(`Invite sent to ${inviteEmail.trim()} as ${ROLE_LABELS[inviteRole]}.`)
+      if (!res.ok) { setError(data.detail || 'Failed to create user.'); return }
+      setSuccess(`Account created for ${data.email} as ${ROLE_LABELS[inviteRole]}.`)
+      if (data.temp_password) {
+        setTempCredentials({ email: data.email, password: data.temp_password })
+        setCopied(false)
+      }
       setInviteEmail(''); setInviteRole('operator'); setShowInvite(false)
       await fetchUsers()
     } catch {
@@ -183,6 +190,42 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
       {error   && <div style={{ background: '#FFC7CE', color: '#9C0006', padding: '0.75rem 1rem', borderRadius: 6, fontSize: '0.875rem', border: '1px solid #fecaca' }}>{error}</div>}
       {success && <div style={{ background: '#C6EFCE', color: '#006100', padding: '0.75rem 1rem', borderRadius: 6, fontSize: '0.875rem', border: '1px solid #86efac' }}>{success}</div>}
 
+      {/* One-time temporary password display */}
+      {tempCredentials && (
+        <div style={{ background: '#FFF8E1', border: '1px solid #fcd34d', borderRadius: 8, padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#856404', fontWeight: 700, fontSize: '0.9rem' }}>
+            <KeyRound size={16} />
+            Temporary password for {tempCredentials.email}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <code style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: '0.4rem 0.75rem', fontSize: '0.95rem', letterSpacing: '0.05em', color: '#1B3A5C', fontWeight: 600 }}>
+              {tempCredentials.password}
+            </code>
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(tempCredentials.password)
+                setCopied(true)
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+            <button
+              className="secondary"
+              onClick={() => setTempCredentials(null)}
+              style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
+            >
+              Dismiss
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.78rem', color: '#856404', lineHeight: 1.5 }}>
+            This password is shown only once — it is not stored. Send it to the user yourself (email / WhatsApp).
+            They sign in with their email address and this password.
+          </p>
+        </div>
+      )}
+
       {isAdmin && (
         <div className="glass-card">
           {/* Header row */}
@@ -226,7 +269,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
               </div>
               <button type="submit" disabled={inviting || !inviteEmail.trim()} style={{ padding: '0.45rem 1.1rem', fontSize: '0.875rem', alignSelf: 'flex-end', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Mail size={14} />
-                {inviting ? 'Sending…' : 'Send Invite'}
+                {inviting ? 'Creating…' : 'Create Account'}
               </button>
             </form>
           )}
@@ -249,7 +292,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
                 </thead>
                 <tbody>
                   {users.map(u => {
-                    const isMe = u.id === user?.id
+                    const isMe = u.clerk_id === user?.id
                     const rc = ROLE_COLORS[u.role] || ROLE_COLORS.operator
                     return (
                       <tr key={u.id}>

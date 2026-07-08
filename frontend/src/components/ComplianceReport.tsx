@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { MONTH_NAMES, MONTHLY_DATA, DECCA_LIMITS } from '../constants'
+import { MONTH_NAMES, MONTHLY_DATA, COMPLIANCE_LIMITS } from '../constants'
 
 // Month abbreviations for heatmap columns
 const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -14,8 +14,8 @@ function computeCompliance(data: typeof MONTHLY_DATA) {
     values: number[]
   }> = {}
 
-  for (const key of Object.keys(DECCA_LIMITS)) {
-    const limit = DECCA_LIMITS[key]
+  for (const key of Object.keys(COMPLIANCE_LIMITS)) {
+    const limit = COMPLIANCE_LIMITS[key]
     // oil_grease key in MONTHLY_DATA is 'oil_grease', total_coliforms is 'coliforms'
     const dataKey = key === 'total_coliforms' ? 'coliforms' : key
     const rawValues = (data as Record<string, number[]>)[dataKey] ?? []
@@ -60,7 +60,7 @@ function marginBg(pct: number): string {
   return '#C6EFCE'
 }
 
-export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) => {
+export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite }) => {
   const { token, organizationId } = useAuth()
   const [data, setData] = useState<typeof MONTHLY_DATA>(MONTHLY_DATA)
   const [loading, setLoading] = useState(true)
@@ -83,7 +83,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `DECCA_${activeSite}_2026${draft ? '_DRAFT' : ''}.pdf`
+      a.download = `Compliance_${activeSite}_2026${draft ? '_DRAFT' : ''}.pdf`
       a.click()
       URL.revokeObjectURL(url)
     } catch (e: any) {
@@ -112,12 +112,12 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
   }, [activeSite, token])
 
   const compliance = computeCompliance(data)
-  const paramKeys = Object.keys(DECCA_LIMITS)
+  const paramKeys = Object.keys(COMPLIANCE_LIMITS)
 
   // Annual statistics per parameter
   const annualStats = paramKeys.map(key => {
     const { compliant, values } = compliance[key]
-    const limit = DECCA_LIMITS[key]
+    const limit = COMPLIANCE_LIMITS[key]
     const avg = values.reduce((a, b) => a + b, 0) / 12
     const max = Math.max(...values)
     const min = Math.min(...values)
@@ -137,7 +137,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-      <PageHeader title="DECCA Regulatory Compliance Report" subtitle={`Reporting Period: 2026 — ${activeSite || 'All Sites'}`} />
+      <PageHeader title="Regulatory Compliance Report" subtitle={`Reporting Period: 2026 — ${activeSite || 'All Sites'}`} />
 
       {/* ─── 2. PDF DOWNLOAD SECTION ────────────────────────────────── */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -146,7 +146,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
             📄 Export Official Report
           </h2>
           <p style={{ fontSize: '0.9rem', color: '#64748b' }}>
-            Generate a formatted, submission-ready DECCA compliance PDF for {activeSite || 'the selected site'}.
+            Generate a formatted, submission-ready compliance PDF for {activeSite || 'the selected site'}.
           </p>
         </div>
         {[pdfLoading, pdfError].includes(pdfLoading) && pdfError && (
@@ -175,7 +175,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', minWidth: '700px' }}>
               <thead>
                 <tr>
-                  {['Parameter','Unit','DECCA Limit','Annual Avg','Annual Max','Annual Min','Months Compliant','Compliance %','Status'].map(h => (
+                  {['Parameter','Unit','Compliance Limit','Annual Avg','Annual Max','Annual Min','Months Compliant','Compliance %','Status'].map(h => (
                     <th key={h} style={{
                       padding: '0.6rem 0.75rem',
                       textAlign: 'left',
@@ -309,7 +309,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
                 </thead>
                 <tbody>
                   {paramKeys.map(key => {
-                    const limit = DECCA_LIMITS[key]
+                    const limit = COMPLIANCE_LIMITS[key]
                     const { margin_pct, values } = compliance[key]
                     return (
                       <tr key={key}>
@@ -377,7 +377,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
         }}>
           <span style={{ fontSize: '1.1rem' }}>&#x2705;</span>
           <p style={{ fontSize: '0.875rem', color: '#006100', fontWeight: 500, margin: 0 }}>
-            No incidents recorded. All parameters within DECCA limits throughout the reporting period.
+            No incidents recorded. All parameters within compliance limits throughout the reporting period.
           </p>
         </div>
 
@@ -386,7 +386,7 @@ export const DECCAReport: React.FC<{ activeSite: string }> = ({ activeSite }) =>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: '860px' }}>
             <thead>
               <tr>
-                {['Date','Parameter','Measured Value','DECCA Limit','Duration (hr)','Root Cause','Corrective Action','Resolution Date'].map(h => (
+                {['Date','Parameter','Measured Value','Compliance Limit','Duration (hr)','Root Cause','Corrective Action','Resolution Date'].map(h => (
                   <th key={h} style={{
                     padding: '0.6rem 0.75rem',
                     textAlign: 'left',

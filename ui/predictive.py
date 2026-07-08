@@ -2,7 +2,7 @@
 
 Shows, per lagoon: predicted status, model confidence, and a SAMPLE/SKIP
 recommendation; and across the portfolio: how much sampling (and money) the
-model saves while keeping every lagoon within the DECCA regulatory floor.
+model saves while keeping every lagoon within the regulatory floor.
 
 STRICT: this page shows ONLY outputs — predicted value, confidence,
 recommendation, savings. It must never reveal HOW the prediction is made
@@ -17,7 +17,7 @@ from db.client import is_configured
 from db.queries import get_site_names, get_readings_for_site
 from science.portfolio import assess_lagoon
 from science.adaptive_sampling import LagoonStatus, optimize_portfolio
-from science.config import DECCA_MIN_SAMPLING_DAYS, SAMPLING_COST_AED
+from science.config import COMPLIANCE_MIN_SAMPLING_DAYS, SAMPLING_COST_AED
 from ui.components import page_header, section_header, metric_card, callout
 
 
@@ -127,8 +127,8 @@ def render():
         metric_card("Portfolio Confidence", f"{plan.mean_confidence_pct:.0f}%",
                      _conf_color(plan.mean_confidence_pct), "Mean predicted-state confidence")
 
-    callout("Every lagoon stays within the DECCA mandated sampling cadence "
-            f"(≤ {DECCA_MIN_SAMPLING_DAYS} days). The model only ever removes "
+    callout("Every lagoon stays within the Compliance mandated sampling cadence "
+            f"(≤ {COMPLIANCE_MIN_SAMPLING_DAYS} days). The model only ever removes "
             "<em>discretionary</em> sampling, never the regulatory minimum.", "success")
 
     if plan.next_best_to_sample:

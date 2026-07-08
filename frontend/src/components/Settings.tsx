@@ -19,7 +19,9 @@ interface BillingStatus {
   sites_used: number
   can_add_site: boolean
   has_subscription: boolean
-  stripe_configured: boolean
+  payments_configured: boolean
+  portal_available: boolean
+  payment_provider: string
   available_plans: Record<string, { name: string; site_limit: number; price_usd: number; description: string }>
 }
 
@@ -59,6 +61,7 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
   const [loading, setLoading] = useState(true)
   const [checkingOut, setCheckingOut] = useState<string | null>(null)
   const [openingPortal, setOpeningPortal] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const headers = (): HeadersInit => {
@@ -68,15 +71,14 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
     return h
   }
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch('/api/billing/status', { headers: headers() })
-        if (res.ok) setStatus(await res.json())
-      } catch { /* ignore */ } finally { setLoading(false) }
-    }
-    load()
-  }, [organizationId])
+  const loadStatus = async () => {
+    try {
+      const res = await fetch('/api/billing/status', { headers: headers() })
+      if (res.ok) setStatus(await res.json())
+    } catch { /* ignore */ } finally { setLoading(false) }
+  }
+
+  useEffect(() => { loadStatus() }, [organizationId])
 
   const handleUpgrade = async (planKey: string) => {
     setCheckingOut(planKey)
@@ -112,6 +114,19 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
       window.location.href = data.portal_url
     } catch { setError('Network error. Try again.') }
     finally { setOpeningPortal(false) }
+  }
+
+  const handleCancel = async () => {
+    if (!window.confirm('Cancel your subscription? Your organization will be downgraded to the Starter plan.')) return
+    setCancelling(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/billing/cancel', { method: 'POST', headers: headers() })
+      const data = await res.json()
+      if (!res.ok) { setError(data.detail || 'Cancellation failed.'); return }
+      await loadStatus()
+    } catch { setError('Network error. Try again.') }
+    finally { setCancelling(false) }
   }
 
   if (loading) return (
@@ -180,8 +195,9 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
           </div>
         </div>
 
-        {/* Manage billing button */}
-        {status.has_subscription && (
+        {/* Manage billing — hosted portal when the provider offers one,
+            otherwise a direct cancel action */}
+        {status.has_subscription && (status.portal_available ? (
           <button
             onClick={handlePortal}
             disabled={openingPortal}
@@ -190,7 +206,16 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
           >
             {openingPortal ? 'Opening…' : '⚙ Manage Billing'}
           </button>
-        )}
+        ) : (
+          <button
+            onClick={handleCancel}
+            disabled={cancelling}
+            className="secondary"
+            style={{ alignSelf: 'flex-start', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+          >
+            {cancelling ? 'Cancelling…' : 'Cancel Subscription'}
+          </button>
+        ))}
       </div>
 
       {/* Plan cards — always visible */}
@@ -199,9 +224,9 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
           Available Plans
         </div>
 
-        {!status.stripe_configured && (
+        {!status.payments_configured && (
           <div style={{ background: '#FFEB9C', color: '#856404', padding: '0.75rem 1rem', borderRadius: 8, fontSize: '0.82rem', border: '1px solid #fcd34d', lineHeight: 1.6, marginBottom: '0.75rem' }}>
-            <strong>Stripe not configured.</strong> Add your API keys to{' '}
+            <strong>Payments not configured.</strong> Add your payment provider API keys to{' '}
             <code style={{ background: 'rgba(0,0,0,0.06)', padding: '1px 5px', borderRadius: 3 }}>.streamlit/secrets.toml</code>{' '}
             to enable purchases. Site limits are still enforced.
           </div>
@@ -236,7 +261,7 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: pc2.color, textAlign: 'center' }}>
                       ✓ Current Plan
                     </span>
-                  ) : status.stripe_configured ? (
+                  ) : status.payments_configured ? (
                     <button
                       onClick={() => handleUpgrade(key)}
                       disabled={!!checkingOut}
@@ -246,7 +271,7 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
                     </button>
                   ) : (
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-                      Stripe required to upgrade
+                      Payment provider required to upgrade
                     </span>
                   )}
                 </div>

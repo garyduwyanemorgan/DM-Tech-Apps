@@ -5,7 +5,7 @@ band that widens the longer it's been since a real sample (and wider still for
 lagoons inferred from sentinels rather than sampled directly). When a real
 sample is eventually taken, science.validation scores this prediction — that
 track record is what justifies sampling fewer lagoons, less often, above the
-DECCA regulatory floor.
+regulatory floor.
 
 v1 predictor is a transparent **seasonal + persistence baseline**:
   - seasonal expectation from the monthly baseline curve (data.sample_data),

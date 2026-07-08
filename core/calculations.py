@@ -6,15 +6,15 @@ No Streamlit, no IO, no side effects.
 import math
 from typing import Dict, List
 
-from .constants import DECCA_LIMITS, DECCALimit
+from .constants import COMPLIANCE_LIMITS, ComplianceLimit
 from .models import ComplianceResult, WaterReading
 
 
-# ── DECCA Compliance ──
+# ── Compliance ──
 
 def check_compliance(key: str, value: float) -> ComplianceResult:
-    """Check a single parameter against its DECCA limit."""
-    lim = DECCA_LIMITS[key]
+    """Check a single parameter against its compliance limit."""
+    lim = COMPLIANCE_LIMITS[key]
     compliant = True
     margin_pct = 0.0
 
@@ -52,7 +52,7 @@ def check_compliance(key: str, value: float) -> ComplianceResult:
 
 
 def check_all_compliance(reading: WaterReading) -> List[ComplianceResult]:
-    """Check all DECCA parameters for a single reading."""
+    """Check all Compliance parameters for a single reading."""
     params = reading.as_dict()
     return [check_compliance(k, v) for k, v in params.items()]
 

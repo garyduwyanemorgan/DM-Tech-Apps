@@ -6,12 +6,15 @@ import { Sidebar } from './components/Sidebar'
 import { Dashboard } from './components/Dashboard'
 import { UploadReport } from './components/UploadReport'
 import { ScienceSimulation } from './components/ScienceSimulation'
-import { DECCAReport } from './components/DECCAReport'
+import { ComplianceReport } from './components/ComplianceReport'
 import { Monitoring } from './components/Monitoring'
 import { Alerts } from './components/Alerts'
 import { Calendar } from './components/Calendar'
 import { Sludge } from './components/Sludge'
+import { Community } from './components/Community'
 import { Drivers } from './components/Drivers'
+import { Chemistry } from './components/Chemistry'
+import { Ecology } from './components/Ecology'
 import { Species } from './components/Species'
 import { Technologies } from './components/Technologies'
 import { MLSystem } from './components/MLSystem'
@@ -25,12 +28,15 @@ const TAB_TITLES: Record<string, string> = {
   dashboard: 'Executive Dashboard',
   upload: 'Log Lab Report',
   simulation: 'Digital Twin',
-  decca: 'DECCA Report',
+  compliance: 'Compliance Report',
   monitoring: 'Water Quality',
+  sludge: 'Sludge Management',
+  community: 'Algae & Bloom Forecast',
   alerts: 'Alerts & Response',
   calendar: 'Treatment Calendar',
-  sludge: 'Sludge Management',
   drivers: 'Env. Drivers',
+  chemistry: 'Chemistry',
+  ecology: 'Ecology',
   species: 'Species Matrix',
   technologies: 'Technologies',
   mlsystem: 'ML System',
@@ -107,12 +113,15 @@ function AppContent() {
           {activeTab === 'dashboard'   && <Dashboard activeSite={activeSite} useSampleData={useSampleData} />}
           {activeTab === 'upload'      && <UploadReport activeSite={activeSite} />}
           {activeTab === 'simulation'  && <ScienceSimulation activeSite={activeSite} />}
-          {activeTab === 'decca'        && <DECCAReport activeSite={activeSite} />}
+          {activeTab === 'compliance'        && <ComplianceReport activeSite={activeSite} />}
           {activeTab === 'monitoring'  && <Monitoring activeSite={activeSite} useSampleData={useSampleData} />}
-          {activeTab === 'alerts'      && <Alerts />}
+          {activeTab === 'sludge'      && <Sludge activeSite={activeSite} />}
+          {activeTab === 'community'   && <Community activeSite={activeSite} />}
+          {activeTab === 'alerts'      && <Alerts activeSite={activeSite} />}
           {activeTab === 'calendar'    && <Calendar />}
-          {activeTab === 'sludge'      && <Sludge />}
           {activeTab === 'drivers'     && <Drivers />}
+          {activeTab === 'chemistry'   && <Chemistry />}
+          {activeTab === 'ecology'     && <Ecology />}
           {activeTab === 'species'     && <Species />}
           {activeTab === 'technologies' && <Technologies />}
           {activeTab === 'mlsystem'    && <MLSystem />}
