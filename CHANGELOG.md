@@ -6,8 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 **Version source of truth:** the root `VERSION` file and `frontend/package.json`.
-Each release is tagged in git as `vX.Y.Z`. Record changes under `[Unreleased]` as you
-go, then move them under a new version heading when you cut a release.
+Releases are automated — run `scripts/release.sh [patch|minor|major|auto]` (or the
+`/release` command, or `scripts\release.ps1` on Windows). It bumps the version files,
+generates the new version's entries from the Conventional-Commit messages since the
+last tag, commits, tags `vX.Y.Z`, and pushes. `[Unreleased]` below holds only the
+forward-looking **Planned** roadmap; shipped entries are filled in automatically at
+release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …).
 
 ## [Unreleased]
 
