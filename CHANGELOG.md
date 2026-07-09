@@ -25,6 +25,10 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [0.3.0] - 2026-07-09
+
+- feat: surface deployed version in Settings and expose /api/version
+
 ## [0.2.0] - 2026-07-08
 
 - feat: add one-command release automation (/release + scripts/release.{sh,ps1})
@@ -67,6 +71,7 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/releases/tag/v0.1.0
