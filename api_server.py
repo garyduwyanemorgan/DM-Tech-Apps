@@ -13,6 +13,7 @@ Production (background):
 
 Endpoints:
     GET  /health                   — liveness check
+    GET  /version                  — deployed version + commit SHA
     GET  /sites                    — list configured sites
     POST /assess                   — check readings, no save
     POST /log                      — save reading + return assessment
@@ -40,13 +41,14 @@ from core.alert_engine import evaluate_alert_level
 from core.calculations import check_all_compliance, compliance_summary
 from core.constants import ALERT_LABELS, MONTH_NAMES, TREATMENT_ACTIONS, AlertLevel
 from core.models import WaterReading
+from core.version import get_version, get_version_info
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="Lagoon Compliance API",
     description="Water quality compliance + alert engine for Dubai lagoon field teams.",
-    version="1.0.0",
+    version=get_version(),
 )
 
 app.add_middleware(
@@ -418,7 +420,13 @@ def _assess(reading: WaterReading) -> dict:
 @app.get("/health", tags=["System"])
 def health():
     """Liveness check. Returns ok when the server is running."""
-    return {"status": "ok", "service": "lagoon-compliance-api"}
+    return {"status": "ok", "service": "lagoon-compliance-api", "version": get_version()}
+
+
+@app.get("/version", tags=["System"])
+def version():
+    """Deployed version, commit SHA, and environment. Unauthenticated by design."""
+    return get_version_info()
 
 
 class CreateSiteRequest(BaseModel):

@@ -1,9 +1,11 @@
 # ── Secrets — NEVER commit (Supabase key, Clerk/Stripe/Anthropic keys live here) ──
-.streamlit/secrets.toml
+# Globbed, not exact: a secrets.toml.bak / .orig / .save copy is just as dangerous.
+.streamlit/secrets.toml*
 .env
 .env.*
 *.env
 *.key
+*.bak
 
 # Node / frontend build
 node_modules/

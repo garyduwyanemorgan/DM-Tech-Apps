@@ -1,3 +1,13 @@
+/** Build identity, set on process.env by vite.config.ts (dev + build). */
+interface ImportMetaEnv {
+  readonly VITE_APP_VERSION: string
+  readonly VITE_BUILD_TIME: string
+  readonly VITE_CLERK_PUBLISHABLE_KEY: string
+}
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+
 declare module 'reactjs-social-login' {
   import React from 'react'
 

@@ -19,6 +19,17 @@ services:
         value: "Emaar,Damac,Nakheel"
       - key: API_KEY                # auth: callers must send X-API-Key header (optional)
         sync: false
+      # Clerk. Values live in the Render dashboard, NOT here: a live publishable
+      # key is only accepted by Clerk on its registered domain, so hardcoding one
+      # would break any service deployed on a different origin (e.g. *.onrender.com).
+      # VITE_CLERK_PUBLISHABLE_KEY is read by Vite during buildCommand — it MUST be
+      # present at build time or the SPA boots with an empty ClerkProvider.
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY   # backend fallback (no secrets.toml on Render)
+        sync: false
+      - key: CLERK_SECRET_KEY        # SECRET — set in the Render dashboard, never here
+        sync: false
       - key: PYTHON_VERSION
         value: "3.12.7"
 

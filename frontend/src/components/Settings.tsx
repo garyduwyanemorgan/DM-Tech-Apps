@@ -283,6 +283,60 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
   )
 }
 
+const APP_VERSION = import.meta.env.VITE_APP_VERSION
+const BUILD_TIME = import.meta.env.VITE_BUILD_TIME
+
+interface VersionInfo {
+  version: string
+  commit: string | null
+  environment: string
+}
+
+const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', padding: '0.45rem 0' }}>
+    <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{label}</span>
+    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1B3A5C', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+      {children}
+    </span>
+  </div>
+)
+
+/** Which build is actually running. `APP_VERSION` is stamped in at build time; the API reports the version of the process serving it. A
+ *  mismatch means a cached or half-deployed SPA is talking to a newer backend. */
+const AboutPanel: React.FC = () => {
+  const [api, setApi] = useState<VersionInfo | null>(null)
+  const [unreachable, setUnreachable] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/version')
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then(setApi)
+      .catch(() => setUnreachable(true))
+  }, [])
+
+  const buildTime = new Date(BUILD_TIME)
+  const mismatch = api && api.version !== APP_VERSION
+
+  return (
+    <div>
+      <Row label="App version">v{APP_VERSION}</Row>
+      <Row label="API version">
+        {unreachable ? <span style={{ color: '#9C0006' }}>unreachable</span> : api ? `v${api.version}` : '…'}
+      </Row>
+      {api?.commit && <Row label="Commit">{api.commit}</Row>}
+      {api?.environment && <Row label="Environment">{api.environment}</Row>}
+      <Row label="Built">{buildTime.toLocaleString()}</Row>
+
+      {mismatch && (
+        <div style={{ marginTop: '0.75rem', background: '#FFEB9C', color: '#856404', border: '1px solid #fcd34d', borderRadius: 8, padding: '0.75rem 1rem', fontSize: '0.8rem', lineHeight: 1.6 }}>
+          <strong>Version mismatch.</strong> This page was built from v{APP_VERSION} but the
+          server is running v{api.version}. Hard-refresh (Ctrl/⌘ + Shift + R) to load the current build.
+        </div>
+      )}
+    </div>
+  )
+}
+
 export const Settings: React.FC<SettingsProps> = ({ useSampleData, setUseSampleData, activeSite, setActiveSite }) => {
   const { role, organizationId, token } = useAuth()
   const isAdmin = role === 'admin' || role === 'super_admin'
@@ -339,10 +393,16 @@ export const Settings: React.FC<SettingsProps> = ({ useSampleData, setUseSampleD
       )}
 
       {!isAdmin && (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem' }}>
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
           Billing, site, and user management are visible to Admins and Super Admins only.
         </div>
       )}
+
+      {/* About — visible to every role, so support can ask "what version are you on?" */}
+      <div className="glass-card" style={{ marginTop: '1.5rem' }}>
+        <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '0.75rem' }}>About</h3>
+        <AboutPanel />
+      </div>
     </div>
   )
 }
