@@ -1269,6 +1269,12 @@ async def extract_lab_report_endpoint(
     """Extract water-quality readings from a lab-report photo or PDF using Claude vision.
     Returns the 14 Compliance parameters as JSON. Human review is required before saving.
     """
+    # Gate before spending Anthropic credits. get_current_user_profile is an
+    # identity *resolver*, not a gate — with no token it returns an anonymous
+    # user_id=None/role="operator" dict, so the Depends() alone lets anybody in.
+    # Require a real signed-in user with an assigned (non-pending) role.
+    if not profile.get("user_id") or profile.get("role") == "pending":
+        raise HTTPException(status_code=401, detail="Sign in to extract lab reports.")
     from extract import extract_lab_report, is_configured
     if not is_configured():
         raise HTTPException(
