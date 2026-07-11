@@ -25,6 +25,15 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [0.5.0] - 2026-07-11
+
+- fix: never cache index.html
+- feat: authenticate against the Clerk dev instance on localhost
+- feat: auto-provision each new sign-in as super_admin of its own organisation
+- feat: invite users by Clerk invitation instead of a temp password
+- feat: role-aware dashboards from site supervisor to executive
+- feat: add an auditor role and a shared role model
+
 ## [0.4.1] - 2026-07-10
 
 - fix: require authentication for /api/extract
@@ -80,7 +89,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.2.0...v0.3.0
