@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Menu, Waves } from 'lucide-react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { roleMeta } from './lib/roles'
 import { Login } from './components/Login'
 import { Sidebar } from './components/Sidebar'
 import { Dashboard } from './components/Dashboard'
+import { ProjectDashboard } from './components/dashboards/ProjectDashboard'
+import { PortfolioDashboard } from './components/dashboards/PortfolioDashboard'
+import { ExecutiveDashboard } from './components/dashboards/ExecutiveDashboard'
 import { UploadReport } from './components/UploadReport'
 import { ScienceSimulation } from './components/ScienceSimulation'
 import { ComplianceReport } from './components/ComplianceReport'
@@ -46,10 +50,20 @@ const TAB_TITLES: Record<string, string> = {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, role } = useAuth()
   const [activeTab, setActiveTab] = useState('home')
   const [activeSite, setActiveSite] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Land each role on their dashboard once, after the profile (and thus role)
+  // has resolved. Guarded so it never overrides later manual navigation.
+  const didInitLanding = useRef(false)
+  useEffect(() => {
+    if (!loading && user && !didInitLanding.current) {
+      didInitLanding.current = true
+      setActiveTab('dashboard')
+    }
+  }, [loading, user])
   const [useSampleData, setUseSampleData] = useState<boolean>(() => {
     try { return localStorage.getItem('useSampleData') !== 'false' } catch { return true }
   })
@@ -110,7 +124,14 @@ function AppContent() {
 
         <main className="main-content">
           {activeTab === 'home'        && <Home activeSite={activeSite} setActiveTab={handleTabChange} />}
-          {activeTab === 'dashboard'   && <Dashboard activeSite={activeSite} useSampleData={useSampleData} />}
+          {activeTab === 'dashboard'   && (() => {
+            // Role-aware dashboard: each tier sees a different altitude of detail.
+            const tier = roleMeta(role).dashboardTier
+            if (tier === 4) return <ExecutiveDashboard setActiveSite={setActiveSite} setActiveTab={handleTabChange} />
+            if (tier === 3) return <PortfolioDashboard setActiveSite={setActiveSite} setActiveTab={handleTabChange} />
+            if (tier === 2) return <ProjectDashboard setActiveSite={setActiveSite} setActiveTab={handleTabChange} />
+            return <Dashboard activeSite={activeSite} useSampleData={useSampleData} />
+          })()}
           {activeTab === 'upload'      && <UploadReport activeSite={activeSite} />}
           {activeTab === 'simulation'  && <ScienceSimulation activeSite={activeSite} />}
           {activeTab === 'compliance'        && <ComplianceReport activeSite={activeSite} />}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
 import { COMPLIANCE_LIMITS, MONTHLY_DATA, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS } from '../constants'
+import { LIGHT_STYLE, type TrafficLight } from '../lib/status'
 
 interface DashboardProps {
   activeSite: string
@@ -144,6 +145,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
   const alertColor = ALERT_COLORS[alertLevel]
   const alertLevelLabel = ALERT_LABELS[alertLevel]
 
+  // Traffic-light signal (consistent with the higher-tier role dashboards).
+  const light: TrafficLight = !isUsingApiData
+    ? 'blue'
+    : (!allPass || alertLevel >= 3 ? 'red' : alertLevel === 2 ? 'yellow' : 'green')
+  const lightStyle = LIGHT_STYLE[light]
+
   const alertBg: Record<number, string> = { 1: '#C6EFCE', 2: '#FFEB9C', 3: '#FFD5A8', 4: '#FFC7CE' }
   const alertText: Record<number, string> = { 1: '#006100', 2: '#856404', 3: '#7A3B00', 4: '#9C0006' }
 
@@ -162,6 +169,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite, useSampleData 
       )}
 
       {loading && <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading data…</div>}
+
+      {/* Traffic-light status chip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: lightStyle.bg, color: lightStyle.color, fontWeight: 700, fontSize: '0.8rem', borderRadius: 999, padding: '5px 14px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <span style={{ width: 10, height: 10, borderRadius: '50%', background: lightStyle.dot }} />
+          {lightStyle.label}
+        </span>
+        {activeSite && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{activeSite}</span>}
+      </div>
 
       {/* Alert level card + KPI metrics */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'stretch' }}>
