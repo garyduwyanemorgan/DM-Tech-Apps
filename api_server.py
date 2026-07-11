@@ -1440,13 +1440,25 @@ ASSETS_DIR = os.path.join(FRONTEND_DIR, "assets")
 if os.path.exists(ASSETS_DIR):
     app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
+# index.html must never be cached: it is the entry point that references the
+# content-hashed JS/CSS bundles, and each build mints new hashes and deletes the
+# old ones. A browser holding a stale index.html would request a deleted bundle
+# and keep running old code until a hard refresh — so always revalidate it.
+# (The hashed assets themselves are immutable and safe to cache long-term.)
+_INDEX_NO_CACHE = {"Cache-Control": "no-cache, no-store, must-revalidate"}
+
+
+def _index_response() -> FileResponse:
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"), headers=_INDEX_NO_CACHE)
+
+
 @app.get("/{catchall:path}")
 def serve_react_app(catchall: str):
     # Prevent accessing files outside of FRONTEND_DIR for security
     # Clean the path to avoid directory traversal
     safe_path = os.path.normpath(catchall).lstrip(os.path.sep)
     if safe_path.startswith("..") or safe_path.startswith("/") or safe_path.startswith("\\"):
-        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+        return _index_response()
 
     # Check if the requested file exists in frontend/dist (like favicon.svg, icons.svg)
     file_path = os.path.join(FRONTEND_DIR, safe_path)
@@ -1456,7 +1468,7 @@ def serve_react_app(catchall: str):
     # Otherwise return index.html for React router
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_path):
-        return FileResponse(index_path)
+        return _index_response()
 
     return {"message": "React frontend is not built. Please run 'npm run build' inside frontend directory."}
 
