@@ -76,25 +76,35 @@ security_jwt = HTTPBearer(auto_error=False)
 _clerk_jwks_cache: dict | None = None
 
 
+def _clerk_dev_publishable_key() -> str:
+    """The pk_test_ key for the Clerk dev instance, if one is configured.
+
+    Only ever set in .streamlit/secrets.toml or CLERK_DEV_PUBLISHABLE_KEY, neither
+    of which exists on Render — so a value here means we are running locally and
+    should authenticate against the dev instance. A live publishable key is bound
+    to its registered domain and Clerk rejects it on localhost.
+    """
+    pk = _read_secrets_toml().get("clerk", {}).get("dev_publishable_key", "")
+    return pk or os.environ.get("CLERK_DEV_PUBLISHABLE_KEY", "")
+
+
 def _clerk_publishable_key() -> str:
     """Resolve the Clerk publishable key from secrets.toml or the env var.
 
     On Render/serverless there is no secrets.toml, so CLERK_PUBLISHABLE_KEY must
     be set as an environment variable; locally the .streamlit/secrets.toml value
-    takes precedence.
+    takes precedence. A configured dev key wins over both.
+
+    This key also selects which instance's JWKS tokens are verified against
+    (_clerk_jwks_url), so it must name the same instance the frontend signed the
+    user in with — otherwise every authenticated request 401s.
     """
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib  # Python < 3.11 fallback
-    try:
-        with open(os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml"), "rb") as f:
-            secrets = tomllib.load(f)
-        pk = secrets.get("clerk", {}).get("publishable_key", "")
-        if pk:
-            return pk
-    except Exception:
-        pass
+    dev_pk = _clerk_dev_publishable_key()
+    if dev_pk:
+        return dev_pk
+    pk = _read_secrets_toml().get("clerk", {}).get("publishable_key", "")
+    if pk:
+        return pk
     return os.environ.get("CLERK_PUBLISHABLE_KEY", "")
 
 
@@ -112,9 +122,25 @@ def _read_secrets_toml() -> dict:
 
 
 def _clerk_secret_key() -> str:
-    """Clerk Backend API secret key from secrets.toml or CLERK_SECRET_KEY env."""
-    sk = _read_secrets_toml().get("clerk", {}).get("secret_key", "")
+    """Clerk Backend API secret key from secrets.toml or CLERK_SECRET_KEY env.
+
+    Mirrors _clerk_publishable_key: a configured dev secret key wins, so Backend
+    API writes land on the same instance we verify tokens against.
+    """
+    clerk = _read_secrets_toml().get("clerk", {})
+    dev_sk = clerk.get("dev_secret_key", "") or os.environ.get("CLERK_DEV_SECRET_KEY", "")
+    if dev_sk and _clerk_dev_publishable_key():
+        return dev_sk
+    sk = clerk.get("secret_key", "")
     return sk or os.environ.get("CLERK_SECRET_KEY", "")
+
+
+def _clerk_key_instance(key: str) -> str:
+    """'test', 'live', or '' — which Clerk instance a pk_/sk_ key belongs to."""
+    for instance in ("test", "live"):
+        if key.startswith(f"pk_{instance}_") or key.startswith(f"sk_{instance}_"):
+            return instance
+    return ""
 
 
 def _admin_notify_email() -> str:

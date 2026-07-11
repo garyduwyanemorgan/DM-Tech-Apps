@@ -3,6 +3,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_VERSION: string
   readonly VITE_BUILD_TIME: string
   readonly VITE_CLERK_PUBLISHABLE_KEY: string
+  /** pk_test_ key for the Clerk dev instance; used only on localhost. */
+  readonly VITE_CLERK_DEV_PUBLISHABLE_KEY: string
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv
