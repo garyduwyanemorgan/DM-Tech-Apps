@@ -300,24 +300,17 @@ def get_current_user_profile(
                 "role": profile.get("role") or "operator",
                 "token": token,
             }
-        # No profile and no matching invite. Only the configured gatekeeper
-        # email may bootstrap itself as super_admin; everyone else stays
-        # pending until an admin creates their account.
-        admin_email = _admin_notify_email()
-        if admin_email and email.strip().lower() == admin_email:
-            org_id = _create_super_admin_profile(user["id"], email)
-            return {
-                "user_id": user["id"],
-                "email": email,
-                "organization_id": org_id,
-                "role": "super_admin",
-                "token": token,
-            }
+        # No profile and no matching invite: auto-provision every new signed-in
+        # user as super_admin with their own fresh organization. Self sign-up is
+        # restricted at the Clerk instance level, so anyone who reaches here has
+        # already been let through Clerk; each becomes the owner/admin of their
+        # own tenant and can invite others into it.
+        org_id = _create_super_admin_profile(user["id"], email)
         return {
             "user_id": user["id"],
             "email": email,
-            "organization_id": None,
-            "role": "pending",
+            "organization_id": org_id,
+            "role": "super_admin",
             "token": token,
         }
 
