@@ -590,8 +590,8 @@ def update_user_role(user_id: str, body: UpdateRoleRequest, profile: dict = Depe
     """Change a user's role. Admins can set operator/admin; only super_admin can grant super_admin."""
     if profile.get("role") not in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Admin access required.")
-    if body.role not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=422, detail="Role must be operator, admin, or super_admin.")
+    if body.role not in ("operator", "admin", "auditor", "super_admin"):
+        raise HTTPException(status_code=422, detail="Role must be operator, admin, auditor, or super_admin.")
     if body.role == "super_admin" and profile.get("role") != "super_admin":
         raise HTTPException(status_code=403, detail="Only super_admin can grant super_admin role.")
     org_id = profile.get("organization_id")

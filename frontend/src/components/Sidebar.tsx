@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { LogOut, Settings, Waves, X } from 'lucide-react'
+import { RoleBadge } from './RoleBadge'
 
 interface SidebarProps {
   activeTab: string
@@ -293,6 +294,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom controls */}
       <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        {/* Current user's role */}
+        <div style={{ padding: '0 0.75rem', marginBottom: '0.75rem' }}>
+          <RoleBadge role={role} onDark />
+        </div>
+
         {/* Settings */}
         <button
           onClick={() => { setActiveTab('settings'); onClose() }}
