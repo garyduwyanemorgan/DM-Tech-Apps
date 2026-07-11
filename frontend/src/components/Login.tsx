@@ -1,6 +1,11 @@
 import { useState } from 'react'
-import { SignIn } from '@clerk/react'
+import { SignIn, SignUp } from '@clerk/react'
 import { Waves } from 'lucide-react'
+
+// Invited users arrive from Clerk's email with a __clerk_ticket in the URL. That
+// requires the SignUp flow (they set their own password) rather than SignIn.
+const hasInvitationTicket = (): boolean =>
+  new URLSearchParams(window.location.search).has('__clerk_ticket')
 
 const RequestAccess: React.FC = () => {
   const [open, setOpen] = useState(false)
@@ -109,39 +114,42 @@ const RequestAccess: React.FC = () => {
   )
 }
 
-export const Login: React.FC = () => (
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      width: '100vw',
-      background: 'linear-gradient(135deg, #f0f4f8 0%, #e8f0fe 100%)',
-      gap: '1.5rem',
-      padding: '2rem 1rem',
-    }}
-  >
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #1B3A5C 0%, #2E5D8A 100%)',
-          borderRadius: '14px',
-          padding: '0.8rem',
-          display: 'flex',
-        }}
-      >
-        <Waves size={32} color="#ffffff" />
+export const Login: React.FC = () => {
+  const invited = hasInvitationTicket()
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        width: '100vw',
+        background: 'linear-gradient(135deg, #f0f4f8 0%, #e8f0fe 100%)',
+        gap: '1.5rem',
+        padding: '2rem 1rem',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #1B3A5C 0%, #2E5D8A 100%)',
+            borderRadius: '14px',
+            padding: '0.8rem',
+            display: 'flex',
+          }}
+        >
+          <Waves size={32} color="#ffffff" />
+        </div>
+        <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#1B3A5C', fontWeight: 700 }}>
+          Dubai Lagoons
+        </h1>
+        <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem', textAlign: 'center', maxWidth: 280 }}>
+          {invited ? 'Accept your invitation and set a password' : 'Water Quality Compliance & Management Platform'}
+        </p>
       </div>
-      <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#1B3A5C', fontWeight: 700 }}>
-        Dubai Lagoons
-      </h1>
-      <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem', textAlign: 'center', maxWidth: 280 }}>
-        Water Quality Compliance &amp; Management Platform
-      </p>
+      {invited ? <SignUp /> : <SignIn />}
+      {!invited && <RequestAccess />}
     </div>
-    <SignIn />
-    <RequestAccess />
-  </div>
-)
+  )
+}

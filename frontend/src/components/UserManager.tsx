@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { Trash2, UserPlus, Shield, AlertTriangle, Mail, Copy, Check, KeyRound } from 'lucide-react'
+import { Trash2, UserPlus, AlertTriangle, Mail } from 'lucide-react'
+import { RoleBadge } from './RoleBadge'
+import { ROLE_META, ASSIGNABLE_ROLES, type Role } from '../lib/roles'
 
 interface OrgUser {
   id: string
@@ -19,17 +21,15 @@ interface UserManagerProps {
   embedded?: boolean
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  operator: 'Operator',
-  admin: 'Admin',
-  super_admin: 'Super Admin',
-}
+// Business-facing role names/colours are sourced from the shared role config so
+// the User Manager, sidebar badge, and dashboards all agree.
+const ROLE_LABELS: Record<string, string> = Object.fromEntries(
+  Object.entries(ROLE_META).map(([k, m]) => [k, m.label]),
+)
 
-const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
-  operator:    { bg: '#f1f5f9',  color: '#475569' },
-  admin:       { bg: '#D6E4F0',  color: '#1B3A5C' },
-  super_admin: { bg: '#C6EFCE',  color: '#006100' },
-}
+const ROLE_COLORS: Record<string, { bg: string; color: string }> = Object.fromEntries(
+  Object.entries(ROLE_META).map(([k, m]) => [k, m.badge]),
+)
 
 const TH: React.CSSProperties = {
   padding: '9px 14px',
@@ -64,8 +64,6 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('operator')
   const [inviting, setInviting] = useState(false)
-  const [tempCredentials, setTempCredentials] = useState<{ email: string; password: string } | null>(null)
-  const [copied, setCopied] = useState(false)
 
   // Role change
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -132,12 +130,8 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
         body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to create user.'); return }
-      setSuccess(`Account created for ${data.email} as ${ROLE_LABELS[inviteRole]}.`)
-      if (data.temp_password) {
-        setTempCredentials({ email: data.email, password: data.temp_password })
-        setCopied(false)
-      }
+      if (!res.ok) { setError(data.detail || 'Failed to send invitation.'); return }
+      setSuccess(`Invitation email sent to ${data.email} as ${ROLE_LABELS[inviteRole]}. They'll set their own password from the link.`)
       setInviteEmail(''); setInviteRole('operator'); setShowInvite(false)
       await fetchUsers()
     } catch {
@@ -167,9 +161,11 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
     }
   }
 
-  const availableRoles = isSuperAdmin
-    ? ['operator', 'admin', 'super_admin']
-    : ['operator', 'admin']
+  // Super admins can assign every role; admins can assign everything except
+  // Executive Management (super_admin).
+  const availableRoles: Role[] = isSuperAdmin
+    ? ASSIGNABLE_ROLES
+    : ASSIGNABLE_ROLES.filter(r => r !== 'super_admin')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -189,42 +185,6 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
 
       {error   && <div style={{ background: '#FFC7CE', color: '#9C0006', padding: '0.75rem 1rem', borderRadius: 6, fontSize: '0.875rem', border: '1px solid #fecaca' }}>{error}</div>}
       {success && <div style={{ background: '#C6EFCE', color: '#006100', padding: '0.75rem 1rem', borderRadius: 6, fontSize: '0.875rem', border: '1px solid #86efac' }}>{success}</div>}
-
-      {/* One-time temporary password display */}
-      {tempCredentials && (
-        <div style={{ background: '#FFF8E1', border: '1px solid #fcd34d', borderRadius: 8, padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#856404', fontWeight: 700, fontSize: '0.9rem' }}>
-            <KeyRound size={16} />
-            Temporary password for {tempCredentials.email}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <code style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6, padding: '0.4rem 0.75rem', fontSize: '0.95rem', letterSpacing: '0.05em', color: '#1B3A5C', fontWeight: 600 }}>
-              {tempCredentials.password}
-            </code>
-            <button
-              onClick={async () => {
-                await navigator.clipboard.writeText(tempCredentials.password)
-                setCopied(true)
-              }}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
-            >
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? 'Copied' : 'Copy'}
-            </button>
-            <button
-              className="secondary"
-              onClick={() => setTempCredentials(null)}
-              style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem' }}
-            >
-              Dismiss
-            </button>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.78rem', color: '#856404', lineHeight: 1.5 }}>
-            This password is shown only once — it is not stored. Send it to the user yourself (email / WhatsApp).
-            They sign in with their email address and this password.
-          </p>
-        </div>
-      )}
 
       {isAdmin && (
         <div className="glass-card">
@@ -309,9 +269,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
                         </td>
                         <td style={TD}>
                           {isMe || (!isSuperAdmin && u.role === 'super_admin') ? (
-                            <span style={{ background: rc.bg, color: rc.color, fontSize: '0.72rem', fontWeight: 700, borderRadius: 4, padding: '2px 8px' }}>
-                              {ROLE_LABELS[u.role] || u.role}
-                            </span>
+                            <RoleBadge role={u.role} size="sm" />
                           ) : (
                             <select
                               value={u.role}
@@ -346,24 +304,21 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
         </div>
       )}
 
-      {/* Role info card */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+      {/* Role info card — the four business roles and the detail they see */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         {[
-          { role: 'operator', icon: '👤', desc: 'View dashboards, upload lab reports, read all data.' },
-          { role: 'admin',    icon: '🔧', desc: 'All operator rights + manage sites, invite users, change roles.' },
-          { role: 'super_admin', icon: <Shield size={16} />, desc: 'Full control including granting super_admin and removing admins.' },
-        ].map(({ role: r, icon, desc }) => {
-          const rc = ROLE_COLORS[r]
-          return (
-            <div key={r} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                <span>{icon}</span>
-                <span style={{ fontWeight: 700, fontSize: '0.875rem', color: rc.color, background: rc.bg, borderRadius: 4, padding: '1px 8px' }}>{ROLE_LABELS[r]}</span>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', lineHeight: 1.5 }}>{desc}</p>
+          { role: 'operator',    desc: 'Site Supervisor — full operational detail: every parameter, lab value, inspection, and corrective action.' },
+          { role: 'admin',       desc: 'Project / Contract Manager — per-project compliance summary, outstanding actions, and key risks.' },
+          { role: 'auditor',     desc: 'General Manager — portfolio view across all projects with status indicators and management KPIs.' },
+          { role: 'super_admin', desc: 'Executive Management — organisation-wide compliance, regulatory risk, and trends, with drill-down.' },
+        ].map(({ role: r, desc }) => (
+          <div key={r} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1rem' }}>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <RoleBadge role={r} size="sm" />
             </div>
-          )
-        })}
+            <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', lineHeight: 1.5 }}>{desc}</p>
+          </div>
+        ))}
       </div>
 
       {/* Remove confirmation modal */}

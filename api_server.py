@@ -633,20 +633,57 @@ def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile))
     return {"removed": True, "user_id": user_id}
 
 
-def _create_clerk_user(email: str, password: str) -> str:
-    """Create a user in Clerk via the Backend API. Returns the new Clerk user ID.
-    Sign-up on the instance is restricted, so this is the only way accounts get made."""
+def _require_clerk_secret_key() -> str:
+    """Resolve the Clerk secret key, refusing when it targets a different instance
+    than the one we verify logins against.
+
+    The secret key decides which Clerk instance an invitation is created on, while
+    the publishable key decides which instance we verify logins against. If they
+    disagree, a local invite would create an account on the live instance that
+    still could not log in here — so refuse rather than write to the wrong tenant.
+    """
     sk = _clerk_secret_key()
     if not sk:
         raise HTTPException(
             status_code=503,
-            detail="Clerk secret key not configured (CLERK_SECRET_KEY). Cannot create users.",
+            detail="Clerk secret key not configured (CLERK_SECRET_KEY). Cannot invite users.",
         )
+    pk_instance = _clerk_key_instance(_clerk_publishable_key())
+    sk_instance = _clerk_key_instance(sk)
+    if pk_instance and sk_instance and pk_instance != sk_instance:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Clerk key mismatch: verifying logins against the '{pk_instance}' "
+                f"instance but the secret key targets '{sk_instance}'. Set "
+                f"clerk.dev_secret_key (sk_{pk_instance}_…) in .streamlit/secrets.toml "
+                f"to invite users against the '{pk_instance}' instance."
+            ),
+        )
+    return sk
+
+
+def _create_clerk_invitation(email: str, role: str, org_id: str | None, redirect_url: str) -> str:
+    """Create a Clerk invitation. Clerk emails the recipient a magic link; on
+    acceptance they set their own password and a Clerk user is created, with the
+    invitation's public_metadata copied onto it. Returns the invitation ID.
+
+    Invitations bypass the instance's restricted sign-up mode, which is the whole
+    point — this is how new accounts are made.
+    """
+    sk = _require_clerk_secret_key()
     import httpx as _httpx
+    body: dict = {
+        "email_address": email,
+        "public_metadata": {"role": role, "org_id": org_id},
+        "notify": True,
+    }
+    if redirect_url:
+        body["redirect_url"] = redirect_url
     r = _httpx.post(
-        "https://api.clerk.com/v1/users",
+        "https://api.clerk.com/v1/invitations",
         headers={"Authorization": f"Bearer {sk}"},
-        json={"email_address": [email], "password": password},
+        json=body,
         timeout=10,
     )
     if r.status_code not in (200, 201):
@@ -654,50 +691,53 @@ def _create_clerk_user(email: str, password: str) -> str:
             msg = r.json()["errors"][0]["message"]
         except Exception:
             msg = r.text[:200]
-        raise HTTPException(status_code=502, detail=f"Clerk user creation failed: {msg}")
+        raise HTTPException(status_code=502, detail=f"Clerk invitation failed: {msg}")
     return r.json()["id"]
 
 
 @app.post("/users/invite", tags=["Users"], status_code=201)
-def invite_user(body: InviteRequest, profile: dict = Depends(get_current_user_profile)):
+def invite_user(body: InviteRequest, request: Request, profile: dict = Depends(get_current_user_profile)):
     """
-    Admin-controlled account creation. Creates the user directly in Clerk with a
-    random temporary password (sign-up mode is 'restricted', so self-signup is
-    impossible) plus a linked profile row. The password is returned ONCE in the
-    response — the admin sends it to the user out-of-band.
+    Admin-controlled account creation via Clerk invitations. Clerk emails the
+    recipient a magic link; they set their own password and their account is
+    created on acceptance. A pending profile row (clerk_id null) carrying the
+    assigned role + organisation is inserted now and linked by email on their
+    first sign-in (see get_user_profile's email fallback).
     """
     if profile.get("role") not in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Admin access required.")
-    if body.role not in ("operator", "admin", "super_admin"):
+    if body.role not in ("operator", "admin", "auditor", "super_admin"):
         raise HTTPException(status_code=422, detail="Invalid role.")
     if body.role == "super_admin" and profile.get("role") != "super_admin":
         raise HTTPException(status_code=403, detail="Only super_admin can invite as super_admin.")
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
-    import secrets as _secrets
     import uuid as _uuid
     client = _gc()
     if not client:
         raise HTTPException(status_code=503, detail="Database not available.")
     email = body.email.strip().lower()
+    # Send the invitation back to this app's origin so Clerk's ticket lands on the
+    # sign-up flow (falls back to the API's own base URL if no Origin header).
+    origin = request.headers.get("origin") or str(request.base_url)
+    redirect_url = origin.rstrip("/") + "/"
     try:
         existing = client.table("user_profiles").select("id").eq("email", email).execute()
         if existing.data:
             raise HTTPException(status_code=409, detail=f"{email} is already invited or registered.")
-        temp_password = _secrets.token_urlsafe(12)
-        clerk_id = _create_clerk_user(email, temp_password)
+        invitation_id = _create_clerk_invitation(email, body.role, org_id, redirect_url)
         client.table("user_profiles").insert({
             "id": str(_uuid.uuid4()),
             "organization_id": org_id,
             "role": body.role,
             "email": email,
-            "clerk_id": clerk_id,
+            "clerk_id": None,  # linked on first sign-in via the email fallback
         }).execute()
         return {
             "invited": True,
             "email": email,
             "role": body.role,
-            "temp_password": temp_password,
+            "invitation_id": invitation_id,
         }
     except HTTPException:
         raise
