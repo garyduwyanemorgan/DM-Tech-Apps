@@ -8,7 +8,7 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
-  const { organizationId, token } = useAuth()
+  const { organizationId, token, showSampleData } = useAuth()
   const [siteCount, setSiteCount] = useState<number | null>(null)
 
   useEffect(() => {
@@ -73,11 +73,15 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
           <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
             DATA SOURCE
           </div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: isLive ? '#006100' : '#856404', lineHeight: 1 }}>
-            {isLive ? activeSite : 'Sample'}
+          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: isLive ? '#006100' : showSampleData ? '#856404' : '#64748b', lineHeight: 1 }}>
+            {isLive ? activeSite : showSampleData ? 'Sample' : 'None'}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>
-            {isLive ? 'Showing live readings for this site.' : 'Select a site in the sidebar for live data.'}
+            {isLive
+              ? 'Showing live readings for this site.'
+              : showSampleData
+              ? 'Showing the demonstration baseline. Select a site for live data.'
+              : 'Sample data is off. Select a site with lab readings.'}
           </div>
         </div>
 
@@ -184,6 +188,7 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
       {/* Footer tip */}
       <div style={{ background: '#D6E4F0', border: '1px solid #93c5fd', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.82rem', color: '#1B3A5C' }}>
         Use the sidebar to navigate. Pick your site under <strong>ACTIVE SITE</strong> to switch from sample data to your live readings.
+        {' '}Sample data can be turned off for your account in <strong>Settings</strong>.
       </div>
     </div>
   )

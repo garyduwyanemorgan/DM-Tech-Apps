@@ -1,6 +1,8 @@
 import React from 'react'
 import { PageHeader } from './PageHeader'
 import { DriversIntelligence } from './DriversIntelligence'
+import { useAuth } from '../context/AuthContext'
+import { NoData, SampleBanner } from '../lib/sampleData'
 import {
   MONTH_NAMES,
   SOLAR_IRRADIANCE,
@@ -85,6 +87,8 @@ const tableCellStyle: React.CSSProperties = {
 }
 
 export const Drivers: React.FC = () => {
+  const { showSampleData } = useAuth()
+
   const solarData = MONTH_NAMES.map((m, i) => ({
     month: m.slice(0, 3),
     value: SOLAR_IRRADIANCE[i],
@@ -95,9 +99,24 @@ export const Drivers: React.FC = () => {
     temp: MONTHLY_DATA.water_temp[i],
   }))
 
+  // The Bloom Pressure Index and both charts are built on the seasonal sample baseline
+  // (see Chemistry). The nutrient-source and species-dominance tables below are domain
+  // reference material rather than site data, but the page as a whole reads as a site
+  // diagnosis — so with sample data off, none of it renders.
+  if (!showSampleData) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <PageHeader title="Environmental Drivers" subtitle="The Four Key Drivers of Algae Dynamics in Dubai Lagoons" />
+        <NoData icon="🌡️" title="Driver intelligence runs on the sample baseline" />
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <PageHeader title="Environmental Drivers" subtitle="The Four Key Drivers of Algae Dynamics in Dubai Lagoons" />
+
+      <SampleBanner />
 
       {/* 0. INTELLIGENCE — Bloom Pressure synthesis of the four drivers */}
       <DriversIntelligence />

@@ -1,32 +1,49 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { MONTH_NAMES, MONTHLY_DATA, COMPLIANCE_LIMITS } from '../constants'
+import { MONTH_NAMES, COMPLIANCE_LIMITS } from '../constants'
+import {
+  useMonthlySeries, NoData, SampleBanner, fmt, meanOf, maxOf, minOf,
+  type Series, type ParamKey,
+} from '../lib/sampleData'
 
 // Month abbreviations for heatmap columns
 const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-// Compute compliance data for all parameters across all months
-function computeCompliance(data: typeof MONTHLY_DATA) {
+/**
+ * Compliance for every parameter across the year.
+ *
+ * A month with no reading is `null` throughout — NOT a pass, NOT a fail, and never
+ * back-filled from the sample baseline. This page previously merged sample values
+ * under whatever the API returned, so its compliance percentages could disagree with
+ * the PDF that a regulator actually receives.
+ */
+function computeCompliance(data: Series) {
   const result: Record<string, {
-    compliant: boolean[]
-    margin_pct: number[]
-    values: number[]
+    compliant: (boolean | null)[]
+    margin_pct: (number | null)[]
+    values: (number | null)[]
   }> = {}
 
   for (const key of Object.keys(COMPLIANCE_LIMITS)) {
     const limit = COMPLIANCE_LIMITS[key]
-    // oil_grease key in MONTHLY_DATA is 'oil_grease', total_coliforms is 'coliforms'
-    const dataKey = key === 'total_coliforms' ? 'coliforms' : key
-    const rawValues = (data as Record<string, number[]>)[dataKey] ?? []
+    // COMPLIANCE_LIMITS calls it total_coliforms; the series calls it coliforms.
+    const dataKey = (key === 'total_coliforms' ? 'coliforms' : key) as ParamKey
+    const rawValues = data[dataKey] ?? Array(12).fill(null)
 
-    const compliant: boolean[] = []
-    const margin_pct: number[] = []
-    const values: number[] = []
+    const compliant: (boolean | null)[] = []
+    const margin_pct: (number | null)[] = []
+    const values: (number | null)[] = []
 
     for (let i = 0; i < 12; i++) {
-      const val = rawValues[i] ?? 0
-      values.push(val)
+      const val = rawValues[i]
+      values.push(val ?? null)
+
+      if (typeof val !== 'number') {
+        compliant.push(null)
+        margin_pct.push(null)
+        continue
+      }
 
       const minOk = limit.min === null || val >= limit.min
       const maxOk = limit.max === null || val <= limit.max
@@ -48,13 +65,15 @@ function computeCompliance(data: typeof MONTHLY_DATA) {
   return result
 }
 
-function marginColor(pct: number): string {
+function marginColor(pct: number | null): string {
+  if (pct === null) return '#94a3b8'
   if (pct < 0) return '#9C0006'
   if (pct < 25) return '#856404'
   return '#006100'
 }
 
-function marginBg(pct: number): string {
+function marginBg(pct: number | null): string {
+  if (pct === null) return '#f1f5f9'
   if (pct < 0) return '#FFC7CE'
   if (pct < 25) return '#FFEB9C'
   return '#C6EFCE'
@@ -62,8 +81,7 @@ function marginBg(pct: number): string {
 
 export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite }) => {
   const { token, organizationId } = useAuth()
-  const [data, setData] = useState<typeof MONTHLY_DATA>(MONTHLY_DATA)
-  const [loading, setLoading] = useState(true)
+  const { series, source, loading } = useMonthlySeries(activeSite)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
 
@@ -93,51 +111,82 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
     }
   }
 
-  useEffect(() => {
-    if (!activeSite) { setData(MONTHLY_DATA); setLoading(false); return }
-    setLoading(true)
-    fetch(`/api/status/${activeSite}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(json => {
-        if (json && json.monthly_data) {
-          setData({ ...MONTHLY_DATA, ...json.monthly_data })
-        } else {
-          setData(MONTHLY_DATA)
-        }
-      })
-      .catch(() => setData(MONTHLY_DATA))
-      .finally(() => setLoading(false))
-  }, [activeSite, token])
+  if (!series) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <PageHeader title="Regulatory Compliance Report" subtitle={`Reporting Period: 2026 — ${activeSite || 'All Sites'}`} />
+        <NoData icon="📄" />
+      </div>
+    )
+  }
 
-  const compliance = computeCompliance(data)
+  const isLive = source === 'live'
+  const compliance = computeCompliance(series)
   const paramKeys = Object.keys(COMPLIANCE_LIMITS)
 
-  // Annual statistics per parameter
+  // Annual statistics per parameter. Every denominator counts only the months that
+  // carry a reading — a year with three sampled months reads "3/3", not "3/12".
   const annualStats = paramKeys.map(key => {
     const { compliant, values } = compliance[key]
     const limit = COMPLIANCE_LIMITS[key]
-    const avg = values.reduce((a, b) => a + b, 0) / 12
-    const max = Math.max(...values)
-    const min = Math.min(...values)
-    const monthsCompliant = compliant.filter(Boolean).length
-    const compPct = Math.round((monthsCompliant / 12) * 100)
-    const allCompliant = monthsCompliant === 12
-    return { key, limit, avg, max, min, monthsCompliant, compPct, allCompliant, values }
+    const assessed = compliant.filter((c): c is boolean => c !== null)
+    const monthsCompliant = assessed.filter(Boolean).length
+    const compPct = assessed.length ? Math.round((monthsCompliant / assessed.length) * 100) : null
+    const allCompliant = assessed.length > 0 && monthsCompliant === assessed.length
+    return {
+      key, limit, values,
+      avg: meanOf(values), max: maxOf(values), min: minOf(values),
+      monthsCompliant, monthsAssessed: assessed.length, compPct, allCompliant,
+    }
   })
 
-  // Overall compliance
-  const totalMonthParam = paramKeys.length * 12
-  const compliantCount = paramKeys.reduce((acc, key) => acc + compliance[key].compliant.filter(Boolean).length, 0)
-  const overallPct = Math.round((compliantCount / totalMonthParam) * 100)
+  // Overall compliance across every parameter-month that was actually measured.
+  const assessedCount = paramKeys.reduce(
+    (acc, key) => acc + compliance[key].compliant.filter(c => c !== null).length, 0)
+  const compliantCount = paramKeys.reduce(
+    (acc, key) => acc + compliance[key].compliant.filter(c => c === true).length, 0)
+  const overallPct = assessedCount ? Math.round((compliantCount / assessedCount) * 100) : null
   const allPerfect = overallPct === 100
-  const zeroExceedance = paramKeys.filter(k => compliance[k].compliant.every(Boolean)).length
+  const zeroExceedance = annualStats.filter(s => s.allCompliant).length
+  const monthsSampled = new Set(
+    paramKeys.flatMap(k => compliance[k].compliant
+      .map((c, i) => (c === null ? -1 : i))
+      .filter(i => i >= 0)),
+  ).size
+
+  // Every parameter-month that failed its limit, as an incident row.
+  const incidents = paramKeys.flatMap(key => {
+    const limit = COMPLIANCE_LIMITS[key]
+    const { compliant, values, margin_pct } = compliance[key]
+    return compliant.flatMap((c, i) =>
+      c === false
+        ? [{
+            key,
+            monthIndex: i,
+            parameter: limit.parameter,
+            unit: limit.unit,
+            display: limit.display,
+            value: values[i],
+            margin: margin_pct[i] ?? 0,
+          }]
+        : [],
+    )
+  }).sort((a, b) => a.monthIndex - b.monthIndex)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
       <PageHeader title="Regulatory Compliance Report" subtitle={`Reporting Period: 2026 — ${activeSite || 'All Sites'}`} />
+
+      {!isLive && <SampleBanner />}
+
+      {!isLive && (
+        <div style={{ background: '#FFF5F5', color: '#9C0006', border: '1px solid #f87171', borderRadius: 6, padding: '0.65rem 1rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
+          The figures below are the sample baseline. The <strong>PDF export is generated from
+          real stored readings only</strong>, so it will not match this page until this site has
+          lab readings logged.
+        </div>
+      )}
 
       {/* ─── 2. PDF DOWNLOAD SECTION ────────────────────────────────── */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -192,27 +241,37 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
                 </tr>
               </thead>
               <tbody>
-                {annualStats.map(({ key, limit, avg, max, min, monthsCompliant, compPct, allCompliant }) => (
+                {annualStats.map(({ key, limit, avg, max, min, monthsCompliant, monthsAssessed, compPct, allCompliant }) => (
                   <tr key={key} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '0.55rem 0.75rem', color: '#374151', fontWeight: 500, whiteSpace: 'nowrap' }}>
                       {limit.parameter}
                     </td>
                     <td style={{ padding: '0.55rem 0.75rem', color: '#64748b', whiteSpace: 'nowrap' }}>{limit.unit}</td>
                     <td style={{ padding: '0.55rem 0.75rem', color: '#2E5D8A', fontWeight: 600, whiteSpace: 'nowrap' }}>{limit.display}</td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{avg.toFixed(2)}</td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{max.toFixed(2)}</td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{min.toFixed(2)}</td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{monthsCompliant}/12</td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{compPct}%</td>
+                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{fmt(avg)}</td>
+                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{fmt(max)}</td>
+                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{fmt(min)}</td>
+                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>
+                      {monthsAssessed ? `${monthsCompliant}/${monthsAssessed}` : '—'}
+                    </td>
+                    <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>
+                      {compPct === null ? '—' : `${compPct}%`}
+                    </td>
                     <td style={{ padding: '0.55rem 0.75rem' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        background: allCompliant ? '#C6EFCE' : '#FFC7CE',
-                        color: allCompliant ? '#006100' : '#9C0006',
-                        fontWeight: 700, fontSize: '0.75rem', borderRadius: 4, padding: '3px 8px', whiteSpace: 'nowrap',
-                      }}>
-                        {allCompliant ? 'FULL COMPLIANCE' : 'EXCEEDANCE'}
-                      </span>
+                      {monthsAssessed === 0 ? (
+                        <span style={{ display: 'inline-block', background: '#e0f2fe', color: '#075985', fontWeight: 700, fontSize: '0.75rem', borderRadius: 4, padding: '3px 8px', whiteSpace: 'nowrap' }}>
+                          NO READINGS
+                        </span>
+                      ) : (
+                        <span style={{
+                          display: 'inline-block',
+                          background: allCompliant ? '#C6EFCE' : '#FFC7CE',
+                          color: allCompliant ? '#006100' : '#9C0006',
+                          fontWeight: 700, fontSize: '0.75rem', borderRadius: 4, padding: '3px 8px', whiteSpace: 'nowrap',
+                        }}>
+                          {allCompliant ? 'FULL COMPLIANCE' : 'EXCEEDANCE'}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -237,11 +296,13 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
             <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
               Overall Compliance
             </p>
-            <p style={{ fontSize: '2.2rem', fontWeight: 800, color: allPerfect ? '#006100' : '#9C0006', lineHeight: 1 }}>
-              {overallPct}%
+            <p style={{ fontSize: '2.2rem', fontWeight: 800, color: overallPct === null ? '#94a3b8' : allPerfect ? '#006100' : '#9C0006', lineHeight: 1 }}>
+              {overallPct === null ? '—' : `${overallPct}%`}
             </p>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.35rem' }}>
-              {allPerfect ? 'All parameters within limits' : 'Some exceedances detected'}
+              {overallPct === null
+                ? 'No readings logged'
+                : allPerfect ? 'All measured parameters within limits' : 'Some exceedances detected'}
             </p>
           </div>
 
@@ -251,36 +312,37 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
               Zero-Exceedance Params
             </p>
             <p style={{ fontSize: '2.2rem', fontWeight: 800, color: '#1B3A5C', lineHeight: 1 }}>
-              {zeroExceedance}/10
+              {zeroExceedance}/{paramKeys.length}
             </p>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.35rem' }}>
-              Parameters with full-year compliance
+              Compliant in every month sampled
             </p>
           </div>
 
-          {/* Monitoring Hours */}
+          {/* Months sampled — replaces a hardcoded "2,160 monitoring hours / 24/7 sensor
+              coverage", which claimed continuous telemetry the platform does not have. */}
           <div className="glass-card" style={{ textAlign: 'center' }}>
             <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-              Monitoring Hours
+              Months Sampled
             </p>
             <p style={{ fontSize: '2.2rem', fontWeight: 800, color: '#2E5D8A', lineHeight: 1 }}>
-              2,160
+              {monthsSampled}/12
             </p>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.35rem' }}>
-              24/7 sensor coverage
+              Months with a logged lab reading
             </p>
           </div>
 
-          {/* Escalation Incidents */}
+          {/* Exceedances — counted from the series, not hardcoded to zero. */}
           <div className="glass-card" style={{ textAlign: 'center' }}>
             <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-              Escalation Incidents
+              Exceedances
             </p>
-            <p style={{ fontSize: '2.2rem', fontWeight: 800, color: '#006100', lineHeight: 1 }}>
-              0
+            <p style={{ fontSize: '2.2rem', fontWeight: 800, color: assessedCount - compliantCount > 0 ? '#9C0006' : '#006100', lineHeight: 1 }}>
+              {assessedCount - compliantCount}
             </p>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.35rem' }}>
-              No Level 3+ activations
+              Parameter-months outside limits
             </p>
           </div>
         </div>
@@ -327,9 +389,11 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
                             fontSize: '0.7rem',
                             minWidth: '42px',
                           }}
-                          title={`${limit.parameter} ${MONTH_NAMES[i]}: ${values[i]} ${limit.unit} (margin ${pct.toFixed(1)}%)`}
+                          title={pct === null
+                            ? `${limit.parameter} ${MONTH_NAMES[i]}: no reading logged`
+                            : `${limit.parameter} ${MONTH_NAMES[i]}: ${values[i]} ${limit.unit} (margin ${pct.toFixed(1)}%)`}
                           >
-                            {pct >= 0 ? `+${pct.toFixed(0)}%` : `${pct.toFixed(0)}%`}
+                            {pct === null ? '–' : pct >= 0 ? `+${pct.toFixed(0)}%` : `${pct.toFixed(0)}%`}
                           </td>
                         ))}
                       </tr>
@@ -345,6 +409,7 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
                 { color: '#006100', bg: '#C6EFCE', label: 'Safe margin >25%' },
                 { color: '#856404', bg: '#FFEB9C', label: 'Approaching limit (<25%)' },
                 { color: '#9C0006', bg: '#FFC7CE', label: 'Exceeded' },
+                { color: '#94a3b8', bg: '#f1f5f9', label: 'No reading logged' },
               ].map(({ color, bg, label }) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <div style={{
@@ -365,28 +430,47 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
           Incident Log
         </h2>
 
-        {/* Success notice */}
-        <div style={{
-          padding: '0.85rem 1rem',
-          background: '#C6EFCE',
-          border: '1px solid #86efac',
-          borderRadius: '0.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.6rem',
-        }}>
-          <span style={{ fontSize: '1.1rem' }}>&#x2705;</span>
-          <p style={{ fontSize: '0.875rem', color: '#006100', fontWeight: 500, margin: 0 }}>
-            No incidents recorded. All parameters within compliance limits throughout the reporting period.
-          </p>
-        </div>
+        {/* Derived from the series. The old version hardcoded a green "no incidents"
+            notice and an empty table, which asserted full compliance even when the
+            heatmap directly above it showed exceedances. */}
+        {incidents.length === 0 ? (
+          <div style={{
+            padding: '0.85rem 1rem',
+            background: '#C6EFCE',
+            border: '1px solid #86efac',
+            borderRadius: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>&#x2705;</span>
+            <p style={{ fontSize: '0.875rem', color: '#006100', fontWeight: 500, margin: 0 }}>
+              No exceedances in the {monthsSampled} month(s) sampled. Months with no reading are
+              not assessed.
+            </p>
+          </div>
+        ) : (
+          <div style={{
+            padding: '0.85rem 1rem',
+            background: '#FFC7CE',
+            border: '1px solid #f87171',
+            borderRadius: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>&#x26A0;</span>
+            <p style={{ fontSize: '0.875rem', color: '#9C0006', fontWeight: 500, margin: 0 }}>
+              {incidents.length} exceedance(s) recorded in the reporting period.
+            </p>
+          </div>
+        )}
 
-        {/* Empty incident table */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: '860px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: '620px' }}>
             <thead>
               <tr>
-                {['Date','Parameter','Measured Value','Compliance Limit','Duration (hr)','Root Cause','Corrective Action','Resolution Date'].map(h => (
+                {['Month','Parameter','Measured Value','Compliance Limit','Margin'].map(h => (
                   <th key={h} style={{
                     padding: '0.6rem 0.75rem',
                     textAlign: 'left',
@@ -403,11 +487,21 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                  No incidents to display for this reporting period.
-                </td>
-              </tr>
+              {incidents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                    No exceedances to display for this reporting period.
+                  </td>
+                </tr>
+              ) : incidents.map(inc => (
+                <tr key={`${inc.key}-${inc.monthIndex}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '0.55rem 0.75rem', color: '#374151' }}>{MONTH_NAMES[inc.monthIndex]}</td>
+                  <td style={{ padding: '0.55rem 0.75rem', color: '#374151', fontWeight: 500 }}>{inc.parameter}</td>
+                  <td style={{ padding: '0.55rem 0.75rem', color: '#9C0006', fontWeight: 700 }}>{fmt(inc.value)} {inc.unit}</td>
+                  <td style={{ padding: '0.55rem 0.75rem', color: '#2E5D8A', fontWeight: 600 }}>{inc.display}</td>
+                  <td style={{ padding: '0.55rem 0.75rem', color: '#9C0006', fontWeight: 600 }}>{inc.margin.toFixed(1)}%</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

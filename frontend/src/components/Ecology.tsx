@@ -3,6 +3,8 @@ import { PageHeader } from './PageHeader'
 import { EcologyGraph } from './EcologyGraph'
 import { MONTH_NAMES, MONTHLY_DATA } from '../constants'
 import { analyzeEcology, annualEsi, classifyEsi, stressColor } from '../lib/ecologyIntelligence'
+import { useAuth } from '../context/AuthContext'
+import { NoData, SampleBanner } from '../lib/sampleData'
 
 const ANNUAL = annualEsi()
 
@@ -52,13 +54,26 @@ const INDICATORS: { key: keyof typeof MONTHLY_DATA; label: string; unit: string;
 ]
 
 export const Ecology: React.FC = () => {
+  const { showSampleData } = useAuth()
   const [month, setMonth] = useState<number>(new Date().getMonth())
   const intel = analyzeEcology(month)
   const maxContribution = Math.max(...intel.processes.map((p) => p.contribution))
 
+  // Ecological Stress Index is derived from the seasonal sample baseline (see Chemistry).
+  if (!showSampleData) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <PageHeader title="Ecology" subtitle="The Ecology Loop — the lagoon's biological response as one living system" />
+        <NoData icon="🌿" title="Ecology intelligence runs on the sample baseline" />
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <PageHeader title="Ecology" subtitle="The Ecology Loop — the lagoon's biological response as one living system" />
+
+      <SampleBanner />
 
       <div className="glass-card" style={{ padding: '1.5rem' }}>
         <div style={{ marginBottom: '1rem' }}>

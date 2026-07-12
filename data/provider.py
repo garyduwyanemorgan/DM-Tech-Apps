@@ -41,17 +41,16 @@ def _user_session() -> tuple[str | None, str | None]:
         return None, None
 
 
-def _merge_with_sample(live: List[WaterReading], year: int) -> List[WaterReading]:
-    """Fill any missing months from live data with sample values."""
-    sample = _sample.get_monthly_readings(year)
-    by_month = {r.timestamp.month: r for r in live}
-    return [by_month.get(m + 1, sample[m]) for m in range(12)]
-
-
 # ── Public API (same signatures as sample_data) ───────────────────────────────
 
 def get_monthly_readings(year: int = 2026) -> List[WaterReading]:
-    """12 WaterReadings for the year. Live data where available, sample elsewhere."""
+    """WaterReadings for the year: the site's real readings if it has any, otherwise
+    the sample baseline.
+
+    A site's series is either entirely live or entirely sample — never a blend. The
+    previous version back-filled months with no reading from the sample baseline, which
+    produced values that looked measured and were then scored against compliance limits.
+    """
     site = _active_site()
     if site:
         try:
@@ -59,15 +58,22 @@ def get_monthly_readings(year: int = 2026) -> List[WaterReading]:
             token, org_id = _user_session()
             live = get_readings_for_site(site, year=year, organization_id=org_id, token=token)
             if live:
-                return _merge_with_sample(live, year)
+                return sorted(live, key=lambda r: r.timestamp.month)
         except Exception:
             pass
     return _sample.get_monthly_readings(year)
 
 
 def get_current_reading(month_index: int = 2) -> WaterReading:
-    """Single 'current' reading. Uses live data for the given month if available."""
-    return get_monthly_readings()[month_index]
+    """Single 'current' reading — the requested month, or the latest one available.
+
+    A live series may be shorter than 12 entries (only sampled months are returned), so
+    the index is clamped rather than assumed to exist.
+    """
+    readings = get_monthly_readings()
+    if not readings:
+        raise ValueError("No readings available for the active site.")
+    return readings[min(month_index, len(readings) - 1)]
 
 
 def get_monthly_table(year: int = 2026) -> dict:

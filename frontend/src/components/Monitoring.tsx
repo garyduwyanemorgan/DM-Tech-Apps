@@ -1,66 +1,39 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { PageHeader } from './PageHeader'
-import { useAuth } from '../context/AuthContext'
-import { MONTH_NAMES, MONTHLY_DATA } from '../constants'
+import { MONTH_NAMES } from '../constants'
+import {
+  useMonthlySeries, NoData, SampleBanner, fmt, meanOf, maxOf, minOf, type ParamKey,
+} from '../lib/sampleData'
 import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, ReferenceLine, ComposedChart, Line, Bar
 } from 'recharts'
 
-type MonthlyDataShape = typeof MONTHLY_DATA
+export const Monitoring: React.FC<{ activeSite: string }> = ({ activeSite }) => {
+  // Table, trend charts, and annual statistics all read the SAME series. Previously the
+  // charts and stats were hardwired to the sample baseline while the table showed live
+  // readings, so a site with real data got real rows under synthetic trend lines.
+  const { series, source } = useMonthlySeries(activeSite)
 
-interface LiveRow {
-  month: number
-  month_name: string
-  ph: number; do: number; tss: number; turbidity: number; cod: number
-  ammonia: number; phosphate: number; oil_grease: number; ecoli: number
-  total_coliforms: number; chla: number; phycocyanin: number
-  salinity: number; water_temp: number
-}
-
-export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean }> = ({ activeSite, useSampleData = true }) => {
-  const { organizationId, token } = useAuth()
-  // The trend charts and annual stats use the static seasonal baseline (they need a full
-  // 12-month series). The Monthly Data Log table below shows live saved readings for the
-  // active site when they exist, falling back to sample data otherwise.
-  const data = MONTHLY_DATA
-
-  const [liveRows, setLiveRows] = useState<LiveRow[] | null>(null)
-
-  useEffect(() => {
-    if (!activeSite) { setLiveRows(null); return }
-    let cancelled = false
-    const load = async () => {
-      try {
-        const headers: HeadersInit = {}
-        if (organizationId) headers['X-Organization-ID'] = organizationId
-        if (token) headers['Authorization'] = `Bearer ${token}`
-        const res = await fetch(`/api/readings/${encodeURIComponent(activeSite)}?year=${new Date().getFullYear()}`, { headers })
-        const json = await res.json()
-        if (!cancelled) setLiveRows(res.ok && Array.isArray(json.rows) ? json.rows : null)
-      } catch {
-        if (!cancelled) setLiveRows(null)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [activeSite, organizationId, token])
-
-  const hasLive = !!liveRows && liveRows.length > 0
+  const hasLive = source === 'live'
 
   const chartData = MONTH_NAMES.map((m, i) => ({
     month: m.slice(0, 3),
-    do: data.do[i],
-    chla: data.chla[i],
-    temp: data.water_temp[i],
-    salinity: data.salinity[i],
-    phycocyanin: data.phycocyanin[i],
+    // recharts renders null as a gap in the line, which is what an unsampled month is.
+    do: series?.do[i] ?? null,
+    chla: series?.chla[i] ?? null,
+    temp: series?.water_temp[i] ?? null,
+    salinity: series?.salinity[i] ?? null,
+    phycocyanin: series?.phycocyanin[i] ?? null,
   }))
 
   // Cell color helpers
-  const getCellStyle = (param: string, value: number): React.CSSProperties => {
+  const getCellStyle = (param: string, value: number | null): React.CSSProperties => {
     let bg = 'transparent'
     let color: string | undefined
+    if (value === null) {
+      return { padding: '0.75rem 0.85rem', color: '#94a3b8' }
+    }
     if (param === 'do') {
       if (value <= 4.0) { bg = '#FFC7CE'; color = '#9C0006' }
       else if (value <= 5.0) { bg = '#FFEB9C'; color = '#856404' }
@@ -80,15 +53,14 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
     return { padding: '0.75rem 0.85rem', background: bg, borderRadius: '4px', ...(color ? { color, fontWeight: 600 } : {}) }
   }
 
-  // Annual statistics
-  const computeStats = (arr: number[]) => {
-    const avg = (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)
-    const max = Math.max(...arr)
-    const min = Math.min(...arr)
-    return { avg, max, min }
-  }
+  // Annual statistics — computed only over the months that carry a reading.
+  const computeStats = (arr: (number | null)[]) => ({
+    avg: fmt(meanOf(arr), 1),
+    max: fmt(maxOf(arr), 1),
+    min: fmt(minOf(arr), 1),
+  })
 
-  const statsFields: { label: string; key: keyof MonthlyDataShape }[] = [
+  const statsFields: { label: string; key: ParamKey }[] = [
     { label: 'pH', key: 'ph' },
     { label: 'DO (mg/L)', key: 'do' },
     { label: 'TSS (mg/L)', key: 'tss' },
@@ -122,15 +94,11 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
     itemStyle: { color: '#374151' },
   }
 
-  if (!useSampleData && !activeSite) {
+  if (!series) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <PageHeader title="Water Quality Monitoring" subtitle="Monthly Data Log" />
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📈</div>
-          <div style={{ fontWeight: 600, color: '#64748b', marginBottom: '0.5rem' }}>No data to display</div>
-          <div style={{ fontSize: '0.875rem' }}>Sample data is disabled. Select a live site or enable sample data in Settings.</div>
-        </div>
+        <NoData icon="📈" />
       </div>
     )
   }
@@ -138,6 +106,8 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <PageHeader title="Water Quality Monitoring" subtitle={`Monthly Data Log — ${activeSite || 'Sample data'}`} />
+
+      {!hasLive && <SampleBanner />}
 
       {/* SECTION 1: MONTHLY DATA TABLE */}
       <div className="glass-card">
@@ -159,47 +129,29 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
               </tr>
             </thead>
             <tbody>
-              {hasLive ? (
-                liveRows!.map(r => (
-                  <tr key={r.month}>
-                    <td style={{ ...tdStyle, fontWeight: 500, whiteSpace: 'nowrap' }}>{r.month_name.slice(0, 3)}</td>
-                    <td style={tdStyle}>{r.ph.toFixed(1)}</td>
-                    <td style={getCellStyle('do', r.do)}>{r.do.toFixed(1)}</td>
-                    <td style={getCellStyle('tss', r.tss)}>{r.tss}</td>
-                    <td style={tdStyle}>{r.turbidity}</td>
-                    <td style={getCellStyle('cod', r.cod)}>{r.cod}</td>
-                    <td style={getCellStyle('ammonia', r.ammonia)}>{r.ammonia.toFixed(1)}</td>
-                    <td style={getCellStyle('phosphate', r.phosphate)}>{r.phosphate.toFixed(1)}</td>
-                    <td style={tdStyle}>{r.chla}</td>
-                    <td style={tdStyle}>{r.phycocyanin}</td>
-                    <td style={tdStyle}>{r.salinity}</td>
-                    <td style={tdStyle}>{r.water_temp}</td>
-                  </tr>
-                ))
-              ) : (
-                MONTH_NAMES.map((month, i) => (
-                  <tr key={month}>
-                    <td style={{ ...tdStyle, fontWeight: 500, whiteSpace: 'nowrap' }}>{month.slice(0, 3)}</td>
-                    <td style={tdStyle}>{data.ph[i].toFixed(1)}</td>
-                    <td style={getCellStyle('do', data.do[i])}>{data.do[i].toFixed(1)}</td>
-                    <td style={getCellStyle('tss', data.tss[i])}>{data.tss[i]}</td>
-                    <td style={tdStyle}>{data.turbidity[i]}</td>
-                    <td style={getCellStyle('cod', data.cod[i])}>{data.cod[i]}</td>
-                    <td style={getCellStyle('ammonia', data.ammonia[i])}>{data.ammonia[i].toFixed(1)}</td>
-                    <td style={getCellStyle('phosphate', data.phosphate[i])}>{data.phosphate[i].toFixed(1)}</td>
-                    <td style={tdStyle}>{data.chla[i]}</td>
-                    <td style={tdStyle}>{data.phycocyanin[i]}</td>
-                    <td style={tdStyle}>{data.salinity[i]}</td>
-                    <td style={tdStyle}>{data.water_temp[i]}</td>
-                  </tr>
-                ))
-              )}
+              {MONTH_NAMES.map((month, i) => (
+                <tr key={month}>
+                  <td style={{ ...tdStyle, fontWeight: 500, whiteSpace: 'nowrap' }}>{month.slice(0, 3)}</td>
+                  <td style={tdStyle}>{fmt(series.ph[i], 1)}</td>
+                  <td style={getCellStyle('do', series.do[i])}>{fmt(series.do[i], 1)}</td>
+                  <td style={getCellStyle('tss', series.tss[i])}>{fmt(series.tss[i], 0)}</td>
+                  <td style={tdStyle}>{fmt(series.turbidity[i], 0)}</td>
+                  <td style={getCellStyle('cod', series.cod[i])}>{fmt(series.cod[i], 0)}</td>
+                  <td style={getCellStyle('ammonia', series.ammonia[i])}>{fmt(series.ammonia[i], 1)}</td>
+                  <td style={getCellStyle('phosphate', series.phosphate[i])}>{fmt(series.phosphate[i], 1)}</td>
+                  <td style={tdStyle}>{fmt(series.chla[i], 0)}</td>
+                  <td style={tdStyle}>{fmt(series.phycocyanin[i], 0)}</td>
+                  <td style={tdStyle}>{fmt(series.salinity[i], 0)}</td>
+                  <td style={tdStyle}>{fmt(series.water_temp[i], 0)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
         {hasLive && (
           <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
-            Showing {liveRows!.length} saved reading{liveRows!.length === 1 ? '' : 's'} for {activeSite}. The trend charts and annual statistics below still use the seasonal baseline.
+            Live readings for {activeSite}. Months with no logged reading show “—” and are
+            excluded from the trend charts and annual statistics below.
           </div>
         )}
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.8rem', opacity: 0.7 }}>
@@ -315,7 +267,7 @@ export const Monitoring: React.FC<{ activeSite: string; useSampleData?: boolean 
                     {stat === 'avg' ? 'Average' : stat === 'max' ? 'Maximum' : 'Minimum'}
                   </td>
                   {statsFields.map(f => {
-                    const s = computeStats(data[f.key] as number[])
+                    const s = computeStats(series[f.key])
                     return (
                       <td key={f.key} style={tdStyle}>
                         {stat === 'avg' ? s.avg : stat === 'max' ? s.max : s.min}

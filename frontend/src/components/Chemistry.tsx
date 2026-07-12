@@ -3,6 +3,8 @@ import { PageHeader } from './PageHeader'
 import { ChemistryGraph } from './ChemistryGraph'
 import { MONTH_NAMES, MONTHLY_DATA, COMPLIANCE_LIMITS } from '../constants'
 import { analyzeChemistry, annualCsi, classifyCsi, stressColor } from '../lib/chemistryIntelligence'
+import { useAuth } from '../context/AuthContext'
+import { NoData, SampleBanner } from '../lib/sampleData'
 
 const ANNUAL = annualCsi()
 
@@ -76,13 +78,28 @@ const TABLE_PARAMS: { key: keyof typeof MONTHLY_DATA; limitKey: string }[] = [
 ]
 
 export const Chemistry: React.FC = () => {
+  const { showSampleData } = useAuth()
   const [month, setMonth] = useState<number>(new Date().getMonth())
   const intel = analyzeChemistry(month)
   const maxContribution = Math.max(...intel.processes.map((p) => p.contribution))
 
+  // The Chemical Stress Index is computed entirely from the seasonal sample baseline —
+  // it needs a complete 12-month series, and no live equivalent is plumbed in yet. With
+  // sample data off there is nothing legitimate to render.
+  if (!showSampleData) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <PageHeader title="Chemistry" subtitle="The Chemistry Loop — laboratory parameters as one interconnected system" />
+        <NoData icon="🧪" title="Chemistry intelligence runs on the sample baseline" />
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <PageHeader title="Chemistry" subtitle="The Chemistry Loop — laboratory parameters as one interconnected system" />
+
+      <SampleBanner />
 
       <div className="glass-card" style={{ padding: '1.5rem' }}>
         <div style={{ marginBottom: '1rem' }}>
