@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ── Migration 007: Scope model — business units, projects, and assignments ──
 -- Adds the scope dimensions required by PERMISSIONS_MATRIX.md (§Required scope
 -- dimensions): business unit → project/contract → site, plus user→site and
@@ -80,3 +82,5 @@ GRANT ALL ON public.business_units TO service_role;
 GRANT ALL ON public.projects TO service_role;
 GRANT ALL ON public.user_site_assignments TO service_role;
 GRANT ALL ON public.user_project_assignments TO service_role;
+
+COMMIT;

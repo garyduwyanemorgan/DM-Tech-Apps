@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ── Migration 006: Security & operational audit events ──
 -- Append-only, immutable record of authorization denials and sensitive mutations
 -- (role changes, user removal, site/sludge deletion, report finalization, billing
@@ -47,3 +49,5 @@ CREATE TRIGGER audit_events_no_mutate
 ALTER TABLE public.audit_events ENABLE ROW LEVEL SECURITY;
 GRANT SELECT, INSERT ON public.audit_events TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE public.audit_events_id_seq TO service_role;
+
+COMMIT;

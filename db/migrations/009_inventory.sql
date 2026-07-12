@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ── Migration 009: Inventory & chemical control ──
 -- Items, batches (expiry), storage locations, and an APPEND-ONLY stock ledger.
 -- Stock balances are never stored mutably: a balance is SUM(qty_delta) over the
@@ -83,3 +85,5 @@ GRANT ALL ON public.inventory_items TO service_role;
 GRANT ALL ON public.inventory_batches TO service_role;
 GRANT SELECT, INSERT ON public.inventory_ledger TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE public.inventory_ledger_id_seq TO service_role;
+
+COMMIT;

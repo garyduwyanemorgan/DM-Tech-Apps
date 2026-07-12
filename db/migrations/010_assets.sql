@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ── Migration 010: Asset & maintenance configuration ──
 -- Asset types/equipment, inspection checklists, required lab parameters, and
 -- maintenance schedules (PERMISSIONS_MATRIX.md row 50). Managers/Executive
@@ -47,3 +49,5 @@ ALTER TABLE public.assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.maintenance_schedules ENABLE ROW LEVEL SECURITY;
 GRANT ALL ON public.assets TO service_role;
 GRANT ALL ON public.maintenance_schedules TO service_role;
+
+COMMIT;

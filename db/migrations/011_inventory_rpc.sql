@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ── Migration 011: Atomic inventory operations (concurrency safety) ──
 -- The stock balance is SUM(qty_delta) over the append-only ledger (009). A naive
 -- client-side "read balance, then insert" is racy: two concurrent consumes can
@@ -92,3 +94,5 @@ GRANT EXECUTE ON FUNCTION public.record_consumption(
     UUID, UUID, UUID, NUMERIC, UUID, TEXT, UUID, UUID, UUID, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.record_transfer(
     UUID, UUID, UUID, UUID, NUMERIC, UUID, TEXT, TEXT) TO service_role;
+
+COMMIT;

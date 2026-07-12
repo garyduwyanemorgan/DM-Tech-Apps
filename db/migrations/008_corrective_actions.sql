@@ -1,3 +1,5 @@
+BEGIN;
+
 -- ── Migration 008: Corrective-action workflow ──
 -- Owner, due date, severity, status transitions, evidence, and an append-only,
 -- immutable event history (PERMISSIONS_MATRIX.md rows 51-53). Site Supervisors
@@ -52,3 +54,5 @@ ALTER TABLE public.corrective_action_events ENABLE ROW LEVEL SECURITY;
 GRANT ALL ON public.corrective_actions TO service_role;
 GRANT SELECT, INSERT ON public.corrective_action_events TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE public.corrective_action_events_id_seq TO service_role;
+
+COMMIT;
