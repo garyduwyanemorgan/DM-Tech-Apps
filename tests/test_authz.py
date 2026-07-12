@@ -50,6 +50,21 @@ def test_sludge_delete_current_behavior():
     assert not has_permission("auditor", "sludge.delete")  # GM is read-only
 
 
+def test_billing_read_starts_at_manager_tier():
+    # M1: subscription/financial visibility begins at Project/Contract Manager.
+    assert has_permission("admin", "billing.read")
+    assert has_permission("super_admin", "billing.read")
+    assert not has_permission("operator", "billing.read")
+    assert not has_permission("auditor", "billing.read")  # GM does not see billing
+
+
+def test_extract_excludes_auditor():
+    # M5: uploading/extracting a lab report is a data-entry action.
+    assert has_permission("operator", "readings.create")
+    assert has_permission("admin", "readings.create")
+    assert not has_permission("auditor", "readings.create")
+
+
 def test_executive_only_permissions():
     for exec_perm in ("users.executive.assign", "analytics.executive.read",
                       "permissions.configure"):

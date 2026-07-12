@@ -24,14 +24,28 @@ def _now_iso() -> str:
 
 
 def _persist(event: dict) -> None:
-    """Best-effort durable write. No-op until the audit_events table exists.
+    """Best-effort durable write to the append-only audit_events table.
 
-    Wrapped by the caller in a broad try/except; kept separate so the DB-backed
-    implementation can be dropped in here later (service-role insert, append-only).
+    Safe before the table exists: any error (missing table, no DB configured) is
+    swallowed by the caller, so auditing degrades to stderr-only until migration
+    006_audit_events.sql is applied, then "lights up" with no code change. Maps the
+    emitter's ``context`` extras into the table's JSONB column.
     """
-    # TODO(phase1-migration): insert into audit_events once 006_audit_events.sql
-    # is applied. Intentionally a no-op now so nothing writes to a missing table.
-    return None
+    from db.client import get_client
+    client = get_client()
+    if not client:
+        return
+    row = {
+        "organization_id": event.get("organization_id"),
+        "actor_user_id": event.get("actor_user_id"),
+        "actor_role": event.get("actor_role"),
+        "action": event.get("action"),
+        "outcome": event.get("outcome"),
+        "target_type": event.get("target_type"),
+        "target_id": event.get("target_id"),
+        "context": event.get("context"),
+    }
+    client.table("audit_events").insert(row).execute()
 
 
 def emit(

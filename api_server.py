@@ -228,12 +228,16 @@ def get_user_profile(user_id: str, email: str = "", token: str | None = None) ->
         res = client.table("user_profiles").select("*").eq("clerk_id", user_id).execute()
         if res.data:
             return res.data[0]
-        # Email fallback: link a pending invited profile on first sign-in
-        if email:
+        # Email fallback: link a pending invited profile on first sign-in.
+        # Invitations store the email lower-cased, so normalise here too — a case
+        # mismatch would otherwise miss the invite and (in self-serve) provision a
+        # brand-new personal org instead of joining the invited one (A4).
+        email_norm = (email or "").strip().lower()
+        if email_norm:
             res = (
                 client.table("user_profiles")
                 .select("*")
-                .eq("email", email)
+                .eq("email", email_norm)
                 .is_("clerk_id", "null")
                 .execute()
             )
@@ -903,7 +907,13 @@ class PortalRequest(BaseModel):
 
 @app.get("/billing/status", tags=["Billing"])
 def billing_status(profile: dict = Depends(get_current_user_profile)):
-    """Return current plan, site usage, and whether payments are configured."""
+    """Return current plan, site usage, and whether payments are configured.
+    Requires billing.read — subscription/financial visibility starts at the
+    Project/Contract Manager tier (PERMISSIONS_MATRIX.md row 73); Site Supervisors
+    and (read-only) General Managers do not see billing.
+    """
+    _ensure_permission(profile, "billing.read",
+                       detail="Your role does not have access to billing information.")
     from billing import (
         get_org_billing, count_sites, PLANS, is_configured,
         has_subscription, provider_name, supports_portal,
@@ -1124,6 +1134,9 @@ def remove_sludge_zone(site: str, zone_name: str, profile: dict = Depends(get_cu
     )
     if not ok:
         raise HTTPException(status_code=404, detail=msg)
+    audit_emit("sludge.delete", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile.get("organization_id"),
+               target_type="sludge_zone", target_id=f"{site}/{zone_name}")
     return {"deleted": True, "message": msg}
 
 
@@ -1388,12 +1401,15 @@ async def extract_lab_report_endpoint(
     """Extract water-quality readings from a lab-report photo or PDF using Claude vision.
     Returns the 14 Compliance parameters as JSON. Human review is required before saving.
     """
-    # Gate before spending Anthropic credits. get_current_user_profile is an
-    # identity *resolver*, not a gate — with no token it returns an anonymous
-    # user_id=None/role="operator" dict, so the Depends() alone lets anybody in.
-    # Require a real signed-in user with an assigned (non-pending) role.
-    if not profile.get("user_id") or profile.get("role") == "pending":
+    # Gate before spending Anthropic credits. Require a real signed-in user
+    # (the resolver now fails closed on no token, but keep the explicit check as
+    # defense in depth), then require readings.create — uploading/extracting a
+    # lab report is a data-entry action, so the read-only General Manager
+    # (auditor) is excluded (PERMISSIONS_MATRIX.md row 39; M5).
+    if not profile.get("user_id"):
         raise HTTPException(status_code=401, detail="Sign in to extract lab reports.")
+    _ensure_permission(profile, "readings.create",
+                       detail="Your role may not upload or extract lab reports.")
     from extract import extract_lab_report, is_configured
     if not is_configured():
         raise HTTPException(
