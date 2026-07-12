@@ -95,6 +95,29 @@ def test_ensure_permission_central_gate():
     assert not _denied("super_admin", "users.executive.assign")
 
 
+def test_scope_enforcement_off_is_org_wide():
+    # Default (flag off): every role sees the whole org — no behavior change.
+    os.environ.pop("SCOPE_ENFORCEMENT", None)
+    from core.scope import ALL_SITES
+    for role in ("operator", "admin", "auditor", "super_admin"):
+        assert api_server._effective_site_ids(_profile(role)) == ALL_SITES
+
+
+def test_scope_enforcement_on_role_scoping():
+    # Flag on: exec/GM stay org-wide; operator/pending resolve to their (here empty,
+    # no DB) assignment set rather than everything.
+    os.environ["SCOPE_ENFORCEMENT"] = "1"
+    try:
+        from core.scope import ALL_SITES
+        assert api_server._effective_site_ids(_profile("super_admin")) == ALL_SITES
+        assert api_server._effective_site_ids(_profile("auditor")) == ALL_SITES
+        # operator with no assignment data resolves to an empty (deny) set, not ALL.
+        assert api_server._effective_site_ids(_profile("operator")) != ALL_SITES
+        assert api_server._effective_site_ids(_profile("pending")) == frozenset()
+    finally:
+        os.environ.pop("SCOPE_ENFORCEMENT", None)
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

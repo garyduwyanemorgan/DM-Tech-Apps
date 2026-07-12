@@ -21,7 +21,10 @@ Honest labelling per the review prompt: nothing is marked done that isn't verifi
 | 2 | Business-unit / project / assignment tables | 📄 | `007_assignments.sql` (+down); nullable, backfill-safe |
 | 2 | `user_profiles(organization_id)` index | 📄 | in 007 |
 | 2 | Scope-resolution logic | ✅ | `core/scope.py`, tested (`test_domain_logic.py`) |
-| 2 | Enforce scope in queries/mutations | ⛔ | needs `db/queries.py` wiring behind `SCOPE_ENFORCEMENT` flag + backfill |
+| 2 | Assignment query helpers | 🟡 | `db/queries.py` get/set assignments; fail-safe; **needs live-DB** |
+| 2 | Assignment-admin endpoints | 🟡 | `GET/PUT /users/{id}/sites`; server-validates org-owned ids; audited |
+| 2 | Enforce scope in reads (behind flag) | 🟡 | `_effective_site_ids` wired into `GET /sites`; `SCOPE_ENFORCEMENT` default OFF; tested off/on |
+| 2 | Enforce scope in site-scoped writes | ⛔ | `/log`, `/sludge`, `/community`, `/report` still org-wide; wire `_effective_site_ids` after backfill |
 | 2 | Frontend site-selector to effective scope | ⛔ | frontend work |
 | 2 | RLS decision (app-layer + backstop) | ✅ (decided) | documented; new tables RLS-on, service-role grant |
 | 3 | M1 billing.status → billing.read | ✅ | Manager+; `test_billing_read_starts_at_manager_tier` |

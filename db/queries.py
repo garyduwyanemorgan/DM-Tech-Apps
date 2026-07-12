@@ -573,3 +573,83 @@ def dismiss_data_request(request_id: str, site_name: str,
     except Exception as exc:
         return False, f"Database error: {str(exc)}"
 
+
+
+# ── Scope: user -> site / project assignments (migration 007) ─────────────────
+# These back Phase 2 scope enforcement. They fail safe: if the assignment tables
+# do not exist yet (migration unapplied) or the DB is down, reads return empty and
+# writes return False, so nothing crashes — enforcement stays behind the
+# SCOPE_ENFORCEMENT flag until backfill is complete.
+
+def get_assigned_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
+    """Site ids explicitly assigned to a user within an org (Site Supervisor scope)."""
+    client = get_client()
+    if not client or not user_clerk_id or not organization_id:
+        return []
+    try:
+        res = (client.table("user_site_assignments").select("site_id")
+               .eq("user_clerk_id", user_clerk_id)
+               .eq("organization_id", organization_id).execute())
+        return [r["site_id"] for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def get_project_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
+    """Site ids belonging to the projects a user is assigned to (Project Manager scope)."""
+    client = get_client()
+    if not client or not user_clerk_id or not organization_id:
+        return []
+    try:
+        pa = (client.table("user_project_assignments").select("project_id")
+              .eq("user_clerk_id", user_clerk_id)
+              .eq("organization_id", organization_id).execute())
+        project_ids = [r["project_id"] for r in (pa.data or [])]
+        if not project_ids:
+            return []
+        sr = (client.table("sites").select("id")
+              .eq("organization_id", organization_id)
+              .in_("project_id", project_ids).execute())
+        return [r["id"] for r in (sr.data or [])]
+    except Exception:
+        return []
+
+
+def list_user_site_assignments(user_clerk_id: str, organization_id: str) -> list[str]:
+    """Alias for get_assigned_site_ids, for the assignment-admin read endpoint."""
+    return get_assigned_site_ids(user_clerk_id, organization_id)
+
+
+def set_user_site_assignments(user_clerk_id: str, site_ids: list[str],
+                              organization_id: str, assigned_by: str | None = None) -> tuple[bool, str]:
+    """Replace a user's site assignments with the given set (scoped to the org).
+
+    Only assigns sites that actually belong to the org (server-side validation —
+    never trust caller-supplied ids). Returns (ok, message).
+    """
+    client = get_client()
+    if not client or not user_clerk_id or not organization_id:
+        return False, "Supabase not configured."
+    try:
+        # Validate the requested sites are in this org.
+        valid = (client.table("sites").select("id")
+                 .eq("organization_id", organization_id)
+                 .in_("id", site_ids or [""]).execute())
+        valid_ids = {r["id"] for r in (valid.data or [])}
+        # Clear existing, then insert the validated set.
+        (client.table("user_site_assignments").delete()
+         .eq("user_clerk_id", user_clerk_id)
+         .eq("organization_id", organization_id).execute())
+        rows = [{
+            "user_clerk_id": user_clerk_id, "site_id": sid,
+            "organization_id": organization_id, "assigned_by": assigned_by,
+        } for sid in valid_ids]
+        if rows:
+            client.table("user_site_assignments").insert(rows).execute()
+        skipped = len(set(site_ids or [])) - len(valid_ids)
+        msg = f"Assigned {len(valid_ids)} site(s)."
+        if skipped > 0:
+            msg += f" Skipped {skipped} not in this organization."
+        return True, msg
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"

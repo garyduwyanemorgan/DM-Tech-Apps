@@ -40,6 +40,7 @@ from pydantic import BaseModel, Field
 from core.alert_engine import evaluate_alert_level
 from core.audit import emit as audit_emit, emit_denial as audit_denial
 from core.authz import has_permission
+from core.scope import ALL_SITES, resolve_site_scope
 from core.calculations import check_all_compliance, compliance_summary
 from core.constants import ALERT_LABELS, MONTH_NAMES, TREATMENT_ACTIONS, AlertLevel
 from core.models import WaterReading
@@ -397,6 +398,37 @@ def _ensure_permission(
     )
 
 
+def _scope_enforcement_on() -> bool:
+    """Phase 2 scope enforcement is OFF by default. Enabling it before every user
+    has site/project assignments would lock people out, so it stays gated until
+    backfill is done (PERMISSIONS_REVIEW_PACKAGE.md §8)."""
+    return os.environ.get("SCOPE_ENFORCEMENT", "0") == "1"
+
+
+def _effective_site_ids(profile: dict):
+    """The caller's effective site-id scope, or ALL_SITES for org-wide access.
+
+    Returns ALL_SITES (current org-wide behavior) whenever scope enforcement is
+    disabled, so this is a no-op until SCOPE_ENFORCEMENT=1. Pure decision logic is
+    in core/scope.py (unit-tested); this layer only fetches the assignment sets.
+    """
+    if not _scope_enforcement_on():
+        return ALL_SITES
+    role = profile.get("role")
+    if role in ("super_admin", "auditor"):
+        # Executive is org-wide; General Manager is read-only oversight across the
+        # portfolio — business-unit narrowing is a later refinement, org-wide read
+        # is acceptable and non-destructive for a read-only role.
+        return ALL_SITES
+    clerk_id, org = profile.get("user_id"), profile.get("organization_id")
+    from db.queries import get_assigned_site_ids, get_project_site_ids
+    if role == "admin":
+        return resolve_site_scope(role, project_site_ids=get_project_site_ids(clerk_id, org))
+    if role == "operator":
+        return resolve_site_scope(role, assigned_site_ids=get_assigned_site_ids(clerk_id, org))
+    return frozenset()  # pending/unknown -> no sites
+
+
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
 
 class ReadingFields(BaseModel):
@@ -518,6 +550,15 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
         sites_res = client.table("sites").select("id, name").eq("organization_id", org_id).execute()
         if not sites_res.data:
             return {"sites": []}
+        # Phase 2: narrow to the caller's effective site scope (no-op while
+        # SCOPE_ENFORCEMENT is off — returns ALL_SITES).
+        scope = _effective_site_ids(profile)
+        site_rows = sites_res.data if scope == ALL_SITES else [
+            s for s in sites_res.data if s["id"] in scope
+        ]
+        if not site_rows:
+            return {"sites": []}
+        sites_res.data = site_rows
         site_ids = [s["id"] for s in sites_res.data]
         # Query 2: reading counts for all sites at once
         readings_res = client.table("readings").select("site_id").in_("site_id", site_ids).execute()
@@ -717,6 +758,55 @@ def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile))
                actor_role=profile.get("role"), organization_id=org_id,
                target_type="user", target_id=user_id, removed_role=target_role)
     return {"removed": True, "user_id": user_id}
+
+
+class SiteAssignmentRequest(BaseModel):
+    site_ids: list[str] = Field(default_factory=list, description="Site UUIDs to assign")
+
+
+def _resolve_target_clerk_id(user_id: str, org_id: str) -> str:
+    """Map a profile-row UUID to its Clerk id within the caller's org, or 404."""
+    from db.client import get_client as _gc
+    client = _gc()
+    t = (client.table("user_profiles").select("clerk_id")
+         .eq("id", user_id).eq("organization_id", org_id).execute())
+    if not t.data:
+        raise HTTPException(status_code=404, detail="User not found in your organisation.")
+    clerk_id = t.data[0].get("clerk_id")
+    if not clerk_id:
+        raise HTTPException(status_code=409, detail="User has not completed sign-in yet.")
+    return clerk_id
+
+
+@app.get("/users/{user_id}/sites", tags=["Users"])
+def get_user_sites(user_id: str, profile: dict = Depends(get_current_user_profile)):
+    """List the site ids assigned to a user (Phase 2 scope administration)."""
+    _ensure_permission(profile, "users.role.assign", detail="Admin access required.")
+    org_id = profile.get("organization_id")
+    clerk_id = _resolve_target_clerk_id(user_id, org_id)
+    from db.queries import list_user_site_assignments
+    return {"user_id": user_id, "site_ids": list_user_site_assignments(clerk_id, org_id)}
+
+
+@app.put("/users/{user_id}/sites", tags=["Users"])
+def put_user_sites(user_id: str, body: SiteAssignmentRequest,
+                   profile: dict = Depends(get_current_user_profile)):
+    """Replace a user's site assignments. Only org-owned site ids are accepted
+    (server-side validated); the rest are ignored. Least-privilege delegation:
+    requires users.role.assign (admin/super_admin)."""
+    _ensure_permission(profile, "users.role.assign", detail="Admin access required.",
+                       target_type="user", target_id=user_id)
+    org_id = profile.get("organization_id")
+    clerk_id = _resolve_target_clerk_id(user_id, org_id)
+    from db.queries import set_user_site_assignments
+    ok, msg = set_user_site_assignments(
+        clerk_id, body.site_ids, org_id, assigned_by=profile.get("user_id"))
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("user.sites.assign", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="user", target_id=user_id, site_count=len(body.site_ids))
+    return {"updated": True, "user_id": user_id, "message": msg}
 
 
 def _require_clerk_secret_key() -> str:
