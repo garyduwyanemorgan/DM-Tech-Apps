@@ -38,6 +38,8 @@ from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
 
 from core.alert_engine import evaluate_alert_level
+from core.audit import emit as audit_emit, emit_denial as audit_denial
+from core.authz import has_permission
 from core.calculations import check_all_compliance, compliance_summary
 from core.constants import ALERT_LABELS, MONTH_NAMES, TREATMENT_ACTIONS, AlertLevel
 from core.models import WaterReading
@@ -340,13 +342,55 @@ def get_current_user_profile(
             "token": token,
         }
 
-    # Fallback to organization ID from header (for backwards compatibility / API keys)
+    # No valid Clerk token. This path historically returned an anonymous
+    # "operator" identity whose organization came straight from the client-
+    # supplied X-Organization-Id header. Because the backend talks to Postgres as
+    # service-role (RLS bypassed), that let an UNauthenticated caller read and
+    # write any tenant's data just by guessing its org UUID — a cross-tenant IDOR
+    # (CRIT-1 in the permissions review). We now fail closed: no verified user =>
+    # 401, and tenancy is NEVER derived from a request header. The escape hatch
+    # AUTHZ_FAIL_CLOSED=0 temporarily restores the legacy behavior for rollback
+    # only; no server-to-server caller is known to rely on it.
+    if os.environ.get("AUTHZ_FAIL_CLOSED", "1") != "0":
+        raise HTTPException(status_code=401, detail="Authentication required.")
     return {
         "user_id": None,
         "organization_id": x_organization_id,
         "role": "operator",
         "token": None,
     }
+
+
+def _ensure_permission(
+    profile: dict,
+    permission: str,
+    *,
+    detail: str | None = None,
+    target_type: str | None = None,
+    target_id: str | None = None,
+) -> None:
+    """Central authorization check: deny (403) unless the caller's role holds the
+    atomic ``permission``. Emits a structured audit denial on failure. This is the
+    single choke point that replaces the scattered inline role-string checks, so a
+    new endpoint cannot silently ship without an explicit permission.
+
+    Answers only *what* the role may do; data-scope (assigned org/project/site) is
+    enforced separately at the query layer.
+    """
+    if has_permission(profile.get("role"), permission):
+        return
+    audit_denial(
+        permission,
+        actor_user_id=profile.get("user_id"),
+        actor_role=profile.get("role"),
+        organization_id=profile.get("organization_id"),
+        target_type=target_type,
+        target_id=target_id,
+    )
+    raise HTTPException(
+        status_code=403,
+        detail=detail or "You do not have permission to perform this action.",
+    )
 
 
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
@@ -483,8 +527,7 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
 @app.post("/sites", tags=["Sites"], status_code=201)
 def create_site_endpoint(body: CreateSiteRequest, profile: dict = Depends(get_current_user_profile)):
     """Create a new site for the tenant. Requires admin or super_admin role. Enforces plan site limit."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Only admins can create sites.")
+    _ensure_permission(profile, "sites.create", detail="Only admins can create sites.")
     org_id = profile.get("organization_id")
     if not org_id:
         raise HTTPException(status_code=400, detail="No organization associated with this account.")
@@ -529,8 +572,8 @@ def create_site_endpoint(body: CreateSiteRequest, profile: dict = Depends(get_cu
 @app.delete("/sites/{site_name}", tags=["Sites"])
 def delete_site_endpoint(site_name: str, profile: dict = Depends(get_current_user_profile)):
     """Delete a site and ALL associated readings/predictions. Requires admin or super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Only admins can delete sites.")
+    _ensure_permission(profile, "sites.delete", detail="Only admins can delete sites.",
+                       target_type="site", target_id=site_name)
     try:
         from db.queries import delete_site
         ok, msg, count = delete_site(
@@ -540,6 +583,9 @@ def delete_site_endpoint(site_name: str, profile: dict = Depends(get_current_use
         )
         if not ok:
             raise HTTPException(status_code=404, detail=msg)
+        audit_emit("site.delete", actor_user_id=profile.get("user_id"),
+                   actor_role=profile.get("role"), organization_id=profile.get("organization_id"),
+                   target_type="site", target_id=site_name, readings_deleted=count)
         return {"deleted": True, "message": msg, "readings_deleted": count}
     except HTTPException:
         raise
@@ -571,8 +617,7 @@ class InviteRequest(BaseModel):
 @app.get("/users", tags=["Users"])
 def list_users(profile: dict = Depends(get_current_user_profile)):
     """List all users in the organisation. Requires admin or super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.read", detail="Admin access required.")
     org_id = profile.get("organization_id")
     if not org_id:
         return {"users": []}
@@ -607,12 +652,14 @@ def list_users(profile: dict = Depends(get_current_user_profile)):
 @app.patch("/users/{user_id}", tags=["Users"])
 def update_user_role(user_id: str, body: UpdateRoleRequest, profile: dict = Depends(get_current_user_profile)):
     """Change a user's role. Admins can set operator/admin; only super_admin can grant super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.role.assign", detail="Admin access required.",
+                       target_type="user", target_id=user_id)
     if body.role not in ("operator", "admin", "auditor", "super_admin"):
         raise HTTPException(status_code=422, detail="Role must be operator, admin, auditor, or super_admin.")
-    if body.role == "super_admin" and profile.get("role") != "super_admin":
-        raise HTTPException(status_code=403, detail="Only super_admin can grant super_admin role.")
+    if body.role == "super_admin":
+        _ensure_permission(profile, "users.executive.assign",
+                           detail="Only super_admin can grant super_admin role.",
+                           target_type="user", target_id=user_id)
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     client = _gc()
@@ -626,14 +673,17 @@ def update_user_role(user_id: str, body: UpdateRoleRequest, profile: dict = Depe
     res = client.table("user_profiles").update({"role": body.role}).eq("id", user_id).eq("organization_id", org_id).execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="User not found in your organisation.")
+    audit_emit("user.role.assign", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="user", target_id=user_id, new_role=body.role)
     return {"updated": True, "user_id": user_id, "role": body.role}
 
 
 @app.delete("/users/{user_id}", tags=["Users"])
 def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile)):
     """Remove a user from the organisation (deletes their profile). Requires admin or super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.remove", detail="Admin access required.",
+                       target_type="user", target_id=user_id)
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     client = _gc()
@@ -648,7 +698,20 @@ def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile))
     target_role = target.data[0]["role"]
     if target_role == "super_admin" and profile.get("role") != "super_admin":
         raise HTTPException(status_code=403, detail="Only super_admin can remove a super_admin.")
+    # A3: never orphan an organisation by removing its last Executive Management
+    # user. Count remaining super_admins in the org before deleting one.
+    if target_role == "super_admin":
+        sa = (client.table("user_profiles").select("id")
+              .eq("organization_id", org_id).eq("role", "super_admin").execute())
+        if len(sa.data or []) <= 1:
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot remove the last Executive Management user in the organisation.",
+            )
     client.table("user_profiles").delete().eq("id", user_id).eq("organization_id", org_id).execute()
+    audit_emit("user.remove", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="user", target_id=user_id, removed_role=target_role)
     return {"removed": True, "user_id": user_id}
 
 
@@ -723,12 +786,12 @@ def invite_user(body: InviteRequest, request: Request, profile: dict = Depends(g
     assigned role + organisation is inserted now and linked by email on their
     first sign-in (see get_user_profile's email fallback).
     """
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.invite", detail="Admin access required.")
     if body.role not in ("operator", "admin", "auditor", "super_admin"):
         raise HTTPException(status_code=422, detail="Invalid role.")
-    if body.role == "super_admin" and profile.get("role") != "super_admin":
-        raise HTTPException(status_code=403, detail="Only super_admin can invite as super_admin.")
+    if body.role == "super_admin":
+        _ensure_permission(profile, "users.executive.assign",
+                           detail="Only super_admin can invite as super_admin.")
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     import uuid as _uuid
@@ -887,8 +950,7 @@ def billing_status(profile: dict = Depends(get_current_user_profile)):
 @app.post("/billing/checkout", tags=["Billing"])
 def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_user_profile)):
     """Create a hosted checkout session with the payment provider and return the redirect URL."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import create_checkout_session, is_configured, PLANS
     if not is_configured():
         raise HTTPException(status_code=503, detail="Payments are not configured. Add your payment provider keys to secrets.toml.")
@@ -913,8 +975,7 @@ def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_
 def billing_portal(body: PortalRequest, profile: dict = Depends(get_current_user_profile)):
     """Create a hosted billing-portal session for plan/payment management
     (only for providers that offer one)."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import create_portal_session, is_configured, supports_portal
     if not is_configured():
         raise HTTPException(status_code=503, detail="Payments are not configured.")
@@ -936,8 +997,7 @@ def billing_portal(body: PortalRequest, profile: dict = Depends(get_current_user
 @app.post("/billing/cancel", tags=["Billing"])
 def billing_cancel(profile: dict = Depends(get_current_user_profile)):
     """Cancel the organization's subscription and downgrade to the starter plan."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import cancel_subscription, get_org_billing, has_subscription, is_configured
     if not is_configured():
         raise HTTPException(status_code=503, detail="Payments are not configured.")
@@ -982,8 +1042,8 @@ def log_reading(body: LogRequest, _=Security(_check_key), profile: dict = Depend
     compliance assessment, alert level, and treatment response.
     Enforces role validation and tenant data isolation.
     """
-    if profile.get("role") not in ('admin', 'operator', 'super_admin'):
-        raise HTTPException(status_code=403, detail="User role does not have permission to log water readings.")
+    _ensure_permission(profile, "readings.create",
+                       detail="User role does not have permission to log water readings.")
 
     if not (1 <= body.month <= 12):
         raise HTTPException(status_code=422, detail="month must be 1–12")
@@ -1037,8 +1097,8 @@ def list_sludge_zones(site: str, profile: dict = Depends(get_current_user_profil
 @app.post("/sludge/{site}", tags=["Sludge"], status_code=201)
 def save_sludge_zone(site: str, body: SludgeZoneRequest, profile: dict = Depends(get_current_user_profile)):
     """Add or update a sludge zone survey for a site. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot record sludge surveys.")
+    _ensure_permission(profile, "sludge.write", detail="Your role cannot record sludge surveys.",
+                       target_type="site", target_id=site)
     if body.sludge_depth_m > body.total_depth_m:
         raise HTTPException(status_code=422, detail="Sludge depth cannot exceed total depth.")
     from db.queries import upsert_sludge_zone
@@ -1055,8 +1115,8 @@ def save_sludge_zone(site: str, body: SludgeZoneRequest, profile: dict = Depends
 @app.delete("/sludge/{site}/{zone_name}", tags=["Sludge"])
 def remove_sludge_zone(site: str, zone_name: str, profile: dict = Depends(get_current_user_profile)):
     """Delete a sludge zone from a site. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot delete sludge surveys.")
+    _ensure_permission(profile, "sludge.delete", detail="Your role cannot delete sludge surveys.",
+                       target_type="sludge_zone", target_id=f"{site}/{zone_name}")
     from db.queries import delete_sludge_zone
     ok, msg = delete_sludge_zone(
         site, zone_name,
@@ -1152,8 +1212,8 @@ def list_data_requests(site: str, profile: dict = Depends(get_current_user_profi
 def create_data_request_endpoint(site: str, body: DataRequestBody,
                                  profile: dict = Depends(get_current_user_profile)):
     """Create an open data/lab request for a site. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot raise requests.")
+    _ensure_permission(profile, "requests.create", detail="Your role cannot raise requests.",
+                       target_type="site", target_id=site)
     from db.queries import create_data_request
     ok, msg, row = create_data_request(
         site, [i.strip() for i in body.items if i.strip()], reason=body.reason,
@@ -1168,8 +1228,8 @@ def create_data_request_endpoint(site: str, body: DataRequestBody,
 def dismiss_data_request_endpoint(site: str, request_id: str,
                                   profile: dict = Depends(get_current_user_profile)):
     """Mark a data/lab request fulfilled. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot update requests.")
+    _ensure_permission(profile, "requests.fulfil", detail="Your role cannot update requests.",
+                       target_type="request", target_id=request_id)
     from db.queries import dismiss_data_request
     ok, msg = dismiss_data_request(request_id, site,
                                    organization_id=profile.get("organization_id"),
@@ -1365,6 +1425,18 @@ def download_compliance_report(
     Pass ?draft=false for a clean (watermark-free) official report.
     Returns application/pdf as an attachment download.
     """
+    # CRIT-3: the non-draft PDF is the auditable regulatory artifact. Draft
+    # previews need only reports.generate_draft; the clean official export
+    # requires reports.approve_final (managers/GM/executive), separating routine
+    # generation from regulatory sign-off. The ?draft flag is client-controlled,
+    # so it selects the *required permission* here rather than acting as a gate.
+    required = "reports.generate_draft" if draft else "reports.approve_final"
+    _ensure_permission(
+        profile, required,
+        detail=("Your role may not export the final regulatory report."
+                if not draft else "Your role may not generate compliance reports."),
+        target_type="report", target_id=f"{site}/{year}",
+    )
     try:
         from db.queries import get_readings_for_site
         readings = get_readings_for_site(
