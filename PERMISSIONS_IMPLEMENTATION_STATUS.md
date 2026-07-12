@@ -37,7 +37,8 @@ Honest labelling per the review prompt: nothing is marked done that isn't verifi
 | 4 | Frontend corrective-action UI | ⛔ | frontend work |
 | 5 | Inventory tables + append-only ledger | 📄 | `009_inventory.sql` (+down); immutable ledger trigger |
 | 5 | Ledger invariants (balance/transfer/no-negative) | ✅ | `core/inventory.py`, tested |
-| 5 | Endpoints (consume/receive/transfer/adjust/configure) | ⛔ | authz + logic ready; transactional endpoint bodies + concurrency tests remain |
+| 5 | Concurrency-safe stock ops (Postgres RPC) | 📄 | `011_inventory_rpc.sql` — advisory-lock `record_consumption`/`record_transfer`; the ONLY safe way to prevent negative stock under concurrency |
+| 5 | Endpoints (consume/receive/transfer/adjust/configure) | ⛔ | authz + logic + RPC ready; endpoint bodies call `client.rpc(...)`; need live-DB integration tests |
 | 5 | Financial-field protection | 🟡 (design) | `inventory.valuation.read` bundled; enforce in endpoint projection |
 | 5 | Low-stock/expiry alerts | 🟡 | `is_low_stock` done; expiry job + delivery remain |
 | 6 | Asset/maintenance tables | 📄 | `010_assets.sql` (+down) |
