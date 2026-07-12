@@ -3,10 +3,9 @@ import { useAuth } from '../context/AuthContext'
 import { PageHeader } from './PageHeader'
 import { SiteManager } from './SiteManager'
 import { UserManager } from './UserManager'
+import { SampleDataToggle } from './SampleDataToggle'
 
 interface SettingsProps {
-  useSampleData: boolean
-  setUseSampleData: (v: boolean) => void
   activeSite: string
   setActiveSite: (s: string) => void
 }
@@ -24,30 +23,6 @@ interface BillingStatus {
   payment_provider: string
   available_plans: Record<string, { name: string; site_limit: number; price_usd: number; description: string }>
 }
-
-const Toggle: React.FC<{ value: boolean; onChange: (v: boolean) => void }> = ({ value, onChange }) => (
-  <div
-    role="switch"
-    aria-checked={value}
-    onClick={() => onChange(!value)}
-    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '0.5rem', userSelect: 'none' }}
-  >
-    <div style={{
-      width: '44px', height: '24px', borderRadius: '12px',
-      background: value ? '#2E5D8A' : '#cbd5e1',
-      position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-    }}>
-      <div style={{
-        position: 'absolute', top: '3px', left: value ? '23px' : '3px',
-        width: '18px', height: '18px', borderRadius: '50%',
-        background: '#ffffff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
-      }} />
-    </div>
-    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: value ? '#1B3A5C' : '#94a3b8' }}>
-      {value ? 'Enabled' : 'Disabled'}
-    </span>
-  </div>
-)
 
 const PLAN_COLORS: Record<string, { bg: string; color: string; border: string }> = {
   starter:      { bg: '#f1f5f9',  color: '#475569',  border: '#e2e8f0' },
@@ -337,7 +312,7 @@ const AboutPanel: React.FC = () => {
   )
 }
 
-export const Settings: React.FC<SettingsProps> = ({ useSampleData, setUseSampleData, activeSite, setActiveSite }) => {
+export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite }) => {
   const { role, organizationId, token } = useAuth()
   const isAdmin = role === 'admin' || role === 'super_admin'
 
@@ -355,25 +330,11 @@ export const Settings: React.FC<SettingsProps> = ({ useSampleData, setUseSampleD
         </div>
       )}
 
-      {/* Data & Display */}
+      {/* Data & Display — visible to every role, including Executive Management and the
+          General Manager. Same switch as the one on their dashboards. */}
       <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
         <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1rem' }}>Data &amp; Display</h3>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0',
-          borderRadius: '8px', gap: '1rem', flexWrap: 'wrap',
-        }}>
-          <div>
-            <div style={{ fontWeight: 600, color: '#1B3A5C', marginBottom: '2px' }}>Sample / Demo Data</div>
-            <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>
-              Show built-in demonstration readings alongside live data. Disable for live production deployments.
-            </div>
-          </div>
-          <Toggle value={useSampleData} onChange={setUseSampleData} />
-        </div>
-        <div style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.5 }}>
-          Saved in your browser — only affects your session.
-        </div>
+        <SampleDataToggle variant="card" />
       </div>
 
       {/* Site Manager — admin only */}

@@ -11,6 +11,11 @@ interface AuthContextType {
    *  the cached `token` can expire (Clerk tokens live ~60s). */
   getToken: () => Promise<string | null>
   email: string
+  /** Whether this user has opted into seeing built-in sample data. Stored on the
+   *  user's profile, so it follows them across browsers and devices. */
+  showSampleData: boolean
+  /** Persists the preference. Rejects if the server refuses it. */
+  setShowSampleData: (value: boolean) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -26,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [organizationId, setOrganizationId] = useState<string | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [profileLoaded, setProfileLoaded] = useState(false)
+  const [showSampleData, setShowSampleDataState] = useState(true)
 
   const email = clerkUser?.primaryEmailAddress?.emailAddress ?? ''
 
@@ -35,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRole('operator')
       setOrganizationId(null)
       setToken(null)
+      setShowSampleDataState(true)
       setProfileLoaded(true)
       return
     }
@@ -61,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const data = await res.json()
           setRole(data.role || 'operator')
           setOrganizationId(data.organization_id || null)
+          setShowSampleDataState(data.show_sample_data !== false)
         }
       } catch (err) {
         console.error('Profile fetch error:', err)
@@ -93,6 +101,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [clerkGetToken])
 
+  // Write-through: persist to the profile first, and only then flip local state, so the
+  // UI can never claim sample data is off while the server still has it on.
+  const setShowSampleData = useCallback(async (value: boolean): Promise<void> => {
+    const t = await getToken()
+    const res = await fetch('/api/profile/preferences', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(t ? { Authorization: `Bearer ${t}` } : {}),
+        'X-User-Email': email,
+      },
+      body: JSON.stringify({ show_sample_data: value }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.detail || `Could not save preference (${res.status})`)
+    }
+    setShowSampleDataState(value)
+  }, [getToken, email])
+
   const user = isSignedIn && clerkUser ? { id: clerkUser.id, email } : null
 
   return (
@@ -105,6 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         getToken,
         email,
+        showSampleData,
+        setShowSampleData,
         signOut: clerkSignOut,
       }}
     >

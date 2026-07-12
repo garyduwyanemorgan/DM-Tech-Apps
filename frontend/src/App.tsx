@@ -64,15 +64,6 @@ function AppContent() {
       setActiveTab('dashboard')
     }
   }, [loading, user])
-  const [useSampleData, setUseSampleData] = useState<boolean>(() => {
-    try { return localStorage.getItem('useSampleData') !== 'false' } catch { return true }
-  })
-
-  const handleSampleDataChange = (v: boolean) => {
-    setUseSampleData(v)
-    try { localStorage.setItem('useSampleData', String(v)) } catch { /* ignore */ }
-  }
-
   if (loading) {
     return (
       <div style={{ display: 'flex', flex: 1, minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
@@ -130,12 +121,12 @@ function AppContent() {
             if (tier === 4) return <ExecutiveDashboard setActiveSite={setActiveSite} setActiveTab={handleTabChange} />
             if (tier === 3) return <PortfolioDashboard setActiveSite={setActiveSite} setActiveTab={handleTabChange} />
             if (tier === 2) return <ProjectDashboard setActiveSite={setActiveSite} setActiveTab={handleTabChange} />
-            return <Dashboard activeSite={activeSite} useSampleData={useSampleData} />
+            return <Dashboard activeSite={activeSite} />
           })()}
           {activeTab === 'upload'      && <UploadReport activeSite={activeSite} />}
           {activeTab === 'simulation'  && <ScienceSimulation activeSite={activeSite} />}
           {activeTab === 'compliance'        && <ComplianceReport activeSite={activeSite} />}
-          {activeTab === 'monitoring'  && <Monitoring activeSite={activeSite} useSampleData={useSampleData} />}
+          {activeTab === 'monitoring'  && <Monitoring activeSite={activeSite} />}
           {activeTab === 'sludge'      && <Sludge activeSite={activeSite} />}
           {activeTab === 'community'   && <Community activeSite={activeSite} />}
           {activeTab === 'alerts'      && <Alerts activeSite={activeSite} />}
@@ -157,12 +148,7 @@ function AppContent() {
             <UserManager activeSite={activeSite} setActiveSite={setActiveSite} />
           )}
           {activeTab === 'settings' && (
-            <Settings
-              useSampleData={useSampleData}
-              setUseSampleData={handleSampleDataChange}
-              activeSite={activeSite}
-              setActiveSite={setActiveSite}
-            />
+            <Settings activeSite={activeSite} setActiveSite={setActiveSite} />
           )}
         </main>
       </div>

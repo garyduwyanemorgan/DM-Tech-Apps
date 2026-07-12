@@ -324,6 +324,8 @@ def get_current_user_profile(
                 "email": email,
                 "organization_id": org_id,
                 "role": profile.get("role") or "operator",
+                # Tolerates the column being absent until 006_sample_data_pref.sql is run.
+                "show_sample_data": profile.get("show_sample_data", True),
                 "token": token,
             }
         # No profile and no matching invite: auto-provision every new signed-in
@@ -337,6 +339,7 @@ def get_current_user_profile(
             "email": email,
             "organization_id": org_id,
             "role": "super_admin",
+            "show_sample_data": True,
             "token": token,
         }
 
@@ -554,8 +557,41 @@ def get_profile(profile: dict = Depends(get_current_user_profile)):
         "user_id": profile.get("user_id"),
         "organization_id": profile.get("organization_id"),
         "role": profile.get("role", "operator"),
+        "show_sample_data": profile.get("show_sample_data", True),
         "pending": profile.get("organization_id") is None and profile.get("user_id") is not None,
     }
+
+
+class PreferencesRequest(BaseModel):
+    show_sample_data: bool
+
+
+@app.patch("/profile/preferences", tags=["Auth"])
+def update_preferences(
+    body: PreferencesRequest,
+    profile: dict = Depends(get_current_user_profile),
+):
+    """Persist the signed-in user's display preferences against their profile, so the
+    setting follows them across browsers and devices rather than living in localStorage.
+    """
+    user_id = profile.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Sign in to change preferences.")
+
+    try:
+        from db.client import get_client
+        # Unscoped client, as every other user_profiles write does. Supabase cannot decode
+        # a Clerk JWT (PostgREST answers PGRST301 "no suitable key"), so the token is not
+        # passed. Safe here because the row is pinned to the clerk_id that came out of the
+        # verified token — a caller can only ever update their own profile.
+        client = get_client()
+        client.table("user_profiles").update(
+            {"show_sample_data": body.show_sample_data}
+        ).eq("clerk_id", user_id).execute()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Could not save preference: {exc}")
+
+    return {"show_sample_data": body.show_sample_data}
 
 
 # ── User management ───────────────────────────────────────────────────────────

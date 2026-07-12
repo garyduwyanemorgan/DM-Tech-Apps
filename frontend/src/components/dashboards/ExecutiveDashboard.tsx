@@ -1,6 +1,7 @@
 import React from 'react'
 import { PageHeader } from '../PageHeader'
 import { usePortfolio } from './usePortfolio'
+import { SampleDataToggle } from '../SampleDataToggle'
 import { LIGHT_STYLE } from '../../lib/status'
 import { TrendingUp, AlertTriangle, ShieldCheck, Layers } from 'lucide-react'
 
@@ -48,6 +49,8 @@ export const ExecutiveDashboard: React.FC<Props> = ({ setActiveSite, setActiveTa
         subtitle="Organisation-wide compliance, performance, and regulatory risk"
         icon="📈"
       />
+
+      <SampleDataToggle variant="inline" />
 
       {loading && <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading organisation metrics…</div>}
       {error && <div style={{ background: '#FFC7CE', color: '#9C0006', padding: '0.75rem 1rem', borderRadius: 6 }}>{error}</div>}
