@@ -1854,6 +1854,79 @@ def inventory_valuation(profile: dict = Depends(get_current_user_profile)):
     return {"total_value": total, "items": breakdown}
 
 
+# ── Assets & maintenance configuration (Phase 6) ──────────────────────────────
+
+class AssetCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    site_id: str | None = None
+    asset_type: str | None = Field(None, description="pump/filter/dosing/water_body")
+    config: dict | None = Field(None, description="checklist, required lab params, thresholds")
+
+
+class MaintenanceScheduleCreate(BaseModel):
+    checklist: dict | None = None
+    interval_days: int | None = Field(None, gt=0)
+    next_due: str | None = Field(None, description="YYYY-MM-DD")
+
+
+@app.get("/assets", tags=["Assets"])
+def list_assets_endpoint(site_id: str | None = None, profile: dict = Depends(get_current_user_profile)):
+    """View assets/equipment and their config. All roles with assets.read; General
+    Managers see configs read-only, Site Supervisors see what they execute."""
+    _ensure_permission(profile, "assets.read", detail="Your role cannot view assets.")
+    from db.queries import list_assets
+    return {"assets": list_assets(profile["organization_id"], site_id=site_id)}
+
+
+@app.post("/assets", tags=["Assets"], status_code=201)
+def create_asset_endpoint(body: AssetCreate, profile: dict = Depends(get_current_user_profile)):
+    """Configure an asset (type, checklist, required lab parameters). Managers/
+    Executive only — Site Supervisors execute tasks but don't change templates."""
+    _ensure_permission(profile, "assets.configure", detail="Your role cannot configure assets.")
+    from db.queries import create_asset
+    asset = create_asset(profile["organization_id"], body.model_dump())
+    if not asset:
+        raise HTTPException(status_code=400, detail="Could not create asset (duplicate name for site?).")
+    audit_emit("asset.configure", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="asset", target_id=asset["id"])
+    return {"asset": asset}
+
+
+@app.post("/assets/{asset_id}/maintenance", tags=["Assets"], status_code=201)
+def create_maintenance_endpoint(asset_id: str, body: MaintenanceScheduleCreate,
+                                profile: dict = Depends(get_current_user_profile)):
+    """Define a maintenance schedule/checklist for an asset. Managers/Executive."""
+    _ensure_permission(profile, "assets.configure", detail="Your role cannot configure maintenance.")
+    from db.queries import create_maintenance_schedule
+    sched = create_maintenance_schedule(profile["organization_id"], asset_id, body.model_dump())
+    if not sched:
+        raise HTTPException(status_code=400, detail="Could not create maintenance schedule.")
+    return {"schedule": sched}
+
+
+# ── Management KPI views (Phase 7) ────────────────────────────────────────────
+
+@app.get("/kpi/portfolio", tags=["KPI"])
+def kpi_portfolio(profile: dict = Depends(get_current_user_profile)):
+    """Portfolio KPIs (General Manager tier and above). Corrective-action health
+    and inventory alerts; no financial detail unless the role sees valuation."""
+    _ensure_permission(profile, "analytics.portfolio.read",
+                       detail="Your role cannot view portfolio KPIs.")
+    from db.queries import kpi_summary
+    include_fin = has_permission(profile.get("role"), "inventory.valuation.read")
+    return {"scope": "portfolio", "kpi": kpi_summary(profile["organization_id"], include_financial=include_fin)}
+
+
+@app.get("/kpi/executive", tags=["KPI"])
+def kpi_executive(profile: dict = Depends(get_current_user_profile)):
+    """Organization-wide executive KPIs incl. inventory valuation. Executive only."""
+    _ensure_permission(profile, "analytics.executive.read",
+                       detail="Your role cannot view executive KPIs.")
+    from db.queries import kpi_summary
+    return {"scope": "executive", "kpi": kpi_summary(profile["organization_id"], include_financial=True)}
+
+
 @app.get("/science/interventions", tags=["Science"])
 def science_interventions():
     """List the digital-twin interventions the simulator supports."""

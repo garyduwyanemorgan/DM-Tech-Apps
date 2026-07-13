@@ -890,3 +890,90 @@ def rpc_transfer(organization_id: str, item_id: str, from_location_id: str, to_l
         if "differ" in msg:
             return False, "Source and destination must differ."
         return False, f"Database error: {msg[:120]}"
+
+
+# ── Assets & maintenance (migration 010) ──────────────────────────────────────
+
+def create_asset(organization_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        res = client.table("assets").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def list_assets(organization_id: str, site_id: str | None = None) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = client.table("assets").select("*").eq("organization_id", organization_id)
+        if site_id:
+            q = q.eq("site_id", site_id)
+        return q.order("name").execute().data or []
+    except Exception:
+        return []
+
+
+def create_maintenance_schedule(organization_id: str, asset_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        row["asset_id"] = asset_id
+        res = client.table("maintenance_schedules").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+# ── KPI aggregation (Phase 7) ─────────────────────────────────────────────────
+
+def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
+    """Org-scoped management aggregates from authorized source tables. Financial
+    figures (inventory valuation) only included when include_financial is set."""
+    client = get_client()
+    out = {"corrective_actions": {}, "inventory": {}}
+    if not client or not organization_id:
+        return out
+    try:
+        ca = (client.table("corrective_actions").select("status")
+              .eq("organization_id", organization_id).execute().data) or []
+        counts: dict = {}
+        for r in ca:
+            counts[r["status"]] = counts.get(r["status"], 0) + 1
+        out["corrective_actions"] = {
+            "total": len(ca),
+            "open": counts.get("open", 0) + counts.get("in_progress", 0),
+            "pending_approval": counts.get("pending_approval", 0),
+            "closed": counts.get("closed", 0),
+            "by_status": counts,
+        }
+    except Exception:
+        pass
+    try:
+        from core.inventory import balance, is_low_stock
+        items = (client.table("inventory_items").select("*")
+                 .eq("organization_id", organization_id).execute().data) or []
+        rows = (client.table("inventory_ledger").select("item_id,location_id,qty_delta")
+                .eq("organization_id", organization_id).execute().data) or []
+        low = 0
+        total_value = 0.0
+        for it in items:
+            qty = float(balance(rows, item_id=it["id"]))
+            if is_low_stock(qty, it.get("reorder_threshold")):
+                low += 1
+            total_value += qty * float(it.get("unit_cost") or 0)
+        out["inventory"] = {"item_count": len(items), "low_stock_items": low}
+        if include_financial:
+            out["inventory"]["total_valuation"] = total_value
+    except Exception:
+        pass
+    return out
