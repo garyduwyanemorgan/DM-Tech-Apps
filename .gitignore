@@ -14,6 +14,9 @@ dist/
 frontend/dist/
 *.tsbuildinfo
 
+# setup_bundle.md contains real secrets — transfer by direct copy only, never push
+setup_bundle.md
+
 # Python
 __pycache__/
 *.pyc
@@ -21,6 +24,7 @@ __pycache__/
 *.pyd
 *.log
 .venv/
+.venv-codex/
 venv/
 .ipynb_checkpoints/
 
