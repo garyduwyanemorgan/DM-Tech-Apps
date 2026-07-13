@@ -33,18 +33,21 @@ Honest labelling per the review prompt: nothing is marked done that isn't verifi
 | 3 | Destructive-delete audit | ✅ | site + sludge delete emit audit; **soft-delete/retention deferred (needs schema)** |
 | 4 | Corrective-action tables | 📄 | `008_corrective_actions.sql` (+down); append-only events |
 | 4 | State machine + permissions | ✅ | `core/corrective.py`, tested |
-| 4 | Endpoints (list/create/assign/progress/close) | ⛔ | authz + state machine ready; endpoint bodies + live-DB tests remain |
+| 4 | Endpoints (list/create/progress/close) | ✅ | live-DB verified; state machine + audit; `test_integration_phases.py` |
 | 4 | Frontend corrective-action UI | ⛔ | frontend work |
-| 5 | Inventory tables + append-only ledger | 📄 | `009_inventory.sql` (+down); immutable ledger trigger |
+| 5 | Inventory tables + append-only ledger | ✅ (applied) | `009` + `012` immutability fix |
 | 5 | Ledger invariants (balance/transfer/no-negative) | ✅ | `core/inventory.py`, tested |
-| 5 | Concurrency-safe stock ops (Postgres RPC) | 📄 | `011_inventory_rpc.sql` — advisory-lock `record_consumption`/`record_transfer`; the ONLY safe way to prevent negative stock under concurrency |
-| 5 | Endpoints (consume/receive/transfer/adjust/configure) | ⛔ | authz + logic + RPC ready; endpoint bodies call `client.rpc(...)`; need live-DB integration tests |
-| 5 | Financial-field protection | 🟡 (design) | `inventory.valuation.read` bundled; enforce in endpoint projection |
-| 5 | Low-stock/expiry alerts | 🟡 | `is_low_stock` done; expiry job + delivery remain |
-| 6 | Asset/maintenance tables | 📄 | `010_assets.sql` (+down) |
-| 6 | Asset config endpoints + task generation | ⛔ | needs endpoints + scheduler |
-| 7 | KPI aggregations (site/project/portfolio/exec) | ⛔ | needs endpoints; must not leak out-of-scope/financial rows |
-| 8 | Pen-style authz tests, log review, rollback drills | ⛔ | partial: negative tests exist; migration rollback scripts authored |
+| 5 | Concurrency-safe stock ops (Postgres RPC) | ✅ (applied) | `011` advisory-lock RPCs; live over-consume → 409 |
+| 5 | Endpoints (consume/receive/transfer/adjust/configure) | ✅ | live-DB verified via RPC |
+| 5 | Financial-field protection | ✅ | cost stripped from operators; valuation gated |
+| 5 | Low-stock/expiry alerts | 🟡 | low-stock in KPI; expiry-notification job remains |
+| 6 | Asset/maintenance tables | ✅ (applied) | `010` |
+| 6 | Asset config endpoints | ✅ | `GET/POST /assets`, maintenance; live-DB verified |
+| 6 | Task generation (scheduler) | ⛔ | schedule model exists; auto-task generation remains |
+| 7 | KPI aggregations (portfolio/exec) | ✅ | `/kpi/portfolio`,`/kpi/executive`; scope + financial gating verified |
+| 7 | KPI site/project + compliance/dosing metrics | 🟡 | corrective-action + inventory KPIs done; readings-derived metrics remain |
+| 8 | Integration/abuse tests, log review | ✅ | `test_integration_phases.py` (14 checks); logs secret-free |
+| 8 | Migration rollback drills | 🟡 | `_down` scripts authored; drill on a copy before relying on them |
 | 8 | Feature-flag rollout, remove legacy checks | 🟡 | `AUTHZ_FAIL_CLOSED` + planned `SCOPE_ENFORCEMENT`; no flag framework yet |
 
 ## New files this branch
