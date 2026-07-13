@@ -1,5 +1,7 @@
 // All static reference data ported from Python core/constants.py and data/sample_data.py
 
+import { ALERT } from './lib/tokens'
+
 export const MONTH_NAMES = [
   'January','February','March','April','May','June',
   'July','August','September','October','November','December',
@@ -18,12 +20,24 @@ export const COMPLIANCE_LIMITS: Record<string, { parameter: string; unit: string
   total_coliforms: { parameter: 'Total Coliforms',    unit: 'CFU/100mL',   min: null, max: 1000,  display: '< 1000' },
 }
 
+// Alert-level visuals derive from the canonical design-system tokens
+// (lib/tokens.ts ALERT) so the 4-level scale has one source of truth.
 export const ALERT_COLORS: Record<number, string> = {
-  1: '#27ae60', 2: '#f39c12', 3: '#e67e22', 4: '#e74c3c',
+  1: ALERT[1].color, 2: ALERT[2].color, 3: ALERT[3].color, 4: ALERT[4].color,
 }
 
 export const ALERT_LABELS: Record<number, string> = {
-  1: 'Level 1 — GREEN', 2: 'Level 2 — WATCH', 3: 'Level 3 — WARNING', 4: 'Level 4 — CRITICAL',
+  1: ALERT[1].label, 2: ALERT[2].label, 3: ALERT[3].label, 4: ALERT[4].label,
+}
+
+/** Pastel card background per alert level (badge/banner surfaces). */
+export const ALERT_BG: Record<number, string> = {
+  1: ALERT[1].bg, 2: ALERT[2].bg, 3: ALERT[3].bg, 4: ALERT[4].bg,
+}
+
+/** Text color paired with ALERT_BG per alert level. */
+export const ALERT_FG: Record<number, string> = {
+  1: ALERT[1].fg, 2: ALERT[2].fg, 3: ALERT[3].fg, 4: ALERT[4].fg,
 }
 
 export const ALERT_THRESHOLDS: Record<number, { bloomRange: string; chla: string; doVal: string; phyco: string; temp: string; monitoring: string; reporting: string }> = {

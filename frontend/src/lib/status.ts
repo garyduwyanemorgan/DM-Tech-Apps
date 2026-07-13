@@ -10,6 +10,8 @@
 //   { readings: [{ month, compliance, compliance_pct, alert_level, alert_label,
 //                  failing_params, ...paramValues }] }
 
+import { STATUS } from './tokens'
+
 export type TrafficLight = 'green' | 'yellow' | 'red' | 'blue'
 
 export interface SiteReading {
@@ -35,12 +37,12 @@ export interface SiteStatus {
   alertLevel: 1 | 2 | 3 | 4 | null
 }
 
-/** Visual tokens for a traffic-light value — aligned with the app's .badge-* palette. */
+/** Visual tokens for a traffic-light value — derived from the canonical STATUS tokens. */
 export const LIGHT_STYLE: Record<TrafficLight, { bg: string; color: string; dot: string; label: string }> = {
-  green:  { bg: '#C6EFCE', color: '#006100', dot: '#27ae60', label: 'Compliant' },
-  yellow: { bg: '#FFEB9C', color: '#856404', dot: '#f39c12', label: 'Action Required' },
-  red:    { bg: '#FFC7CE', color: '#9C0006', dot: '#e74c3c', label: 'Critical' },
-  blue:   { bg: '#D6E4F0', color: '#1B3A5C', dot: '#3b82f6', label: 'Awaiting Lab' },
+  green:  { bg: STATUS.compliant.bg,      color: STATUS.compliant.fg,      dot: STATUS.compliant.dot,      label: STATUS.compliant.label },
+  yellow: { bg: STATUS.actionRequired.bg, color: STATUS.actionRequired.fg, dot: STATUS.actionRequired.dot, label: STATUS.actionRequired.label },
+  red:    { bg: STATUS.critical.bg,       color: STATUS.critical.fg,       dot: STATUS.critical.dot,       label: STATUS.critical.label },
+  blue:   { bg: STATUS.awaitingLab.bg,    color: STATUS.awaitingLab.fg,    dot: STATUS.awaitingLab.dot,    label: STATUS.awaitingLab.label },
 }
 
 /** Reduce a single reading to a traffic-light value. */

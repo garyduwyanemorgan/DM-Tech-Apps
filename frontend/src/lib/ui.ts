@@ -1,17 +1,22 @@
-// Shared inline-style tokens matching the app's existing palette (see Sludge.tsx,
-// SiteManager.tsx). Extracted so the newer feature screens stay visually
-// consistent without copy-pasting the same style objects into each file.
+// Shared inline-style tokens — legacy compatibility layer.
+//
+// Values are derived from lib/tokens.ts (the canonical design-system source)
+// so there is exactly one hex per concept app-wide. New code should import
+// from lib/tokens.ts and components/ui/ directly; these exports remain for
+// the existing feature screens (CorrectiveActions, Inventory, Assets,
+// ManagementKPIs) and are kept byte-compatible.
 import type React from 'react'
+import { COLORS as T, STATUS, RADIUS } from './tokens'
 
 export const COLORS = {
-  navy: '#1B3A5C',
-  slate: '#64748b',
-  slateLight: '#94a3b8',
+  navy: T.navy,
+  slate: T.slate,
+  slateLight: T.slateLight,
   blue: '#4472C4',
-  greenBg: '#C6EFCE', greenFg: '#006100', greenBorder: '#86efac',
-  amberBg: '#FFEB9C', amberFg: '#856404', amberBorder: '#fcd34d',
-  redBg: '#FFC7CE', redFg: '#9C0006', redBorder: '#f87171',
-  border: '#e2e8f0', surface: '#f8fafc',
+  greenBg: STATUS.compliant.bg, greenFg: STATUS.compliant.fg, greenBorder: '#86efac',
+  amberBg: STATUS.actionRequired.bg, amberFg: STATUS.actionRequired.fg, amberBorder: '#fcd34d',
+  redBg: STATUS.critical.bg, redFg: STATUS.critical.fg, redBorder: '#f87171',
+  border: T.border, surface: T.surface,
 }
 
 export const tableHeaderStyle: React.CSSProperties = {
@@ -21,12 +26,17 @@ export const tableHeaderStyle: React.CSSProperties = {
 }
 
 export const tableCellStyle: React.CSSProperties = {
-  padding: '10px 14px', fontSize: '0.85rem', color: '#374151', borderBottom: '1px solid #f1f5f9',
+  padding: '12px 14px', fontSize: '0.875rem', color: '#374151', borderBottom: '1px solid #f1f5f9',
 }
 
 export const inputStyle: React.CSSProperties = {
-  padding: '0.45rem 0.7rem', border: '1px solid #cbd5e1', borderRadius: 6,
+  padding: '0.45rem 0.7rem', border: '1px solid #cbd5e1', borderRadius: RADIUS.sm,
   fontSize: '0.875rem', fontFamily: 'inherit',
+}
+
+/** Error-state input — apply alongside inputStyle when a field fails validation. */
+export const errorInputStyle: React.CSSProperties = {
+  border: '1px solid #F87171', background: '#FFF5F5', color: '#9C0006',
 }
 
 export const labelStyle: React.CSSProperties = {
@@ -37,7 +47,10 @@ export const fieldStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: '0.3rem',
 }
 
-/** Pill/badge style for a status colour set. */
+/**
+ * Pill/badge style for a status colour set.
+ * @deprecated Use <StatusBadge> from components/ui instead.
+ */
 export function pill(kind: 'green' | 'amber' | 'red' | 'slate'): React.CSSProperties {
   const map = {
     green: { background: COLORS.greenBg, color: COLORS.greenFg },
