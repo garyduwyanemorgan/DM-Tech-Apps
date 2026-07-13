@@ -73,7 +73,7 @@ CREATE INDEX IF NOT EXISTS inv_ledger_transfer_idx ON public.inventory_ledger (t
 
 DROP TRIGGER IF EXISTS inv_ledger_no_mutate ON public.inventory_ledger;
 CREATE TRIGGER inv_ledger_no_mutate
-    BEFORE UPDATE OR DELETE ON public.inventory_ledger
+    BEFORE UPDATE ON public.inventory_ledger
     FOR EACH ROW EXECUTE FUNCTION public.reject_mutation();
 
 ALTER TABLE public.inventory_locations ENABLE ROW LEVEL SECURITY;

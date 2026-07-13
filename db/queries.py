@@ -653,3 +653,98 @@ def set_user_site_assignments(user_clerk_id: str, site_ids: list[str],
         return True, msg
     except Exception as exc:
         return False, f"Database error: {str(exc)}"
+
+
+# ── Corrective actions (migration 008) ────────────────────────────────────────
+# Org-scoped workflow with an append-only event history. All writes go through the
+# service-role client; callers enforce permission + state-machine rules first.
+
+def create_corrective_action(organization_id: str, fields: dict, actor_clerk_id: str | None = None) -> dict | None:
+    """Insert a corrective action (status 'open') and its 'created' event. Returns the row."""
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        row["created_by"] = actor_clerk_id
+        res = client.table("corrective_actions").insert(row).execute()
+        if not res.data:
+            return None
+        action = res.data[0]
+        client.table("corrective_action_events").insert({
+            "action_id": action["id"], "organization_id": organization_id,
+            "event_type": "created", "to_status": "open",
+            "actor_clerk_id": actor_clerk_id,
+            "note": fields.get("title"),
+        }).execute()
+        return action
+    except Exception:
+        return None
+
+
+def list_corrective_actions(organization_id: str, site_id: str | None = None,
+                            status: str | None = None) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = client.table("corrective_actions").select("*").eq("organization_id", organization_id)
+        if site_id:
+            q = q.eq("site_id", site_id)
+        if status:
+            q = q.eq("status", status)
+        return (q.order("created_at", desc=True).execute().data) or []
+    except Exception:
+        return []
+
+
+def get_corrective_action(organization_id: str, action_id: str) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        res = (client.table("corrective_actions").select("*")
+               .eq("id", action_id).eq("organization_id", organization_id).execute())
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def transition_corrective_action(organization_id: str, action_id: str, to_status: str,
+                                 from_status: str, actor_clerk_id: str | None = None,
+                                 note: str | None = None, evidence_url: str | None = None) -> tuple[bool, str]:
+    """Update an action's status and append an immutable event. Assumes the caller
+    already validated the transition is legal and permitted."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    try:
+        updates = {"status": to_status}
+        if to_status in ("closed", "cancelled"):
+            updates["closed_by"] = actor_clerk_id
+            updates["closed_at"] = "now()"
+        res = (client.table("corrective_actions").update(updates)
+               .eq("id", action_id).eq("organization_id", organization_id).execute())
+        if not res.data:
+            return False, "Action not found."
+        client.table("corrective_action_events").insert({
+            "action_id": action_id, "organization_id": organization_id,
+            "event_type": "status_change", "from_status": from_status, "to_status": to_status,
+            "actor_clerk_id": actor_clerk_id, "note": note, "evidence_url": evidence_url,
+        }).execute()
+        return True, f"Action moved to {to_status}."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+def get_corrective_action_events(organization_id: str, action_id: str) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("corrective_action_events").select("*")
+                .eq("organization_id", organization_id).eq("action_id", action_id)
+                .order("created_at").execute().data) or []
+    except Exception:
+        return []

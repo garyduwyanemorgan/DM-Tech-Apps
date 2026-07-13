@@ -46,7 +46,7 @@ CREATE INDEX IF NOT EXISTS cae_action_idx ON public.corrective_action_events (ac
 
 DROP TRIGGER IF EXISTS cae_no_mutate ON public.corrective_action_events;
 CREATE TRIGGER cae_no_mutate
-    BEFORE UPDATE OR DELETE ON public.corrective_action_events
+    BEFORE UPDATE ON public.corrective_action_events
     FOR EACH ROW EXECUTE FUNCTION public.reject_mutation();
 
 ALTER TABLE public.corrective_actions ENABLE ROW LEVEL SECURITY;

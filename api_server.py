@@ -1574,6 +1574,93 @@ def download_compliance_report(
     )
 
 
+# ── Corrective actions (Phase 4) ──────────────────────────────────────────────
+
+class CorrectiveActionCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str | None = None
+    site_id: str | None = None
+    severity: str | None = Field(None, description="info/low/medium/high/critical")
+    due_date: str | None = Field(None, description="YYYY-MM-DD")
+    owner_clerk_id: str | None = Field(None, description="assigned executor")
+
+
+class CorrectiveActionTransition(BaseModel):
+    to_status: str = Field(..., description="in_progress/pending_approval/closed/cancelled")
+    note: str | None = None
+    evidence_url: str | None = None
+
+
+@app.get("/actions", tags=["Corrective actions"])
+def list_actions(site_id: str | None = None, status: str | None = None,
+                 profile: dict = Depends(get_current_user_profile)):
+    """List corrective actions in the caller's org (optionally by site/status)."""
+    _ensure_permission(profile, "actions.read", detail="Your role cannot view corrective actions.")
+    from db.queries import list_corrective_actions
+    return {"actions": list_corrective_actions(profile["organization_id"], site_id=site_id, status=status)}
+
+
+@app.get("/actions/{action_id}", tags=["Corrective actions"])
+def get_action(action_id: str, profile: dict = Depends(get_current_user_profile)):
+    """A single corrective action with its immutable event history."""
+    _ensure_permission(profile, "actions.read", detail="Your role cannot view corrective actions.")
+    from db.queries import get_corrective_action, get_corrective_action_events
+    action = get_corrective_action(profile["organization_id"], action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail="Corrective action not found.")
+    events = get_corrective_action_events(profile["organization_id"], action_id)
+    return {"action": action, "events": events}
+
+
+@app.post("/actions", tags=["Corrective actions"], status_code=201)
+def create_action(body: CorrectiveActionCreate, profile: dict = Depends(get_current_user_profile)):
+    """Create/assign a corrective action. Managers/Executive assign; the workflow
+    then lets the assigned Site Supervisor execute it."""
+    _ensure_permission(profile, "actions.create", detail="Your role cannot create corrective actions.")
+    from db.queries import create_corrective_action
+    action = create_corrective_action(
+        profile["organization_id"], body.model_dump(), actor_clerk_id=profile.get("user_id"))
+    if not action:
+        raise HTTPException(status_code=400, detail="Could not create corrective action.")
+    audit_emit("action.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="corrective_action", target_id=action["id"])
+    return {"action": action}
+
+
+@app.post("/actions/{action_id}/transition", tags=["Corrective actions"])
+def transition_action(action_id: str, body: CorrectiveActionTransition,
+                      profile: dict = Depends(get_current_user_profile)):
+    """Advance an action through its lifecycle. The target status selects the
+    required permission (closure needs actions.close) and the state machine
+    rejects illegal transitions — so a Site Supervisor can progress an action but
+    only a Manager/Executive can approve closure."""
+    from core.corrective import can_transition, required_permission, STATUSES
+    from db.queries import get_corrective_action, transition_corrective_action
+    if body.to_status not in STATUSES:
+        raise HTTPException(status_code=422, detail=f"Unknown status '{body.to_status}'.")
+    action = get_corrective_action(profile["organization_id"], action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail="Corrective action not found.")
+    from_status = action["status"]
+    if not can_transition(from_status, body.to_status):
+        raise HTTPException(status_code=409,
+                            detail=f"Cannot move a '{from_status}' action to '{body.to_status}'.")
+    _ensure_permission(profile, required_permission(body.to_status),
+                       detail="Your role cannot make this transition.",
+                       target_type="corrective_action", target_id=action_id)
+    ok, msg = transition_corrective_action(
+        profile["organization_id"], action_id, body.to_status, from_status,
+        actor_clerk_id=profile.get("user_id"), note=body.note, evidence_url=body.evidence_url)
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("action.transition", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="corrective_action", target_id=action_id,
+               from_status=from_status, to_status=body.to_status)
+    return {"updated": True, "message": msg, "from": from_status, "to": body.to_status}
+
+
 @app.get("/science/interventions", tags=["Science"])
 def science_interventions():
     """List the digital-twin interventions the simulator supports."""

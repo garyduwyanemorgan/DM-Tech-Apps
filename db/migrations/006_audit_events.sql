@@ -11,7 +11,12 @@ BEGIN;
 
 -- Shared immutability guard: reused by every append-only table (ledgers, event
 -- logs). REVOKE alone does not stop a table-owning/bypassing role, so enforce in
--- a trigger that rejects UPDATE and DELETE outright.
+-- a trigger that rejects UPDATE (the tampering vector — altering recorded
+-- history). The triggers below fire BEFORE UPDATE only, NOT DELETE: a BEFORE
+-- DELETE guard also blocks cascade deletes, which would make parent rows (orgs,
+-- corrective actions, inventory items) undeletable. Deleting a whole parent is an
+-- administrative action, not record tampering, and only service_role can reach
+-- these tables at all.
 CREATE OR REPLACE FUNCTION public.reject_mutation() RETURNS trigger AS $$
 BEGIN
     RAISE EXCEPTION 'Table %.% is append-only; % is not permitted',
@@ -43,7 +48,7 @@ CREATE INDEX IF NOT EXISTS audit_events_action_idx
 -- Enforce append-only.
 DROP TRIGGER IF EXISTS audit_events_no_mutate ON public.audit_events;
 CREATE TRIGGER audit_events_no_mutate
-    BEFORE UPDATE OR DELETE ON public.audit_events
+    BEFORE UPDATE ON public.audit_events
     FOR EACH ROW EXECUTE FUNCTION public.reject_mutation();
 
 ALTER TABLE public.audit_events ENABLE ROW LEVEL SECURITY;
