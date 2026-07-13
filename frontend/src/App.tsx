@@ -24,6 +24,10 @@ import { Technologies } from './components/Technologies'
 import { MLSystem } from './components/MLSystem'
 import { SiteManager } from './components/SiteManager'
 import { UserManager } from './components/UserManager'
+import { CorrectiveActions } from './components/CorrectiveActions'
+import { Inventory } from './components/Inventory'
+import { Assets } from './components/Assets'
+import { ManagementKPIs } from './components/ManagementKPIs'
 import { Home } from './components/Home'
 import { Settings } from './components/Settings'
 
@@ -33,6 +37,10 @@ const TAB_TITLES: Record<string, string> = {
   upload: 'Log Lab Report',
   simulation: 'Digital Twin',
   compliance: 'Compliance Report',
+  actions: 'Corrective Actions',
+  inventory: 'Inventory & Chemicals',
+  assets: 'Assets & Maintenance',
+  kpi: 'Management KPIs',
   monitoring: 'Water Quality',
   sludge: 'Sludge Management',
   community: 'Algae & Bloom Forecast',
@@ -126,6 +134,10 @@ function AppContent() {
           {activeTab === 'upload'      && <UploadReport activeSite={activeSite} />}
           {activeTab === 'simulation'  && <ScienceSimulation activeSite={activeSite} />}
           {activeTab === 'compliance'        && <ComplianceReport activeSite={activeSite} />}
+          {activeTab === 'actions'     && <CorrectiveActions />}
+          {activeTab === 'inventory'   && <Inventory />}
+          {activeTab === 'assets'      && <Assets />}
+          {activeTab === 'kpi'         && <ManagementKPIs />}
           {activeTab === 'monitoring'  && <Monitoring activeSite={activeSite} />}
           {activeTab === 'sludge'      && <Sludge activeSite={activeSite} />}
           {activeTab === 'community'   && <Community activeSite={activeSite} />}

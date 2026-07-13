@@ -25,6 +25,21 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [0.6.0] - 2026-07-13
+
+- chore: ignore .venv-codex and stop tracking compiled bytecode
+- feat(frontend): UI for corrective actions, inventory, assets, and KPIs
+- fix(db): drop audit_events org FK so tenants remain deletable (013)
+- test(integration): phase 8 end-to-end authz + workflow suite
+- feat(assets,kpi): phase 6 asset/maintenance config + phase 7 management KPIs
+- feat(inventory): phase 5 endpoints — stock, atomic consume/transfer, valuation
+- feat(actions): phase 4 corrective-action workflow + fix append-only cascade
+- chore(db): wrap migrations 006-011 (and rollbacks) in transactions
+- feat(inventory): concurrency-safe stock RPCs (unapplied)
+- feat(authz): phase 2 scope enforcement (flag-gated) and assignment admin
+- feat(authz): phase 3 fixes, domain logic, and schema for phases 2-6
+- feat(authz): centralize permissions and fail closed on unauthenticated requests
+
 ## [0.5.0] - 2026-07-11
 
 - fix: never cache index.html
@@ -89,7 +104,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.3.0...v0.4.0

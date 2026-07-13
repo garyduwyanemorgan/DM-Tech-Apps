@@ -573,3 +573,418 @@ def dismiss_data_request(request_id: str, site_name: str,
     except Exception as exc:
         return False, f"Database error: {str(exc)}"
 
+
+
+# ── Scope: user -> site / project assignments (migration 007) ─────────────────
+# These back Phase 2 scope enforcement. They fail safe: if the assignment tables
+# do not exist yet (migration unapplied) or the DB is down, reads return empty and
+# writes return False, so nothing crashes — enforcement stays behind the
+# SCOPE_ENFORCEMENT flag until backfill is complete.
+
+def get_assigned_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
+    """Site ids explicitly assigned to a user within an org (Site Supervisor scope)."""
+    client = get_client()
+    if not client or not user_clerk_id or not organization_id:
+        return []
+    try:
+        res = (client.table("user_site_assignments").select("site_id")
+               .eq("user_clerk_id", user_clerk_id)
+               .eq("organization_id", organization_id).execute())
+        return [r["site_id"] for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def get_project_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
+    """Site ids belonging to the projects a user is assigned to (Project Manager scope)."""
+    client = get_client()
+    if not client or not user_clerk_id or not organization_id:
+        return []
+    try:
+        pa = (client.table("user_project_assignments").select("project_id")
+              .eq("user_clerk_id", user_clerk_id)
+              .eq("organization_id", organization_id).execute())
+        project_ids = [r["project_id"] for r in (pa.data or [])]
+        if not project_ids:
+            return []
+        sr = (client.table("sites").select("id")
+              .eq("organization_id", organization_id)
+              .in_("project_id", project_ids).execute())
+        return [r["id"] for r in (sr.data or [])]
+    except Exception:
+        return []
+
+
+def list_user_site_assignments(user_clerk_id: str, organization_id: str) -> list[str]:
+    """Alias for get_assigned_site_ids, for the assignment-admin read endpoint."""
+    return get_assigned_site_ids(user_clerk_id, organization_id)
+
+
+def set_user_site_assignments(user_clerk_id: str, site_ids: list[str],
+                              organization_id: str, assigned_by: str | None = None) -> tuple[bool, str]:
+    """Replace a user's site assignments with the given set (scoped to the org).
+
+    Only assigns sites that actually belong to the org (server-side validation —
+    never trust caller-supplied ids). Returns (ok, message).
+    """
+    client = get_client()
+    if not client or not user_clerk_id or not organization_id:
+        return False, "Supabase not configured."
+    try:
+        # Validate the requested sites are in this org.
+        valid = (client.table("sites").select("id")
+                 .eq("organization_id", organization_id)
+                 .in_("id", site_ids or [""]).execute())
+        valid_ids = {r["id"] for r in (valid.data or [])}
+        # Clear existing, then insert the validated set.
+        (client.table("user_site_assignments").delete()
+         .eq("user_clerk_id", user_clerk_id)
+         .eq("organization_id", organization_id).execute())
+        rows = [{
+            "user_clerk_id": user_clerk_id, "site_id": sid,
+            "organization_id": organization_id, "assigned_by": assigned_by,
+        } for sid in valid_ids]
+        if rows:
+            client.table("user_site_assignments").insert(rows).execute()
+        skipped = len(set(site_ids or [])) - len(valid_ids)
+        msg = f"Assigned {len(valid_ids)} site(s)."
+        if skipped > 0:
+            msg += f" Skipped {skipped} not in this organization."
+        return True, msg
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+# ── Corrective actions (migration 008) ────────────────────────────────────────
+# Org-scoped workflow with an append-only event history. All writes go through the
+# service-role client; callers enforce permission + state-machine rules first.
+
+def create_corrective_action(organization_id: str, fields: dict, actor_clerk_id: str | None = None) -> dict | None:
+    """Insert a corrective action (status 'open') and its 'created' event. Returns the row."""
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        row["created_by"] = actor_clerk_id
+        res = client.table("corrective_actions").insert(row).execute()
+        if not res.data:
+            return None
+        action = res.data[0]
+        client.table("corrective_action_events").insert({
+            "action_id": action["id"], "organization_id": organization_id,
+            "event_type": "created", "to_status": "open",
+            "actor_clerk_id": actor_clerk_id,
+            "note": fields.get("title"),
+        }).execute()
+        return action
+    except Exception:
+        return None
+
+
+def list_corrective_actions(organization_id: str, site_id: str | None = None,
+                            status: str | None = None) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = client.table("corrective_actions").select("*").eq("organization_id", organization_id)
+        if site_id:
+            q = q.eq("site_id", site_id)
+        if status:
+            q = q.eq("status", status)
+        return (q.order("created_at", desc=True).execute().data) or []
+    except Exception:
+        return []
+
+
+def get_corrective_action(organization_id: str, action_id: str) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        res = (client.table("corrective_actions").select("*")
+               .eq("id", action_id).eq("organization_id", organization_id).execute())
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def transition_corrective_action(organization_id: str, action_id: str, to_status: str,
+                                 from_status: str, actor_clerk_id: str | None = None,
+                                 note: str | None = None, evidence_url: str | None = None) -> tuple[bool, str]:
+    """Update an action's status and append an immutable event. Assumes the caller
+    already validated the transition is legal and permitted."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    try:
+        updates = {"status": to_status}
+        if to_status in ("closed", "cancelled"):
+            updates["closed_by"] = actor_clerk_id
+            updates["closed_at"] = "now()"
+        res = (client.table("corrective_actions").update(updates)
+               .eq("id", action_id).eq("organization_id", organization_id).execute())
+        if not res.data:
+            return False, "Action not found."
+        client.table("corrective_action_events").insert({
+            "action_id": action_id, "organization_id": organization_id,
+            "event_type": "status_change", "from_status": from_status, "to_status": to_status,
+            "actor_clerk_id": actor_clerk_id, "note": note, "evidence_url": evidence_url,
+        }).execute()
+        return True, f"Action moved to {to_status}."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+def get_corrective_action_events(organization_id: str, action_id: str) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("corrective_action_events").select("*")
+                .eq("organization_id", organization_id).eq("action_id", action_id)
+                .order("created_at").execute().data) or []
+    except Exception:
+        return []
+
+
+# ── Inventory (migrations 009 + 011) ──────────────────────────────────────────
+# Balances are SUM(qty_delta) over the append-only ledger. Consumption and
+# transfers go through the Postgres RPCs (record_consumption/record_transfer) so
+# the check-and-insert is atomic under concurrency; receipts/adjustments are plain
+# signed ledger inserts. Financial fields are stripped by the API layer unless the
+# caller holds inventory.valuation.read.
+
+def create_inventory_item(organization_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        res = client.table("inventory_items").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def create_inventory_location(organization_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        res = client.table("inventory_locations").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def list_inventory_items(organization_id: str) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("inventory_items").select("*")
+                .eq("organization_id", organization_id).order("name").execute().data) or []
+    except Exception:
+        return []
+
+
+def get_ledger_rows(organization_id: str, item_id: str | None = None) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = client.table("inventory_ledger").select("*").eq("organization_id", organization_id)
+        if item_id:
+            q = q.eq("item_id", item_id)
+        return q.execute().data or []
+    except Exception:
+        return []
+
+
+def record_receipt(organization_id: str, item_id: str, location_id: str, qty: float,
+                   batch_id: str | None = None, actor_clerk_id: str | None = None,
+                   reason: str | None = None) -> tuple[bool, str]:
+    """Receive stock: a positive ledger row (no balance check needed)."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    if qty is None or qty <= 0:
+        return False, "Receipt quantity must be positive."
+    try:
+        client.table("inventory_ledger").insert({
+            "organization_id": organization_id, "item_id": item_id, "location_id": location_id,
+            "batch_id": batch_id, "txn_type": "receive", "qty_delta": qty,
+            "reason": reason, "actor_clerk_id": actor_clerk_id,
+        }).execute()
+        return True, "Stock received."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+def record_adjustment(organization_id: str, item_id: str, location_id: str, qty_delta: float,
+                      reason: str, batch_id: str | None = None,
+                      actor_clerk_id: str | None = None) -> tuple[bool, str]:
+    """Correct a balance with a signed adjustment row and a mandatory reason."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    if not reason:
+        return False, "Adjustments require a reason."
+    try:
+        client.table("inventory_ledger").insert({
+            "organization_id": organization_id, "item_id": item_id, "location_id": location_id,
+            "batch_id": batch_id, "txn_type": "adjust", "qty_delta": qty_delta,
+            "reason": reason, "actor_clerk_id": actor_clerk_id,
+        }).execute()
+        return True, "Adjustment recorded."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+def rpc_consume(organization_id: str, item_id: str, location_id: str, qty: float,
+                batch_id: str | None = None, actor_clerk_id: str | None = None,
+                ref_site_id: str | None = None, ref_action_id: str | None = None,
+                reason: str | None = None) -> tuple[bool, str, float | None]:
+    """Atomic consume via the record_consumption RPC. Returns (ok, msg, new_balance)."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured.", None
+    try:
+        res = client.rpc("record_consumption", {
+            "p_org": organization_id, "p_item": item_id, "p_location": location_id,
+            "p_qty": qty, "p_batch": batch_id, "p_actor": actor_clerk_id,
+            "p_ref_site": ref_site_id, "p_ref_action": ref_action_id, "p_reason": reason,
+        }).execute()
+        return True, "Consumption recorded.", res.data
+    except Exception as exc:
+        msg = str(exc)
+        if "insufficient stock" in msg:
+            return False, "Insufficient stock for this consumption.", None
+        return False, f"Database error: {msg[:120]}", None
+
+
+def rpc_transfer(organization_id: str, item_id: str, from_location_id: str, to_location_id: str,
+                 qty: float, batch_id: str | None = None, actor_clerk_id: str | None = None,
+                 reason: str | None = None) -> tuple[bool, str]:
+    """Atomic transfer via the record_transfer RPC."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    try:
+        client.rpc("record_transfer", {
+            "p_org": organization_id, "p_item": item_id, "p_from": from_location_id,
+            "p_to": to_location_id, "p_qty": qty, "p_batch": batch_id,
+            "p_actor": actor_clerk_id, "p_reason": reason,
+        }).execute()
+        return True, "Stock transferred."
+    except Exception as exc:
+        msg = str(exc)
+        if "insufficient stock" in msg:
+            return False, "Insufficient stock at source location."
+        if "differ" in msg:
+            return False, "Source and destination must differ."
+        return False, f"Database error: {msg[:120]}"
+
+
+# ── Assets & maintenance (migration 010) ──────────────────────────────────────
+
+def create_asset(organization_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        res = client.table("assets").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def list_assets(organization_id: str, site_id: str | None = None) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = client.table("assets").select("*").eq("organization_id", organization_id)
+        if site_id:
+            q = q.eq("site_id", site_id)
+        return q.order("name").execute().data or []
+    except Exception:
+        return []
+
+
+def create_maintenance_schedule(organization_id: str, asset_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        row["asset_id"] = asset_id
+        res = client.table("maintenance_schedules").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+# ── KPI aggregation (Phase 7) ─────────────────────────────────────────────────
+
+def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
+    """Org-scoped management aggregates from authorized source tables. Financial
+    figures (inventory valuation) only included when include_financial is set."""
+    client = get_client()
+    out = {"corrective_actions": {}, "inventory": {}}
+    if not client or not organization_id:
+        return out
+    try:
+        ca = (client.table("corrective_actions").select("status")
+              .eq("organization_id", organization_id).execute().data) or []
+        counts: dict = {}
+        for r in ca:
+            counts[r["status"]] = counts.get(r["status"], 0) + 1
+        out["corrective_actions"] = {
+            "total": len(ca),
+            "open": counts.get("open", 0) + counts.get("in_progress", 0),
+            "pending_approval": counts.get("pending_approval", 0),
+            "closed": counts.get("closed", 0),
+            "by_status": counts,
+        }
+    except Exception:
+        pass
+    try:
+        from core.inventory import balance, is_low_stock
+        items = (client.table("inventory_items").select("*")
+                 .eq("organization_id", organization_id).execute().data) or []
+        rows = (client.table("inventory_ledger").select("item_id,location_id,qty_delta")
+                .eq("organization_id", organization_id).execute().data) or []
+        low = 0
+        total_value = 0.0
+        for it in items:
+            qty = float(balance(rows, item_id=it["id"]))
+            if is_low_stock(qty, it.get("reorder_threshold")):
+                low += 1
+            total_value += qty * float(it.get("unit_cost") or 0)
+        out["inventory"] = {"item_count": len(items), "low_stock_items": low}
+        if include_financial:
+            out["inventory"]["total_valuation"] = total_value
+    except Exception:
+        pass
+    return out
+
+
+def list_inventory_locations(organization_id: str) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("inventory_locations").select("*")
+                .eq("organization_id", organization_id).order("name").execute().data) or []
+    except Exception:
+        return []

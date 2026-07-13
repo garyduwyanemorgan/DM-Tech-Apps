@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { LogOut, Settings, Waves, X } from 'lucide-react'
 import { RoleBadge } from './RoleBadge'
+import { hasPermission, type Permission } from '../lib/permissions'
 
 interface SidebarProps {
   activeTab: string
@@ -24,6 +25,10 @@ const DOT_COLORS: Record<string, string> = {
   ecology: '#22c55e',
   simulation: '#6366f1',
   compliance: '#2E5D8A',
+  actions: '#e74c3c',
+  inventory: '#f59e0b',
+  assets: '#6366f1',
+  kpi: '#27ae60',
   calendar: '#64748b',
   sludge: '#64748b',
   technologies: '#64748b',
@@ -35,6 +40,8 @@ interface NavItem {
   id: string
   label: string
   roles?: string[]
+  /** Atomic permission gate (usability only; backend enforces authorization). */
+  permission?: Permission
 }
 
 const navSections: { label: string; items: NavItem[] }[] = [
@@ -61,9 +68,18 @@ const navSections: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'OPERATIONS',
+    items: [
+      { id: 'actions',   label: 'Corrective Actions', permission: 'actions.read' },
+      { id: 'inventory', label: 'Inventory & Chemicals', permission: 'inventory.read' },
+      { id: 'assets',    label: 'Assets & Maintenance', permission: 'assets.read' },
+    ],
+  },
+  {
     label: 'REPORTING',
     items: [
       { id: 'compliance', label: 'Compliance Reporting' },
+      { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
     ],
   },
   {
@@ -258,7 +274,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <nav style={{ flex: 1, overflowY: 'auto', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
         {navSections.map((section) => {
           const visibleItems = section.items.filter(
-            (item) => !item.roles || item.roles.includes(role)
+            (item) =>
+              (!item.roles || item.roles.includes(role)) &&
+              (!item.permission || hasPermission(role, item.permission))
           )
           if (visibleItems.length === 0) return null
           return (

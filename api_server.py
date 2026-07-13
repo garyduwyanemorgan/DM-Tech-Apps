@@ -38,6 +38,9 @@ from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
 
 from core.alert_engine import evaluate_alert_level
+from core.audit import emit as audit_emit, emit_denial as audit_denial
+from core.authz import has_permission
+from core.scope import ALL_SITES, resolve_site_scope
 from core.calculations import check_all_compliance, compliance_summary
 from core.constants import ALERT_LABELS, MONTH_NAMES, TREATMENT_ACTIONS, AlertLevel
 from core.models import WaterReading
@@ -226,12 +229,16 @@ def get_user_profile(user_id: str, email: str = "", token: str | None = None) ->
         res = client.table("user_profiles").select("*").eq("clerk_id", user_id).execute()
         if res.data:
             return res.data[0]
-        # Email fallback: link a pending invited profile on first sign-in
-        if email:
+        # Email fallback: link a pending invited profile on first sign-in.
+        # Invitations store the email lower-cased, so normalise here too — a case
+        # mismatch would otherwise miss the invite and (in self-serve) provision a
+        # brand-new personal org instead of joining the invited one (A4).
+        email_norm = (email or "").strip().lower()
+        if email_norm:
             res = (
                 client.table("user_profiles")
                 .select("*")
-                .eq("email", email)
+                .eq("email", email_norm)
                 .is_("clerk_id", "null")
                 .execute()
             )
@@ -343,13 +350,86 @@ def get_current_user_profile(
             "token": token,
         }
 
-    # Fallback to organization ID from header (for backwards compatibility / API keys)
+    # No valid Clerk token. This path historically returned an anonymous
+    # "operator" identity whose organization came straight from the client-
+    # supplied X-Organization-Id header. Because the backend talks to Postgres as
+    # service-role (RLS bypassed), that let an UNauthenticated caller read and
+    # write any tenant's data just by guessing its org UUID — a cross-tenant IDOR
+    # (CRIT-1 in the permissions review). We now fail closed: no verified user =>
+    # 401, and tenancy is NEVER derived from a request header. The escape hatch
+    # AUTHZ_FAIL_CLOSED=0 temporarily restores the legacy behavior for rollback
+    # only; no server-to-server caller is known to rely on it.
+    if os.environ.get("AUTHZ_FAIL_CLOSED", "1") != "0":
+        raise HTTPException(status_code=401, detail="Authentication required.")
     return {
         "user_id": None,
         "organization_id": x_organization_id,
         "role": "operator",
         "token": None,
     }
+
+
+def _ensure_permission(
+    profile: dict,
+    permission: str,
+    *,
+    detail: str | None = None,
+    target_type: str | None = None,
+    target_id: str | None = None,
+) -> None:
+    """Central authorization check: deny (403) unless the caller's role holds the
+    atomic ``permission``. Emits a structured audit denial on failure. This is the
+    single choke point that replaces the scattered inline role-string checks, so a
+    new endpoint cannot silently ship without an explicit permission.
+
+    Answers only *what* the role may do; data-scope (assigned org/project/site) is
+    enforced separately at the query layer.
+    """
+    if has_permission(profile.get("role"), permission):
+        return
+    audit_denial(
+        permission,
+        actor_user_id=profile.get("user_id"),
+        actor_role=profile.get("role"),
+        organization_id=profile.get("organization_id"),
+        target_type=target_type,
+        target_id=target_id,
+    )
+    raise HTTPException(
+        status_code=403,
+        detail=detail or "You do not have permission to perform this action.",
+    )
+
+
+def _scope_enforcement_on() -> bool:
+    """Phase 2 scope enforcement is OFF by default. Enabling it before every user
+    has site/project assignments would lock people out, so it stays gated until
+    backfill is done (PERMISSIONS_REVIEW_PACKAGE.md §8)."""
+    return os.environ.get("SCOPE_ENFORCEMENT", "0") == "1"
+
+
+def _effective_site_ids(profile: dict):
+    """The caller's effective site-id scope, or ALL_SITES for org-wide access.
+
+    Returns ALL_SITES (current org-wide behavior) whenever scope enforcement is
+    disabled, so this is a no-op until SCOPE_ENFORCEMENT=1. Pure decision logic is
+    in core/scope.py (unit-tested); this layer only fetches the assignment sets.
+    """
+    if not _scope_enforcement_on():
+        return ALL_SITES
+    role = profile.get("role")
+    if role in ("super_admin", "auditor"):
+        # Executive is org-wide; General Manager is read-only oversight across the
+        # portfolio — business-unit narrowing is a later refinement, org-wide read
+        # is acceptable and non-destructive for a read-only role.
+        return ALL_SITES
+    clerk_id, org = profile.get("user_id"), profile.get("organization_id")
+    from db.queries import get_assigned_site_ids, get_project_site_ids
+    if role == "admin":
+        return resolve_site_scope(role, project_site_ids=get_project_site_ids(clerk_id, org))
+    if role == "operator":
+        return resolve_site_scope(role, assigned_site_ids=get_assigned_site_ids(clerk_id, org))
+    return frozenset()  # pending/unknown -> no sites
 
 
 # ── Pydantic schemas ──────────────────────────────────────────────────────────
@@ -473,6 +553,15 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
         sites_res = client.table("sites").select("id, name").eq("organization_id", org_id).execute()
         if not sites_res.data:
             return {"sites": []}
+        # Phase 2: narrow to the caller's effective site scope (no-op while
+        # SCOPE_ENFORCEMENT is off — returns ALL_SITES).
+        scope = _effective_site_ids(profile)
+        site_rows = sites_res.data if scope == ALL_SITES else [
+            s for s in sites_res.data if s["id"] in scope
+        ]
+        if not site_rows:
+            return {"sites": []}
+        sites_res.data = site_rows
         site_ids = [s["id"] for s in sites_res.data]
         # Query 2: reading counts for all sites at once
         readings_res = client.table("readings").select("site_id").in_("site_id", site_ids).execute()
@@ -486,8 +575,7 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
 @app.post("/sites", tags=["Sites"], status_code=201)
 def create_site_endpoint(body: CreateSiteRequest, profile: dict = Depends(get_current_user_profile)):
     """Create a new site for the tenant. Requires admin or super_admin role. Enforces plan site limit."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Only admins can create sites.")
+    _ensure_permission(profile, "sites.create", detail="Only admins can create sites.")
     org_id = profile.get("organization_id")
     if not org_id:
         raise HTTPException(status_code=400, detail="No organization associated with this account.")
@@ -532,8 +620,8 @@ def create_site_endpoint(body: CreateSiteRequest, profile: dict = Depends(get_cu
 @app.delete("/sites/{site_name}", tags=["Sites"])
 def delete_site_endpoint(site_name: str, profile: dict = Depends(get_current_user_profile)):
     """Delete a site and ALL associated readings/predictions. Requires admin or super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Only admins can delete sites.")
+    _ensure_permission(profile, "sites.delete", detail="Only admins can delete sites.",
+                       target_type="site", target_id=site_name)
     try:
         from db.queries import delete_site
         ok, msg, count = delete_site(
@@ -543,6 +631,9 @@ def delete_site_endpoint(site_name: str, profile: dict = Depends(get_current_use
         )
         if not ok:
             raise HTTPException(status_code=404, detail=msg)
+        audit_emit("site.delete", actor_user_id=profile.get("user_id"),
+                   actor_role=profile.get("role"), organization_id=profile.get("organization_id"),
+                   target_type="site", target_id=site_name, readings_deleted=count)
         return {"deleted": True, "message": msg, "readings_deleted": count}
     except HTTPException:
         raise
@@ -607,8 +698,7 @@ class InviteRequest(BaseModel):
 @app.get("/users", tags=["Users"])
 def list_users(profile: dict = Depends(get_current_user_profile)):
     """List all users in the organisation. Requires admin or super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.read", detail="Admin access required.")
     org_id = profile.get("organization_id")
     if not org_id:
         return {"users": []}
@@ -643,12 +733,14 @@ def list_users(profile: dict = Depends(get_current_user_profile)):
 @app.patch("/users/{user_id}", tags=["Users"])
 def update_user_role(user_id: str, body: UpdateRoleRequest, profile: dict = Depends(get_current_user_profile)):
     """Change a user's role. Admins can set operator/admin; only super_admin can grant super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.role.assign", detail="Admin access required.",
+                       target_type="user", target_id=user_id)
     if body.role not in ("operator", "admin", "auditor", "super_admin"):
         raise HTTPException(status_code=422, detail="Role must be operator, admin, auditor, or super_admin.")
-    if body.role == "super_admin" and profile.get("role") != "super_admin":
-        raise HTTPException(status_code=403, detail="Only super_admin can grant super_admin role.")
+    if body.role == "super_admin":
+        _ensure_permission(profile, "users.executive.assign",
+                           detail="Only super_admin can grant super_admin role.",
+                           target_type="user", target_id=user_id)
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     client = _gc()
@@ -662,14 +754,17 @@ def update_user_role(user_id: str, body: UpdateRoleRequest, profile: dict = Depe
     res = client.table("user_profiles").update({"role": body.role}).eq("id", user_id).eq("organization_id", org_id).execute()
     if not res.data:
         raise HTTPException(status_code=404, detail="User not found in your organisation.")
+    audit_emit("user.role.assign", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="user", target_id=user_id, new_role=body.role)
     return {"updated": True, "user_id": user_id, "role": body.role}
 
 
 @app.delete("/users/{user_id}", tags=["Users"])
 def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile)):
     """Remove a user from the organisation (deletes their profile). Requires admin or super_admin."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.remove", detail="Admin access required.",
+                       target_type="user", target_id=user_id)
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     client = _gc()
@@ -684,8 +779,70 @@ def remove_user(user_id: str, profile: dict = Depends(get_current_user_profile))
     target_role = target.data[0]["role"]
     if target_role == "super_admin" and profile.get("role") != "super_admin":
         raise HTTPException(status_code=403, detail="Only super_admin can remove a super_admin.")
+    # A3: never orphan an organisation by removing its last Executive Management
+    # user. Count remaining super_admins in the org before deleting one.
+    if target_role == "super_admin":
+        sa = (client.table("user_profiles").select("id")
+              .eq("organization_id", org_id).eq("role", "super_admin").execute())
+        if len(sa.data or []) <= 1:
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot remove the last Executive Management user in the organisation.",
+            )
     client.table("user_profiles").delete().eq("id", user_id).eq("organization_id", org_id).execute()
+    audit_emit("user.remove", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="user", target_id=user_id, removed_role=target_role)
     return {"removed": True, "user_id": user_id}
+
+
+class SiteAssignmentRequest(BaseModel):
+    site_ids: list[str] = Field(default_factory=list, description="Site UUIDs to assign")
+
+
+def _resolve_target_clerk_id(user_id: str, org_id: str) -> str:
+    """Map a profile-row UUID to its Clerk id within the caller's org, or 404."""
+    from db.client import get_client as _gc
+    client = _gc()
+    t = (client.table("user_profiles").select("clerk_id")
+         .eq("id", user_id).eq("organization_id", org_id).execute())
+    if not t.data:
+        raise HTTPException(status_code=404, detail="User not found in your organisation.")
+    clerk_id = t.data[0].get("clerk_id")
+    if not clerk_id:
+        raise HTTPException(status_code=409, detail="User has not completed sign-in yet.")
+    return clerk_id
+
+
+@app.get("/users/{user_id}/sites", tags=["Users"])
+def get_user_sites(user_id: str, profile: dict = Depends(get_current_user_profile)):
+    """List the site ids assigned to a user (Phase 2 scope administration)."""
+    _ensure_permission(profile, "users.role.assign", detail="Admin access required.")
+    org_id = profile.get("organization_id")
+    clerk_id = _resolve_target_clerk_id(user_id, org_id)
+    from db.queries import list_user_site_assignments
+    return {"user_id": user_id, "site_ids": list_user_site_assignments(clerk_id, org_id)}
+
+
+@app.put("/users/{user_id}/sites", tags=["Users"])
+def put_user_sites(user_id: str, body: SiteAssignmentRequest,
+                   profile: dict = Depends(get_current_user_profile)):
+    """Replace a user's site assignments. Only org-owned site ids are accepted
+    (server-side validated); the rest are ignored. Least-privilege delegation:
+    requires users.role.assign (admin/super_admin)."""
+    _ensure_permission(profile, "users.role.assign", detail="Admin access required.",
+                       target_type="user", target_id=user_id)
+    org_id = profile.get("organization_id")
+    clerk_id = _resolve_target_clerk_id(user_id, org_id)
+    from db.queries import set_user_site_assignments
+    ok, msg = set_user_site_assignments(
+        clerk_id, body.site_ids, org_id, assigned_by=profile.get("user_id"))
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("user.sites.assign", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="user", target_id=user_id, site_count=len(body.site_ids))
+    return {"updated": True, "user_id": user_id, "message": msg}
 
 
 def _require_clerk_secret_key() -> str:
@@ -759,12 +916,12 @@ def invite_user(body: InviteRequest, request: Request, profile: dict = Depends(g
     assigned role + organisation is inserted now and linked by email on their
     first sign-in (see get_user_profile's email fallback).
     """
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "users.invite", detail="Admin access required.")
     if body.role not in ("operator", "admin", "auditor", "super_admin"):
         raise HTTPException(status_code=422, detail="Invalid role.")
-    if body.role == "super_admin" and profile.get("role") != "super_admin":
-        raise HTTPException(status_code=403, detail="Only super_admin can invite as super_admin.")
+    if body.role == "super_admin":
+        _ensure_permission(profile, "users.executive.assign",
+                           detail="Only super_admin can invite as super_admin.")
     org_id = profile.get("organization_id")
     from db.client import get_client as _gc
     import uuid as _uuid
@@ -876,7 +1033,13 @@ class PortalRequest(BaseModel):
 
 @app.get("/billing/status", tags=["Billing"])
 def billing_status(profile: dict = Depends(get_current_user_profile)):
-    """Return current plan, site usage, and whether payments are configured."""
+    """Return current plan, site usage, and whether payments are configured.
+    Requires billing.read — subscription/financial visibility starts at the
+    Project/Contract Manager tier (PERMISSIONS_MATRIX.md row 73); Site Supervisors
+    and (read-only) General Managers do not see billing.
+    """
+    _ensure_permission(profile, "billing.read",
+                       detail="Your role does not have access to billing information.")
     from billing import (
         get_org_billing, count_sites, PLANS, is_configured,
         has_subscription, provider_name, supports_portal,
@@ -923,8 +1086,7 @@ def billing_status(profile: dict = Depends(get_current_user_profile)):
 @app.post("/billing/checkout", tags=["Billing"])
 def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_user_profile)):
     """Create a hosted checkout session with the payment provider and return the redirect URL."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import create_checkout_session, is_configured, PLANS
     if not is_configured():
         raise HTTPException(status_code=503, detail="Payments are not configured. Add your payment provider keys to secrets.toml.")
@@ -949,8 +1111,7 @@ def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_
 def billing_portal(body: PortalRequest, profile: dict = Depends(get_current_user_profile)):
     """Create a hosted billing-portal session for plan/payment management
     (only for providers that offer one)."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import create_portal_session, is_configured, supports_portal
     if not is_configured():
         raise HTTPException(status_code=503, detail="Payments are not configured.")
@@ -972,8 +1133,7 @@ def billing_portal(body: PortalRequest, profile: dict = Depends(get_current_user
 @app.post("/billing/cancel", tags=["Billing"])
 def billing_cancel(profile: dict = Depends(get_current_user_profile)):
     """Cancel the organization's subscription and downgrade to the starter plan."""
-    if profile.get("role") not in ("admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required.")
+    _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import cancel_subscription, get_org_billing, has_subscription, is_configured
     if not is_configured():
         raise HTTPException(status_code=503, detail="Payments are not configured.")
@@ -1018,8 +1178,8 @@ def log_reading(body: LogRequest, _=Security(_check_key), profile: dict = Depend
     compliance assessment, alert level, and treatment response.
     Enforces role validation and tenant data isolation.
     """
-    if profile.get("role") not in ('admin', 'operator', 'super_admin'):
-        raise HTTPException(status_code=403, detail="User role does not have permission to log water readings.")
+    _ensure_permission(profile, "readings.create",
+                       detail="User role does not have permission to log water readings.")
 
     if not (1 <= body.month <= 12):
         raise HTTPException(status_code=422, detail="month must be 1–12")
@@ -1073,8 +1233,8 @@ def list_sludge_zones(site: str, profile: dict = Depends(get_current_user_profil
 @app.post("/sludge/{site}", tags=["Sludge"], status_code=201)
 def save_sludge_zone(site: str, body: SludgeZoneRequest, profile: dict = Depends(get_current_user_profile)):
     """Add or update a sludge zone survey for a site. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot record sludge surveys.")
+    _ensure_permission(profile, "sludge.write", detail="Your role cannot record sludge surveys.",
+                       target_type="site", target_id=site)
     if body.sludge_depth_m > body.total_depth_m:
         raise HTTPException(status_code=422, detail="Sludge depth cannot exceed total depth.")
     from db.queries import upsert_sludge_zone
@@ -1091,8 +1251,8 @@ def save_sludge_zone(site: str, body: SludgeZoneRequest, profile: dict = Depends
 @app.delete("/sludge/{site}/{zone_name}", tags=["Sludge"])
 def remove_sludge_zone(site: str, zone_name: str, profile: dict = Depends(get_current_user_profile)):
     """Delete a sludge zone from a site. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot delete sludge surveys.")
+    _ensure_permission(profile, "sludge.delete", detail="Your role cannot delete sludge surveys.",
+                       target_type="sludge_zone", target_id=f"{site}/{zone_name}")
     from db.queries import delete_sludge_zone
     ok, msg = delete_sludge_zone(
         site, zone_name,
@@ -1100,6 +1260,9 @@ def remove_sludge_zone(site: str, zone_name: str, profile: dict = Depends(get_cu
     )
     if not ok:
         raise HTTPException(status_code=404, detail=msg)
+    audit_emit("sludge.delete", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile.get("organization_id"),
+               target_type="sludge_zone", target_id=f"{site}/{zone_name}")
     return {"deleted": True, "message": msg}
 
 
@@ -1188,8 +1351,8 @@ def list_data_requests(site: str, profile: dict = Depends(get_current_user_profi
 def create_data_request_endpoint(site: str, body: DataRequestBody,
                                  profile: dict = Depends(get_current_user_profile)):
     """Create an open data/lab request for a site. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot raise requests.")
+    _ensure_permission(profile, "requests.create", detail="Your role cannot raise requests.",
+                       target_type="site", target_id=site)
     from db.queries import create_data_request
     ok, msg, row = create_data_request(
         site, [i.strip() for i in body.items if i.strip()], reason=body.reason,
@@ -1204,8 +1367,8 @@ def create_data_request_endpoint(site: str, body: DataRequestBody,
 def dismiss_data_request_endpoint(site: str, request_id: str,
                                   profile: dict = Depends(get_current_user_profile)):
     """Mark a data/lab request fulfilled. Requires operator/admin/super_admin."""
-    if profile.get("role") not in ("operator", "admin", "super_admin"):
-        raise HTTPException(status_code=403, detail="Your role cannot update requests.")
+    _ensure_permission(profile, "requests.fulfil", detail="Your role cannot update requests.",
+                       target_type="request", target_id=request_id)
     from db.queries import dismiss_data_request
     ok, msg = dismiss_data_request(request_id, site,
                                    organization_id=profile.get("organization_id"),
@@ -1364,12 +1527,15 @@ async def extract_lab_report_endpoint(
     """Extract water-quality readings from a lab-report photo or PDF using Claude vision.
     Returns the 14 Compliance parameters as JSON. Human review is required before saving.
     """
-    # Gate before spending Anthropic credits. get_current_user_profile is an
-    # identity *resolver*, not a gate — with no token it returns an anonymous
-    # user_id=None/role="operator" dict, so the Depends() alone lets anybody in.
-    # Require a real signed-in user with an assigned (non-pending) role.
-    if not profile.get("user_id") or profile.get("role") == "pending":
+    # Gate before spending Anthropic credits. Require a real signed-in user
+    # (the resolver now fails closed on no token, but keep the explicit check as
+    # defense in depth), then require readings.create — uploading/extracting a
+    # lab report is a data-entry action, so the read-only General Manager
+    # (auditor) is excluded (PERMISSIONS_MATRIX.md row 39; M5).
+    if not profile.get("user_id"):
         raise HTTPException(status_code=401, detail="Sign in to extract lab reports.")
+    _ensure_permission(profile, "readings.create",
+                       detail="Your role may not upload or extract lab reports.")
     from extract import extract_lab_report, is_configured
     if not is_configured():
         raise HTTPException(
@@ -1401,6 +1567,18 @@ def download_compliance_report(
     Pass ?draft=false for a clean (watermark-free) official report.
     Returns application/pdf as an attachment download.
     """
+    # CRIT-3: the non-draft PDF is the auditable regulatory artifact. Draft
+    # previews need only reports.generate_draft; the clean official export
+    # requires reports.approve_final (managers/GM/executive), separating routine
+    # generation from regulatory sign-off. The ?draft flag is client-controlled,
+    # so it selects the *required permission* here rather than acting as a gate.
+    required = "reports.generate_draft" if draft else "reports.approve_final"
+    _ensure_permission(
+        profile, required,
+        detail=("Your role may not export the final regulatory report."
+                if not draft else "Your role may not generate compliance reports."),
+        target_type="report", target_id=f"{site}/{year}",
+    )
     try:
         from db.queries import get_readings_for_site
         readings = get_readings_for_site(
@@ -1430,6 +1608,367 @@ def download_compliance_report(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ── Corrective actions (Phase 4) ──────────────────────────────────────────────
+
+class CorrectiveActionCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str | None = None
+    site_id: str | None = None
+    severity: str | None = Field(None, description="info/low/medium/high/critical")
+    due_date: str | None = Field(None, description="YYYY-MM-DD")
+    owner_clerk_id: str | None = Field(None, description="assigned executor")
+
+
+class CorrectiveActionTransition(BaseModel):
+    to_status: str = Field(..., description="in_progress/pending_approval/closed/cancelled")
+    note: str | None = None
+    evidence_url: str | None = None
+
+
+@app.get("/actions", tags=["Corrective actions"])
+def list_actions(site_id: str | None = None, status: str | None = None,
+                 profile: dict = Depends(get_current_user_profile)):
+    """List corrective actions in the caller's org (optionally by site/status)."""
+    _ensure_permission(profile, "actions.read", detail="Your role cannot view corrective actions.")
+    from db.queries import list_corrective_actions
+    return {"actions": list_corrective_actions(profile["organization_id"], site_id=site_id, status=status)}
+
+
+@app.get("/actions/{action_id}", tags=["Corrective actions"])
+def get_action(action_id: str, profile: dict = Depends(get_current_user_profile)):
+    """A single corrective action with its immutable event history."""
+    _ensure_permission(profile, "actions.read", detail="Your role cannot view corrective actions.")
+    from db.queries import get_corrective_action, get_corrective_action_events
+    action = get_corrective_action(profile["organization_id"], action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail="Corrective action not found.")
+    events = get_corrective_action_events(profile["organization_id"], action_id)
+    return {"action": action, "events": events}
+
+
+@app.post("/actions", tags=["Corrective actions"], status_code=201)
+def create_action(body: CorrectiveActionCreate, profile: dict = Depends(get_current_user_profile)):
+    """Create/assign a corrective action. Managers/Executive assign; the workflow
+    then lets the assigned Site Supervisor execute it."""
+    _ensure_permission(profile, "actions.create", detail="Your role cannot create corrective actions.")
+    from db.queries import create_corrective_action
+    action = create_corrective_action(
+        profile["organization_id"], body.model_dump(), actor_clerk_id=profile.get("user_id"))
+    if not action:
+        raise HTTPException(status_code=400, detail="Could not create corrective action.")
+    audit_emit("action.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="corrective_action", target_id=action["id"])
+    return {"action": action}
+
+
+@app.post("/actions/{action_id}/transition", tags=["Corrective actions"])
+def transition_action(action_id: str, body: CorrectiveActionTransition,
+                      profile: dict = Depends(get_current_user_profile)):
+    """Advance an action through its lifecycle. The target status selects the
+    required permission (closure needs actions.close) and the state machine
+    rejects illegal transitions — so a Site Supervisor can progress an action but
+    only a Manager/Executive can approve closure."""
+    from core.corrective import can_transition, required_permission, STATUSES
+    from db.queries import get_corrective_action, transition_corrective_action
+    if body.to_status not in STATUSES:
+        raise HTTPException(status_code=422, detail=f"Unknown status '{body.to_status}'.")
+    action = get_corrective_action(profile["organization_id"], action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail="Corrective action not found.")
+    from_status = action["status"]
+    if not can_transition(from_status, body.to_status):
+        raise HTTPException(status_code=409,
+                            detail=f"Cannot move a '{from_status}' action to '{body.to_status}'.")
+    _ensure_permission(profile, required_permission(body.to_status),
+                       detail="Your role cannot make this transition.",
+                       target_type="corrective_action", target_id=action_id)
+    ok, msg = transition_corrective_action(
+        profile["organization_id"], action_id, body.to_status, from_status,
+        actor_clerk_id=profile.get("user_id"), note=body.note, evidence_url=body.evidence_url)
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("action.transition", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="corrective_action", target_id=action_id,
+               from_status=from_status, to_status=body.to_status)
+    return {"updated": True, "message": msg, "from": from_status, "to": body.to_status}
+
+
+# ── Inventory & chemical control (Phase 5) ────────────────────────────────────
+
+class InventoryItemCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    sku: str | None = None
+    unit: str | None = None
+    reorder_threshold: float | None = None
+    unit_cost: float | None = Field(None, description="financial; requires inventory.configure")
+
+
+class InventoryLocationCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    kind: str | None = Field(None, description="warehouse/vehicle/site_store")
+    site_id: str | None = None
+
+
+class StockMove(BaseModel):
+    item_id: str
+    location_id: str
+    qty: float = Field(..., gt=0)
+    batch_id: str | None = None
+    reason: str | None = None
+    ref_site_id: str | None = None
+    ref_action_id: str | None = None
+
+
+class StockTransfer(BaseModel):
+    item_id: str
+    from_location_id: str
+    to_location_id: str
+    qty: float = Field(..., gt=0)
+    batch_id: str | None = None
+    reason: str | None = None
+
+
+class StockAdjust(BaseModel):
+    item_id: str
+    location_id: str
+    qty_delta: float = Field(..., description="signed correction")
+    reason: str = Field(..., min_length=1)
+    batch_id: str | None = None
+
+
+# Financial keys stripped from inventory reads unless the caller can see valuation.
+_FINANCIAL_ITEM_KEYS = ("unit_cost",)
+
+
+def _strip_financial(items: list[dict], profile: dict) -> list[dict]:
+    # Cost is visible to those who configure it (admins) or view valuation (GM/Exec);
+    # operational roles (Site Supervisor) never see cost.
+    role = profile.get("role")
+    if has_permission(role, "inventory.valuation.read") or has_permission(role, "inventory.configure"):
+        return items
+    return [{k: v for k, v in it.items() if k not in _FINANCIAL_ITEM_KEYS} for it in items]
+
+
+@app.get("/inventory/items", tags=["Inventory"])
+def inventory_items(profile: dict = Depends(get_current_user_profile)):
+    """List stock items. Cost fields are hidden unless the role holds
+    inventory.valuation.read (financial-data protection)."""
+    _ensure_permission(profile, "inventory.read", detail="Your role cannot view inventory.")
+    from db.queries import list_inventory_items
+    items = list_inventory_items(profile["organization_id"])
+    return {"items": _strip_financial(items, profile)}
+
+
+@app.post("/inventory/items", tags=["Inventory"], status_code=201)
+def create_inventory_item_endpoint(body: InventoryItemCreate,
+                                   profile: dict = Depends(get_current_user_profile)):
+    """Create an item (master data). unit_cost is a financial field, so this needs
+    inventory.configure (operators cannot set costs)."""
+    _ensure_permission(profile, "inventory.configure", detail="Your role cannot configure inventory.")
+    from db.queries import create_inventory_item
+    item = create_inventory_item(profile["organization_id"], body.model_dump())
+    if not item:
+        raise HTTPException(status_code=400, detail="Could not create item (duplicate SKU?).")
+    audit_emit("inventory.item.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=item["id"])
+    return {"item": item}
+
+
+@app.post("/inventory/locations", tags=["Inventory"], status_code=201)
+def create_inventory_location_endpoint(body: InventoryLocationCreate,
+                                       profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.configure", detail="Your role cannot configure inventory.")
+    from db.queries import create_inventory_location
+    loc = create_inventory_location(profile["organization_id"], body.model_dump())
+    if not loc:
+        raise HTTPException(status_code=400, detail="Could not create location (duplicate name?).")
+    return {"location": loc}
+
+
+@app.get("/inventory/locations", tags=["Inventory"])
+def inventory_locations(profile: dict = Depends(get_current_user_profile)):
+    """List storage locations (for stock-movement selectors)."""
+    _ensure_permission(profile, "inventory.read", detail="Your role cannot view inventory.")
+    from db.queries import list_inventory_locations
+    return {"locations": list_inventory_locations(profile["organization_id"])}
+
+
+@app.get("/inventory/stock", tags=["Inventory"])
+def inventory_stock(item_id: str | None = None, profile: dict = Depends(get_current_user_profile)):
+    """Current balances per (item, location), computed from the append-only ledger."""
+    _ensure_permission(profile, "inventory.read", detail="Your role cannot view inventory.")
+    from core.inventory import balance
+    from db.queries import get_ledger_rows
+    rows = get_ledger_rows(profile["organization_id"], item_id=item_id)
+    pairs = {(r["item_id"], r["location_id"]) for r in rows}
+    stock = [{
+        "item_id": i, "location_id": l, "balance": float(balance(rows, item_id=i, location_id=l)),
+    } for (i, l) in sorted(pairs)]
+    return {"stock": stock}
+
+
+@app.post("/inventory/receive", tags=["Inventory"])
+def inventory_receive(body: StockMove, profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.receive", detail="Your role cannot receive stock.")
+    from db.queries import record_receipt
+    ok, msg = record_receipt(profile["organization_id"], body.item_id, body.location_id,
+                             body.qty, batch_id=body.batch_id, actor_clerk_id=profile.get("user_id"),
+                             reason=body.reason)
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("inventory.receive", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty=body.qty)
+    return {"ok": True, "message": msg}
+
+
+@app.post("/inventory/consume", tags=["Inventory"])
+def inventory_consume(body: StockMove, profile: dict = Depends(get_current_user_profile)):
+    """Record chemical usage against an operation. Atomic (RPC) — cannot drive
+    stock negative even under concurrent consumes."""
+    _ensure_permission(profile, "inventory.consume", detail="Your role cannot record usage.")
+    from db.queries import rpc_consume
+    ok, msg, bal = rpc_consume(profile["organization_id"], body.item_id, body.location_id, body.qty,
+                               batch_id=body.batch_id, actor_clerk_id=profile.get("user_id"),
+                               ref_site_id=body.ref_site_id, ref_action_id=body.ref_action_id,
+                               reason=body.reason)
+    if not ok:
+        raise HTTPException(status_code=409, detail=msg)
+    audit_emit("inventory.consume", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty=body.qty)
+    return {"ok": True, "message": msg, "new_balance": bal}
+
+
+@app.post("/inventory/transfer", tags=["Inventory"])
+def inventory_transfer(body: StockTransfer, profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.transfer", detail="Your role cannot transfer stock.")
+    from db.queries import rpc_transfer
+    ok, msg = rpc_transfer(profile["organization_id"], body.item_id, body.from_location_id,
+                           body.to_location_id, body.qty, batch_id=body.batch_id,
+                           actor_clerk_id=profile.get("user_id"), reason=body.reason)
+    if not ok:
+        raise HTTPException(status_code=409, detail=msg)
+    audit_emit("inventory.transfer", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty=body.qty)
+    return {"ok": True, "message": msg}
+
+
+@app.post("/inventory/adjust", tags=["Inventory"])
+def inventory_adjust(body: StockAdjust, profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.adjust", detail="Your role cannot adjust stock.")
+    from db.queries import record_adjustment
+    ok, msg = record_adjustment(profile["organization_id"], body.item_id, body.location_id,
+                                body.qty_delta, body.reason, batch_id=body.batch_id,
+                                actor_clerk_id=profile.get("user_id"))
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("inventory.adjust", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty_delta=body.qty_delta,
+               reason=body.reason)
+    return {"ok": True, "message": msg}
+
+
+@app.get("/inventory/valuation", tags=["Inventory"])
+def inventory_valuation(profile: dict = Depends(get_current_user_profile)):
+    """Organization inventory valuation (GM/Executive KPI). Requires
+    inventory.valuation.read — hidden from operational roles."""
+    _ensure_permission(profile, "inventory.valuation.read",
+                       detail="Your role cannot view inventory valuation.")
+    from core.inventory import balance
+    from db.queries import get_ledger_rows, list_inventory_items
+    items = list_inventory_items(profile["organization_id"])
+    rows = get_ledger_rows(profile["organization_id"])
+    total = 0.0
+    breakdown = []
+    for it in items:
+        qty = float(balance(rows, item_id=it["id"]))
+        cost = float(it.get("unit_cost") or 0)
+        value = qty * cost
+        total += value
+        breakdown.append({"item_id": it["id"], "name": it["name"], "qty": qty,
+                          "unit_cost": cost, "value": value})
+    return {"total_value": total, "items": breakdown}
+
+
+# ── Assets & maintenance configuration (Phase 6) ──────────────────────────────
+
+class AssetCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    site_id: str | None = None
+    asset_type: str | None = Field(None, description="pump/filter/dosing/water_body")
+    config: dict | None = Field(None, description="checklist, required lab params, thresholds")
+
+
+class MaintenanceScheduleCreate(BaseModel):
+    checklist: dict | None = None
+    interval_days: int | None = Field(None, gt=0)
+    next_due: str | None = Field(None, description="YYYY-MM-DD")
+
+
+@app.get("/assets", tags=["Assets"])
+def list_assets_endpoint(site_id: str | None = None, profile: dict = Depends(get_current_user_profile)):
+    """View assets/equipment and their config. All roles with assets.read; General
+    Managers see configs read-only, Site Supervisors see what they execute."""
+    _ensure_permission(profile, "assets.read", detail="Your role cannot view assets.")
+    from db.queries import list_assets
+    return {"assets": list_assets(profile["organization_id"], site_id=site_id)}
+
+
+@app.post("/assets", tags=["Assets"], status_code=201)
+def create_asset_endpoint(body: AssetCreate, profile: dict = Depends(get_current_user_profile)):
+    """Configure an asset (type, checklist, required lab parameters). Managers/
+    Executive only — Site Supervisors execute tasks but don't change templates."""
+    _ensure_permission(profile, "assets.configure", detail="Your role cannot configure assets.")
+    from db.queries import create_asset
+    asset = create_asset(profile["organization_id"], body.model_dump())
+    if not asset:
+        raise HTTPException(status_code=400, detail="Could not create asset (duplicate name for site?).")
+    audit_emit("asset.configure", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="asset", target_id=asset["id"])
+    return {"asset": asset}
+
+
+@app.post("/assets/{asset_id}/maintenance", tags=["Assets"], status_code=201)
+def create_maintenance_endpoint(asset_id: str, body: MaintenanceScheduleCreate,
+                                profile: dict = Depends(get_current_user_profile)):
+    """Define a maintenance schedule/checklist for an asset. Managers/Executive."""
+    _ensure_permission(profile, "assets.configure", detail="Your role cannot configure maintenance.")
+    from db.queries import create_maintenance_schedule
+    sched = create_maintenance_schedule(profile["organization_id"], asset_id, body.model_dump())
+    if not sched:
+        raise HTTPException(status_code=400, detail="Could not create maintenance schedule.")
+    return {"schedule": sched}
+
+
+# ── Management KPI views (Phase 7) ────────────────────────────────────────────
+
+@app.get("/kpi/portfolio", tags=["KPI"])
+def kpi_portfolio(profile: dict = Depends(get_current_user_profile)):
+    """Portfolio KPIs (General Manager tier and above). Corrective-action health
+    and inventory alerts; no financial detail unless the role sees valuation."""
+    _ensure_permission(profile, "analytics.portfolio.read",
+                       detail="Your role cannot view portfolio KPIs.")
+    from db.queries import kpi_summary
+    include_fin = has_permission(profile.get("role"), "inventory.valuation.read")
+    return {"scope": "portfolio", "kpi": kpi_summary(profile["organization_id"], include_financial=include_fin)}
+
+
+@app.get("/kpi/executive", tags=["KPI"])
+def kpi_executive(profile: dict = Depends(get_current_user_profile)):
+    """Organization-wide executive KPIs incl. inventory valuation. Executive only."""
+    _ensure_permission(profile, "analytics.executive.read",
+                       detail="Your role cannot view executive KPIs.")
+    from db.queries import kpi_summary
+    return {"scope": "executive", "kpi": kpi_summary(profile["organization_id"], include_financial=True)}
 
 
 @app.get("/science/interventions", tags=["Science"])
