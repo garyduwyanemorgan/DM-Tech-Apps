@@ -748,3 +748,145 @@ def get_corrective_action_events(organization_id: str, action_id: str) -> list[d
                 .order("created_at").execute().data) or []
     except Exception:
         return []
+
+
+# ── Inventory (migrations 009 + 011) ──────────────────────────────────────────
+# Balances are SUM(qty_delta) over the append-only ledger. Consumption and
+# transfers go through the Postgres RPCs (record_consumption/record_transfer) so
+# the check-and-insert is atomic under concurrency; receipts/adjustments are plain
+# signed ledger inserts. Financial fields are stripped by the API layer unless the
+# caller holds inventory.valuation.read.
+
+def create_inventory_item(organization_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        res = client.table("inventory_items").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def create_inventory_location(organization_id: str, fields: dict) -> dict | None:
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        row = {k: v for k, v in fields.items() if v is not None}
+        row["organization_id"] = organization_id
+        res = client.table("inventory_locations").insert(row).execute()
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def list_inventory_items(organization_id: str) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("inventory_items").select("*")
+                .eq("organization_id", organization_id).order("name").execute().data) or []
+    except Exception:
+        return []
+
+
+def get_ledger_rows(organization_id: str, item_id: str | None = None) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = client.table("inventory_ledger").select("*").eq("organization_id", organization_id)
+        if item_id:
+            q = q.eq("item_id", item_id)
+        return q.execute().data or []
+    except Exception:
+        return []
+
+
+def record_receipt(organization_id: str, item_id: str, location_id: str, qty: float,
+                   batch_id: str | None = None, actor_clerk_id: str | None = None,
+                   reason: str | None = None) -> tuple[bool, str]:
+    """Receive stock: a positive ledger row (no balance check needed)."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    if qty is None or qty <= 0:
+        return False, "Receipt quantity must be positive."
+    try:
+        client.table("inventory_ledger").insert({
+            "organization_id": organization_id, "item_id": item_id, "location_id": location_id,
+            "batch_id": batch_id, "txn_type": "receive", "qty_delta": qty,
+            "reason": reason, "actor_clerk_id": actor_clerk_id,
+        }).execute()
+        return True, "Stock received."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+def record_adjustment(organization_id: str, item_id: str, location_id: str, qty_delta: float,
+                      reason: str, batch_id: str | None = None,
+                      actor_clerk_id: str | None = None) -> tuple[bool, str]:
+    """Correct a balance with a signed adjustment row and a mandatory reason."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    if not reason:
+        return False, "Adjustments require a reason."
+    try:
+        client.table("inventory_ledger").insert({
+            "organization_id": organization_id, "item_id": item_id, "location_id": location_id,
+            "batch_id": batch_id, "txn_type": "adjust", "qty_delta": qty_delta,
+            "reason": reason, "actor_clerk_id": actor_clerk_id,
+        }).execute()
+        return True, "Adjustment recorded."
+    except Exception as exc:
+        return False, f"Database error: {str(exc)}"
+
+
+def rpc_consume(organization_id: str, item_id: str, location_id: str, qty: float,
+                batch_id: str | None = None, actor_clerk_id: str | None = None,
+                ref_site_id: str | None = None, ref_action_id: str | None = None,
+                reason: str | None = None) -> tuple[bool, str, float | None]:
+    """Atomic consume via the record_consumption RPC. Returns (ok, msg, new_balance)."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured.", None
+    try:
+        res = client.rpc("record_consumption", {
+            "p_org": organization_id, "p_item": item_id, "p_location": location_id,
+            "p_qty": qty, "p_batch": batch_id, "p_actor": actor_clerk_id,
+            "p_ref_site": ref_site_id, "p_ref_action": ref_action_id, "p_reason": reason,
+        }).execute()
+        return True, "Consumption recorded.", res.data
+    except Exception as exc:
+        msg = str(exc)
+        if "insufficient stock" in msg:
+            return False, "Insufficient stock for this consumption.", None
+        return False, f"Database error: {msg[:120]}", None
+
+
+def rpc_transfer(organization_id: str, item_id: str, from_location_id: str, to_location_id: str,
+                 qty: float, batch_id: str | None = None, actor_clerk_id: str | None = None,
+                 reason: str | None = None) -> tuple[bool, str]:
+    """Atomic transfer via the record_transfer RPC."""
+    client = get_client()
+    if not client or not organization_id:
+        return False, "Supabase not configured."
+    try:
+        client.rpc("record_transfer", {
+            "p_org": organization_id, "p_item": item_id, "p_from": from_location_id,
+            "p_to": to_location_id, "p_qty": qty, "p_batch": batch_id,
+            "p_actor": actor_clerk_id, "p_reason": reason,
+        }).execute()
+        return True, "Stock transferred."
+    except Exception as exc:
+        msg = str(exc)
+        if "insufficient stock" in msg:
+            return False, "Insufficient stock at source location."
+        if "differ" in msg:
+            return False, "Source and destination must differ."
+        return False, f"Database error: {msg[:120]}"

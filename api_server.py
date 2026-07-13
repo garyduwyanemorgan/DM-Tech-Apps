@@ -1661,6 +1661,199 @@ def transition_action(action_id: str, body: CorrectiveActionTransition,
     return {"updated": True, "message": msg, "from": from_status, "to": body.to_status}
 
 
+# ── Inventory & chemical control (Phase 5) ────────────────────────────────────
+
+class InventoryItemCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    sku: str | None = None
+    unit: str | None = None
+    reorder_threshold: float | None = None
+    unit_cost: float | None = Field(None, description="financial; requires inventory.configure")
+
+
+class InventoryLocationCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    kind: str | None = Field(None, description="warehouse/vehicle/site_store")
+    site_id: str | None = None
+
+
+class StockMove(BaseModel):
+    item_id: str
+    location_id: str
+    qty: float = Field(..., gt=0)
+    batch_id: str | None = None
+    reason: str | None = None
+    ref_site_id: str | None = None
+    ref_action_id: str | None = None
+
+
+class StockTransfer(BaseModel):
+    item_id: str
+    from_location_id: str
+    to_location_id: str
+    qty: float = Field(..., gt=0)
+    batch_id: str | None = None
+    reason: str | None = None
+
+
+class StockAdjust(BaseModel):
+    item_id: str
+    location_id: str
+    qty_delta: float = Field(..., description="signed correction")
+    reason: str = Field(..., min_length=1)
+    batch_id: str | None = None
+
+
+# Financial keys stripped from inventory reads unless the caller can see valuation.
+_FINANCIAL_ITEM_KEYS = ("unit_cost",)
+
+
+def _strip_financial(items: list[dict], profile: dict) -> list[dict]:
+    # Cost is visible to those who configure it (admins) or view valuation (GM/Exec);
+    # operational roles (Site Supervisor) never see cost.
+    role = profile.get("role")
+    if has_permission(role, "inventory.valuation.read") or has_permission(role, "inventory.configure"):
+        return items
+    return [{k: v for k, v in it.items() if k not in _FINANCIAL_ITEM_KEYS} for it in items]
+
+
+@app.get("/inventory/items", tags=["Inventory"])
+def inventory_items(profile: dict = Depends(get_current_user_profile)):
+    """List stock items. Cost fields are hidden unless the role holds
+    inventory.valuation.read (financial-data protection)."""
+    _ensure_permission(profile, "inventory.read", detail="Your role cannot view inventory.")
+    from db.queries import list_inventory_items
+    items = list_inventory_items(profile["organization_id"])
+    return {"items": _strip_financial(items, profile)}
+
+
+@app.post("/inventory/items", tags=["Inventory"], status_code=201)
+def create_inventory_item_endpoint(body: InventoryItemCreate,
+                                   profile: dict = Depends(get_current_user_profile)):
+    """Create an item (master data). unit_cost is a financial field, so this needs
+    inventory.configure (operators cannot set costs)."""
+    _ensure_permission(profile, "inventory.configure", detail="Your role cannot configure inventory.")
+    from db.queries import create_inventory_item
+    item = create_inventory_item(profile["organization_id"], body.model_dump())
+    if not item:
+        raise HTTPException(status_code=400, detail="Could not create item (duplicate SKU?).")
+    audit_emit("inventory.item.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=item["id"])
+    return {"item": item}
+
+
+@app.post("/inventory/locations", tags=["Inventory"], status_code=201)
+def create_inventory_location_endpoint(body: InventoryLocationCreate,
+                                       profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.configure", detail="Your role cannot configure inventory.")
+    from db.queries import create_inventory_location
+    loc = create_inventory_location(profile["organization_id"], body.model_dump())
+    if not loc:
+        raise HTTPException(status_code=400, detail="Could not create location (duplicate name?).")
+    return {"location": loc}
+
+
+@app.get("/inventory/stock", tags=["Inventory"])
+def inventory_stock(item_id: str | None = None, profile: dict = Depends(get_current_user_profile)):
+    """Current balances per (item, location), computed from the append-only ledger."""
+    _ensure_permission(profile, "inventory.read", detail="Your role cannot view inventory.")
+    from core.inventory import balance
+    from db.queries import get_ledger_rows
+    rows = get_ledger_rows(profile["organization_id"], item_id=item_id)
+    pairs = {(r["item_id"], r["location_id"]) for r in rows}
+    stock = [{
+        "item_id": i, "location_id": l, "balance": float(balance(rows, item_id=i, location_id=l)),
+    } for (i, l) in sorted(pairs)]
+    return {"stock": stock}
+
+
+@app.post("/inventory/receive", tags=["Inventory"])
+def inventory_receive(body: StockMove, profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.receive", detail="Your role cannot receive stock.")
+    from db.queries import record_receipt
+    ok, msg = record_receipt(profile["organization_id"], body.item_id, body.location_id,
+                             body.qty, batch_id=body.batch_id, actor_clerk_id=profile.get("user_id"),
+                             reason=body.reason)
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("inventory.receive", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty=body.qty)
+    return {"ok": True, "message": msg}
+
+
+@app.post("/inventory/consume", tags=["Inventory"])
+def inventory_consume(body: StockMove, profile: dict = Depends(get_current_user_profile)):
+    """Record chemical usage against an operation. Atomic (RPC) — cannot drive
+    stock negative even under concurrent consumes."""
+    _ensure_permission(profile, "inventory.consume", detail="Your role cannot record usage.")
+    from db.queries import rpc_consume
+    ok, msg, bal = rpc_consume(profile["organization_id"], body.item_id, body.location_id, body.qty,
+                               batch_id=body.batch_id, actor_clerk_id=profile.get("user_id"),
+                               ref_site_id=body.ref_site_id, ref_action_id=body.ref_action_id,
+                               reason=body.reason)
+    if not ok:
+        raise HTTPException(status_code=409, detail=msg)
+    audit_emit("inventory.consume", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty=body.qty)
+    return {"ok": True, "message": msg, "new_balance": bal}
+
+
+@app.post("/inventory/transfer", tags=["Inventory"])
+def inventory_transfer(body: StockTransfer, profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.transfer", detail="Your role cannot transfer stock.")
+    from db.queries import rpc_transfer
+    ok, msg = rpc_transfer(profile["organization_id"], body.item_id, body.from_location_id,
+                           body.to_location_id, body.qty, batch_id=body.batch_id,
+                           actor_clerk_id=profile.get("user_id"), reason=body.reason)
+    if not ok:
+        raise HTTPException(status_code=409, detail=msg)
+    audit_emit("inventory.transfer", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty=body.qty)
+    return {"ok": True, "message": msg}
+
+
+@app.post("/inventory/adjust", tags=["Inventory"])
+def inventory_adjust(body: StockAdjust, profile: dict = Depends(get_current_user_profile)):
+    _ensure_permission(profile, "inventory.adjust", detail="Your role cannot adjust stock.")
+    from db.queries import record_adjustment
+    ok, msg = record_adjustment(profile["organization_id"], body.item_id, body.location_id,
+                                body.qty_delta, body.reason, batch_id=body.batch_id,
+                                actor_clerk_id=profile.get("user_id"))
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    audit_emit("inventory.adjust", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="inventory_item", target_id=body.item_id, qty_delta=body.qty_delta,
+               reason=body.reason)
+    return {"ok": True, "message": msg}
+
+
+@app.get("/inventory/valuation", tags=["Inventory"])
+def inventory_valuation(profile: dict = Depends(get_current_user_profile)):
+    """Organization inventory valuation (GM/Executive KPI). Requires
+    inventory.valuation.read — hidden from operational roles."""
+    _ensure_permission(profile, "inventory.valuation.read",
+                       detail="Your role cannot view inventory valuation.")
+    from core.inventory import balance
+    from db.queries import get_ledger_rows, list_inventory_items
+    items = list_inventory_items(profile["organization_id"])
+    rows = get_ledger_rows(profile["organization_id"])
+    total = 0.0
+    breakdown = []
+    for it in items:
+        qty = float(balance(rows, item_id=it["id"]))
+        cost = float(it.get("unit_cost") or 0)
+        value = qty * cost
+        total += value
+        breakdown.append({"item_id": it["id"], "name": it["name"], "qty": qty,
+                          "unit_cost": cost, "value": value})
+    return {"total_value": total, "items": breakdown}
+
+
 @app.get("/science/interventions", tags=["Science"])
 def science_interventions():
     """List the digital-twin interventions the simulator supports."""
