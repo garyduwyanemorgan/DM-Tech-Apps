@@ -26,7 +26,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE TABLE IF NOT EXISTS public.audit_events (
     id               BIGSERIAL PRIMARY KEY,
-    organization_id  UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
+    organization_id  UUID,                 -- denormalised; NO FK: audit log is independent of org lifecycle (see 013)
     actor_user_id    TEXT,                 -- Clerk user id (NULL for anonymous denials)
     actor_role       TEXT,
     action           TEXT NOT NULL,        -- e.g. 'site.delete','user.role.assign','authz.denied'
