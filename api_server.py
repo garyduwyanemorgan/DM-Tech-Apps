@@ -1754,6 +1754,14 @@ def create_inventory_location_endpoint(body: InventoryLocationCreate,
     return {"location": loc}
 
 
+@app.get("/inventory/locations", tags=["Inventory"])
+def inventory_locations(profile: dict = Depends(get_current_user_profile)):
+    """List storage locations (for stock-movement selectors)."""
+    _ensure_permission(profile, "inventory.read", detail="Your role cannot view inventory.")
+    from db.queries import list_inventory_locations
+    return {"locations": list_inventory_locations(profile["organization_id"])}
+
+
 @app.get("/inventory/stock", tags=["Inventory"])
 def inventory_stock(item_id: str | None = None, profile: dict = Depends(get_current_user_profile)):
     """Current balances per (item, location), computed from the append-only ledger."""

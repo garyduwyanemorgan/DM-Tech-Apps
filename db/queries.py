@@ -977,3 +977,14 @@ def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
     except Exception:
         pass
     return out
+
+
+def list_inventory_locations(organization_id: str) -> list[dict]:
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("inventory_locations").select("*")
+                .eq("organization_id", organization_id).order("name").execute().data) or []
+    except Exception:
+        return []
