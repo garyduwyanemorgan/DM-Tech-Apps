@@ -25,6 +25,18 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [0.7.0] - 2026-07-14
+
+- feat(design): ERP-style sidebar — collapsible groups, icon rail, signed-in user
+- refactor(design): Dashboard, Alerts, and Sidebar onto canonical tokens
+- refactor(design): dashboard tiers use shared MetricCard and StatusBadge
+- refactor(design): operations pages adopt shared MetricCard/StatusBadge/Button
+- refactor(design): SampleDataToggle uses the shared ui/Toggle Switch
+- feat(design): shared UI component library + global accent/ink adoption
+- feat(design): canonical design-system tokens in lib/tokens.ts
+- fix: never blend sample data into live lab readings
+- feat: persist the sample-data toggle on the user profile
+
 ## [0.6.0] - 2026-07-13
 
 - chore: ignore .venv-codex and stop tracking compiled bytecode
@@ -104,7 +116,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.0...v0.4.1
