@@ -122,16 +122,18 @@ body {
 }
 
 /* ── Typography ── */
+/* Ink Navy (#0B1240) is the design system's heading color; Brand Navy
+   (#1B3A5C) is reserved for chrome (sidebar, gradients). */
 h1, h2, h3, h4 {
   font-weight: 700;
-  color: #1B3A5C;
+  color: #0B1240;
   margin-top: 0;
 }
 
 .page-title {
   font-size: clamp(1.25rem, 4vw, 1.8rem);
   font-weight: 700;
-  color: #1B3A5C;
+  color: #0B1240;
   margin: 0;
 }
 
@@ -201,19 +203,20 @@ input, select, textarea {
   width: 100%;
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.6rem 0.9rem;
-  color: #1B3A5C;
+  color: #0B1240;
   font-size: 0.9rem;
   font-family: inherit;
   transition: border-color 0.15s;
   box-sizing: border-box;
 }
 
+/* Accent focus ring per the design system. */
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #2E5D8A;
-  box-shadow: 0 0 0 3px rgba(46, 93, 138, 0.12);
+  border-color: #4F5AE8;
+  box-shadow: 0 0 0 3px #E0E7FF;
 }
 
 input[type="range"] {
@@ -275,7 +278,9 @@ button.secondary:hover:not(:disabled) {
   white-space: nowrap;
 }
 
-/* Light-theme compliance colours (Excel style) */
+/* Light-theme compliance colours (Excel style).
+   @deprecated — use <StatusBadge> from components/ui instead. Values match
+   lib/tokens.ts STATUS and are kept for markup not yet migrated. */
 .badge-green  { background: #C6EFCE; color: #006100; }
 .badge-yellow { background: #FFEB9C; color: #856404; }
 .badge-red    { background: #FFC7CE; color: #9C0006; }
@@ -305,8 +310,8 @@ button.secondary:hover:not(:disabled) {
 
 /* ── Force light-theme text inside content cards ── */
 /* These override any dark-glassmorphism inline colors left in components */
-.glass-card h2 { color: #1B3A5C !important; }
-.glass-card h3 { color: #1B3A5C !important; }
+.glass-card h2 { color: #0B1240 !important; }
+.glass-card h3 { color: #0B1240 !important; }
 
 /* Table cell text readable on white */
 .glass-card table td  { color: #374151; }
