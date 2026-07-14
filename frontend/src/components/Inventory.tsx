@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { hasPermission, type Permission } from '../lib/permissions'
 import { PageHeader } from './PageHeader'
-import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle, pill } from '../lib/ui'
+import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
+import { MetricCard, StatusBadge } from './ui'
 import { Plus } from 'lucide-react'
 
 interface Item { id: string; name: string; sku: string | null; unit: string | null; reorder_threshold: number | null; unit_cost?: number | null }
@@ -136,10 +137,7 @@ export const Inventory: React.FC = () => {
 
       <div className={kpis.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} style={{ marginBottom: 24 }}>
         {kpis.map(c => (
-          <div key={c.label} className="glass-card" style={{ textAlign: 'center' }}>
-            <p style={{ color: COLORS.slateLight, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{c.label}</p>
-            <p style={{ fontSize: '2.2rem', fontWeight: 700, color: c.color, margin: 0 }}>{c.value}</p>
-          </div>
+          <MetricCard key={c.label} label={c.label} value={c.value} valueColor={c.color} />
         ))}
       </div>
 
@@ -235,7 +233,7 @@ export const Inventory: React.FC = () => {
                       <td style={{ ...tableCellStyle, textAlign: 'center', fontWeight: 600 }}>{bal}{it.unit ? ` ${it.unit}` : ''}</td>
                       <td style={{ ...tableCellStyle, textAlign: 'center', color: COLORS.slate }}>{it.reorder_threshold ?? '—'}</td>
                       {showCost && <td style={{ ...tableCellStyle, textAlign: 'center' }}>{it.unit_cost != null ? `$${it.unit_cost}` : '—'}</td>}
-                      <td style={tableCellStyle}><span style={pill(low ? 'red' : 'green')}>{low ? 'Low' : 'OK'}</span></td>
+                      <td style={tableCellStyle}><StatusBadge tone={low ? 'red' : 'green'} variant="count">{low ? 'Low' : 'OK'}</StatusBadge></td>
                     </tr>
                   )
                 })}

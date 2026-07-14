@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { hasPermission } from '../lib/permissions'
 import { PageHeader } from './PageHeader'
 import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
+import { Button } from './ui'
 import { Plus, Wrench } from 'lucide-react'
 
 interface Asset { id: string; name: string; asset_type: string | null; config: Record<string, unknown> | null }
@@ -107,9 +108,9 @@ export const Assets: React.FC = () => {
                       <td style={{ ...tableCellStyle, color: COLORS.slate, fontSize: '0.8rem' }}>{a.config ? Object.keys(a.config).join(', ') : '—'}</td>
                       {canConfigure && (
                         <td style={{ ...tableCellStyle }}>
-                          <button onClick={() => setMaintFor(maintFor === a.id ? null : a.id)} style={{ background: 'transparent', border: '1px solid #cbd5e1', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontSize: '0.78rem', color: COLORS.navy, display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: 'inherit' }}>
+                          <Button variant="secondary" size="sm" onClick={() => setMaintFor(maintFor === a.id ? null : a.id)} style={{ padding: '3px 10px', fontSize: '0.78rem' }}>
                             <Wrench size={12} /> Schedule
-                          </button>
+                          </Button>
                         </td>
                       )}
                     </tr>

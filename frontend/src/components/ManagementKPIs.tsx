@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { hasPermission } from '../lib/permissions'
 import { PageHeader } from './PageHeader'
 import { COLORS } from '../lib/ui'
+import { MetricCard } from './ui'
 
 interface Kpi {
   corrective_actions?: { total?: number; open?: number; pending_approval?: number; closed?: number }
@@ -71,11 +72,7 @@ export const ManagementKPIs: React.FC = () => {
       ) : (
         <div className="grid-cols-3">
           {cards.map(c => (
-            <div key={c.label} className="glass-card" style={{ textAlign: 'center' }}>
-              <p style={{ color: COLORS.slateLight, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{c.label}</p>
-              <p style={{ fontSize: '2.4rem', fontWeight: 700, color: c.color, margin: '0 0 6px' }}>{c.value}</p>
-              <p style={{ color: COLORS.slate, fontSize: '0.8rem', margin: 0 }}>{c.sub}</p>
-            </div>
+            <MetricCard key={c.label} label={c.label} value={c.value} valueColor={c.color} sub={c.sub} />
           ))}
         </div>
       )}

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { hasPermission } from '../lib/permissions'
 import { PageHeader } from './PageHeader'
-import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle, pill } from '../lib/ui'
+import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
+import { MetricCard, StatusBadge, Button, type BadgeTone } from './ui'
 import { Plus, ChevronDown, ChevronRight } from 'lucide-react'
 
 type Status = 'open' | 'in_progress' | 'pending_approval' | 'closed' | 'cancelled'
@@ -27,7 +28,7 @@ interface ActionEvent {
   created_at: string
 }
 
-const STATUS_PILL: Record<Status, Parameters<typeof pill>[0]> = {
+const STATUS_TONE: Record<Status, BadgeTone> = {
   open: 'slate', in_progress: 'amber', pending_approval: 'amber', closed: 'green', cancelled: 'red',
 }
 const STATUS_LABEL: Record<Status, string> = {
@@ -139,16 +140,9 @@ export const CorrectiveActions: React.FC = () => {
       {success && <div style={{ background: COLORS.greenBg, color: COLORS.greenFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #86efac' }}>{success}</div>}
 
       <div className="grid-cols-3" style={{ marginBottom: 24 }}>
-        {[
-          { label: 'Open / In Progress', value: openCount, color: openCount ? COLORS.amberFg : COLORS.greenFg },
-          { label: 'Pending Approval', value: counts.pending_approval || 0, color: (counts.pending_approval || 0) ? COLORS.navy : COLORS.slate },
-          { label: 'Closed', value: counts.closed || 0, color: COLORS.greenFg },
-        ].map(c => (
-          <div key={c.label} className="glass-card" style={{ textAlign: 'center' }}>
-            <p style={{ color: COLORS.slateLight, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{c.label}</p>
-            <p style={{ fontSize: '2.4rem', fontWeight: 700, color: c.color, margin: 0 }}>{c.value}</p>
-          </div>
-        ))}
+        <MetricCard label="Open / In Progress" value={openCount} valueColor={openCount ? COLORS.amberFg : COLORS.greenFg} />
+        <MetricCard label="Pending Approval" value={counts.pending_approval || 0} valueColor={(counts.pending_approval || 0) ? COLORS.navy : COLORS.slate} />
+        <MetricCard label="Closed" value={counts.closed || 0} valueColor={COLORS.greenFg} />
       </div>
 
       <div className="glass-card" style={{ marginBottom: 28 }}>
@@ -204,15 +198,16 @@ export const CorrectiveActions: React.FC = () => {
                       </td>
                       <td style={{ ...tableCellStyle, fontWeight: 600, color: COLORS.navy }}>{a.title}</td>
                       <td style={{ ...tableCellStyle, textTransform: 'capitalize' }}>{a.severity || '—'}</td>
-                      <td style={tableCellStyle}><span style={pill(STATUS_PILL[a.status])}>{STATUS_LABEL[a.status]}</span></td>
+                      <td style={tableCellStyle}><StatusBadge tone={STATUS_TONE[a.status]} variant="count">{STATUS_LABEL[a.status]}</StatusBadge></td>
                       <td style={{ ...tableCellStyle, whiteSpace: 'nowrap', color: COLORS.slate }}>{a.due_date || '—'}</td>
                       <td style={{ ...tableCellStyle, whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                           {TRANSITIONS[a.status].filter(([, , perm]) => hasPermission(role, perm)).map(([to, label]) => (
-                            <button key={to} disabled={busyId === a.id} onClick={() => transition(a, to)}
-                              style={{ background: to === 'closed' ? COLORS.greenFg : to === 'cancelled' ? '#fff' : COLORS.navy, color: to === 'cancelled' ? COLORS.redFg : '#fff', border: to === 'cancelled' ? '1px solid #fecaca' : 'none', borderRadius: 6, padding: '3px 10px', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'inherit' }}>
+                            <Button key={to} size="sm" disabled={busyId === a.id} onClick={() => transition(a, to)}
+                              variant={to === 'closed' ? 'primary' : to === 'cancelled' ? 'destructive' : 'navy'}
+                              style={{ padding: '3px 10px', fontSize: '0.78rem' }}>
                               {label}
-                            </button>
+                            </Button>
                           ))}
                           {TRANSITIONS[a.status].length === 0 && <span style={{ color: COLORS.slateLight, fontSize: '0.8rem' }}>—</span>}
                         </span>
