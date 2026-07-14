@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { ALERT_COLORS, ALERT_LABELS, ALERT_THRESHOLDS, TREATMENT_ACTIONS } from '../constants'
+import { ALERT_COLORS, ALERT_LABELS, ALERT_THRESHOLDS, ALERT_FG, TREATMENT_ACTIONS } from '../constants'
 import { PageHeader } from './PageHeader'
+import { AlertCard } from './ui'
 import { useAuth } from '../context/AuthContext'
 
 interface AlertsProps {
@@ -30,7 +31,6 @@ const TD: React.CSSProperties = {
   verticalAlign: 'top',
 }
 
-const alertText: Record<number, string> = { 1: '#006100', 2: '#856404', 3: '#7A3B00', 4: '#9C0006' }
 
 interface LiveState {
   level: 1 | 2 | 3 | 4
@@ -133,7 +133,7 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
               }}
             >
               <span style={{ width: 12, height: 12, borderRadius: '50%', background: ALERT_COLORS[level], flexShrink: 0 }} />
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: alertText[level] }}>{ALERT_LABELS[level]}</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: ALERT_FG[level] }}>{ALERT_LABELS[level]}</span>
               {active && <span style={{ marginLeft: 'auto', fontSize: '0.62rem', fontWeight: 800, color: ALERT_COLORS[level], letterSpacing: '0.05em' }}>LIVE</span>}
             </div>
           )
@@ -161,18 +161,18 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
           }}
         >
           <div style={{ minWidth: 220, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: alertText[live.level], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: ALERT_FG[live.level], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: ALERT_COLORS[live.level], display: 'inline-block', boxShadow: `0 0 0 3px ${ALERT_COLORS[live.level]}33` }} />
               Live · {activeSite}
             </div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: alertText[live.level], lineHeight: 1.15 }}>{live.label}</div>
-            <div style={{ fontSize: '0.8rem', color: alertText[live.level], opacity: 0.85, marginTop: 4 }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: ALERT_FG[live.level], lineHeight: 1.15 }}>{live.label}</div>
+            <div style={{ fontSize: '0.8rem', color: ALERT_FG[live.level], opacity: 0.85, marginTop: 4 }}>
               Latest reading: {live.month || '—'} · {Math.round(live.compliancePct)}% compliant
             </div>
           </div>
 
           <div style={{ flex: 1, minWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8 }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: alertText[live.level], letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: ALERT_FG[live.level], letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               Triggering factors
             </div>
             {live.failing.length > 0 ? (
@@ -184,11 +184,11 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
                 ))}
               </div>
             ) : (
-              <div style={{ fontSize: '0.85rem', color: alertText[live.level] }}>
+              <div style={{ fontSize: '0.85rem', color: ALERT_FG[live.level] }}>
                 {live.level === 1 ? 'All parameters within limits — no active triggers.' : 'Bloom-indicator thresholds crossed (Chl-a / DO / phycocyanin).'}
               </div>
             )}
-            <div style={{ fontSize: '0.82rem', color: alertText[live.level], fontWeight: 600, marginTop: 2 }}>
+            <div style={{ fontSize: '0.82rem', color: ALERT_FG[live.level], fontWeight: 600, marginTop: 2 }}>
               ▶ Active protocol below: <strong>{ALERT_LABELS[live.level]}</strong>
             </div>
           </div>
@@ -349,9 +349,7 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
                 'DO < 2 mg/L at any time → Level 4 regardless of Chl-a',
                 'Phycocyanin > 200 µg/L → Level 3 minimum (cyano emergency)',
               ].map((text, i) => (
-                <div key={i} style={{ background: '#FFF0F0', border: '1px solid #fecaca', borderRadius: '6px', padding: '8px 12px', color: '#9C0006', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                  {text}
-                </div>
+                <AlertCard key={i} tier="critical" title={text} />
               ))}
             </div>
           </div>
@@ -364,17 +362,18 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
                 'Level 3 → 2: All params below threshold for 14 consecutive days',
                 'Level 2 → 1: Weekly samples compliant for 4 consecutive weeks',
               ].map((text, i) => (
-                <div key={i} style={{ background: '#C6EFCE', border: '1px solid #86efac', borderRadius: '6px', padding: '8px 12px', color: '#006100', fontSize: '0.875rem', lineHeight: 1.5 }}>
-                  {text}
-                </div>
+                <AlertCard key={i} tier="positive" title={text} />
               ))}
             </div>
           </div>
         </div>
 
-        <div style={{ marginTop: '1rem', background: '#D6E4F0', border: '1px solid #93c5fd', borderRadius: '8px', padding: '12px 16px', color: '#1B3A5C', fontSize: '0.9rem', lineHeight: 1.6 }}>
-          <strong>Design Principle:</strong> De-escalation is always slower than escalation — prevents costly oscillating treatment cycles.
-        </div>
+        <AlertCard
+          tier="awaiting"
+          title="Design Principle"
+          description="De-escalation is always slower than escalation — prevents costly oscillating treatment cycles."
+          style={{ marginTop: '1rem' }}
+        />
       </div>
     </div>
   )

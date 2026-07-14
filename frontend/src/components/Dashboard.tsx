@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { COMPLIANCE_LIMITS, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS } from '../constants'
+import { COMPLIANCE_LIMITS, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS, ALERT_BG, ALERT_FG } from '../constants'
 import { LIGHT_STYLE, type TrafficLight } from '../lib/status'
+import { tableHeaderStyle as TH, tableCellStyle as TD } from '../lib/ui'
+import { MetricCard } from './ui'
 import { useMonthlySeries, NoData, SampleBanner, fmt, type ParamKey } from '../lib/sampleData'
 
 interface DashboardProps {
@@ -41,26 +43,6 @@ function riskStyle(pct: number, pass: boolean): React.CSSProperties {
   if (pct < 20) return { color: '#856404', fontWeight: 600 }
   if (pct < 50) return { color: '#374151', fontWeight: 500 }
   return { color: '#006100', fontWeight: 500 }
-}
-
-const TH: React.CSSProperties = {
-  padding: '9px 12px',
-  textAlign: 'left',
-  fontSize: '0.75rem',
-  fontWeight: 700,
-  color: '#64748b',
-  background: '#f8fafc',
-  borderBottom: '2px solid #e2e8f0',
-  whiteSpace: 'nowrap',
-  textTransform: 'uppercase',
-  letterSpacing: '0.04em',
-}
-
-const TD: React.CSSProperties = {
-  padding: '9px 12px',
-  fontSize: '0.85rem',
-  color: '#374151',
-  borderBottom: '1px solid #f1f5f9',
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
@@ -127,9 +109,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
     : (!allPass || alertLevel >= 3 ? 'red' : alertLevel === 2 ? 'yellow' : 'green')
   const lightStyle = LIGHT_STYLE[light]
 
-  const alertBg: Record<number, string> = { 1: '#C6EFCE', 2: '#FFEB9C', 3: '#FFD5A8', 4: '#FFC7CE' }
-  const alertText: Record<number, string> = { 1: '#006100', 2: '#856404', 3: '#7A3B00', 4: '#9C0006' }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <PageHeader
@@ -155,7 +134,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'stretch' }}>
         {/* Big alert badge */}
         <div style={{
-          background: alertBg[alertLevel],
+          background: ALERT_BG[alertLevel],
           border: `2px solid ${alertColor}`,
           borderRadius: 10,
           padding: '1.25rem 1.75rem',
@@ -164,46 +143,45 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
           flexDirection: 'column',
           justifyContent: 'center',
         }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: alertText[alertLevel], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: ALERT_FG[alertLevel], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
             Current Alert Level
           </div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: alertText[alertLevel], lineHeight: 1.2 }}>
+          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: ALERT_FG[alertLevel], lineHeight: 1.2 }}>
             {alertLevelLabel}
           </div>
         </div>
 
         {/* KPI cards */}
         <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-          <div className="glass-card" style={{ flex: '1 1 140px', textAlign: 'center', padding: '1rem' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>Compliance</div>
-            <div style={{ fontSize: '1.05rem', fontWeight: 800 }}>
-              {measured.length === 0 ? (
-                <span style={{ background: '#e0f2fe', color: '#075985', padding: '4px 14px', borderRadius: 5, fontWeight: 700 }}>
-                  NO READING
-                </span>
-              ) : (
-                <span style={{ background: allPass ? '#C6EFCE' : '#FFC7CE', color: allPass ? '#006100' : '#9C0006', padding: '4px 14px', borderRadius: 5, fontWeight: 700 }}>
-                  {allPass ? 'COMPLIANT' : 'NON-COMPLIANT'}
-                </span>
-              )}
-            </div>
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.4rem' }}>
-              {measured.length}/{paramKeys.length} parameters measured
-            </div>
-          </div>
+          <MetricCard
+            label="Compliance"
+            style={{ flex: '1 1 140px' }}
+            value={measured.length === 0 ? (
+              <span style={{ background: '#e0f2fe', color: '#075985', padding: '4px 14px', borderRadius: 5, fontWeight: 700, fontSize: '1.05rem' }}>
+                NO READING
+              </span>
+            ) : (
+              <span style={{ background: allPass ? '#C6EFCE' : '#FFC7CE', color: allPass ? '#006100' : '#9C0006', padding: '4px 14px', borderRadius: 5, fontWeight: 700, fontSize: '1.05rem' }}>
+                {allPass ? 'COMPLIANT' : 'NON-COMPLIANT'}
+              </span>
+            )}
+            sub={`${measured.length}/${paramKeys.length} parameters measured`}
+          />
 
-          <div className="glass-card" style={{ flex: '1 1 140px', textAlign: 'center', padding: '1rem' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>Treatment</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1B3A5C' }}>6 mo</div>
-            <div style={{ fontSize: '0.78rem', color: '#006100', fontWeight: 600, marginTop: '0.2rem' }}>Active</div>
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.2rem' }}>Continuous enzyme + aeration</div>
-          </div>
+          <MetricCard
+            label="Treatment"
+            style={{ flex: '1 1 140px' }}
+            value={<span style={{ fontSize: '1.1rem' }}>6 mo</span>}
+            delta={{ value: 'Active', direction: 'up' }}
+            sub="Continuous enzyme + aeration"
+          />
 
-          <div className="glass-card" style={{ flex: '1 1 140px', textAlign: 'center', padding: '1rem' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>Current Phase</div>
-            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#2E5D8A' }}>{currentPhase.split(':')[0]}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem' }}>{currentPhase.split(': ')[1] ?? ''}</div>
-          </div>
+          <MetricCard
+            label="Current Phase"
+            style={{ flex: '1 1 140px' }}
+            value={<span style={{ fontSize: '1.05rem', color: '#2E5D8A' }}>{currentPhase.split(':')[0]}</span>}
+            sub={currentPhase.split(': ')[1] ?? ''}
+          />
         </div>
       </div>
 
