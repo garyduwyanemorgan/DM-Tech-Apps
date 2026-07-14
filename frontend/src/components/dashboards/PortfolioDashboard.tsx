@@ -3,19 +3,12 @@ import { PageHeader } from '../PageHeader'
 import { usePortfolio } from './usePortfolio'
 import { SampleDataToggle } from '../SampleDataToggle'
 import { LIGHT_STYLE } from '../../lib/status'
+import { MetricCard } from '../ui'
 
 interface Props {
   setActiveSite: (s: string) => void
   setActiveTab: (t: string) => void
 }
-
-const KpiTile: React.FC<{ label: string; value: string | number; color?: string; sub?: string }> = ({ label, value, color = '#1B3A5C', sub }) => (
-  <div className="glass-card" style={{ textAlign: 'center', padding: '1.1rem 1rem' }}>
-    <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>{label}</div>
-    <div style={{ fontSize: '1.7rem', fontWeight: 800, color }}>{value}</div>
-    {sub && <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.25rem' }}>{sub}</div>}
-  </div>
-)
 
 /**
  * Tier 3 — General Manager view.
@@ -45,10 +38,10 @@ export const PortfolioDashboard: React.FC<Props> = ({ setActiveSite, setActiveTa
 
       {/* KPI rollup */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
-        <KpiTile label="Projects" value={kpis.total} />
-        <KpiTile label="Avg. Compliance" value={kpis.avgCompliancePct === null ? '—' : `${kpis.avgCompliancePct}%`} color={kpis.avgCompliancePct !== null && kpis.avgCompliancePct >= 90 ? '#006100' : '#856404'} />
-        <KpiTile label="Needs Attention" value={kpis.needsAttention} color={kpis.needsAttention > 0 ? '#9C0006' : '#006100'} sub="Yellow + Red" />
-        <KpiTile label="Awaiting Lab" value={kpis.blue} color="#1B3A5C" />
+        <MetricCard label="Projects" value={kpis.total} />
+        <MetricCard label="Avg. Compliance" value={kpis.avgCompliancePct === null ? '—' : `${kpis.avgCompliancePct}%`} valueColor={kpis.avgCompliancePct !== null && kpis.avgCompliancePct >= 90 ? '#006100' : '#856404'} />
+        <MetricCard label="Needs Attention" value={kpis.needsAttention} valueColor={kpis.needsAttention > 0 ? '#9C0006' : '#006100'} sub="Yellow + Red" />
+        <MetricCard label="Awaiting Lab" value={kpis.blue} />
       </div>
 
       {/* Status-dot grid */}

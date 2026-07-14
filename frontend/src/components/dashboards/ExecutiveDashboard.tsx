@@ -3,25 +3,13 @@ import { PageHeader } from '../PageHeader'
 import { usePortfolio } from './usePortfolio'
 import { SampleDataToggle } from '../SampleDataToggle'
 import { LIGHT_STYLE } from '../../lib/status'
+import { MetricCard } from '../ui'
 import { TrendingUp, AlertTriangle, ShieldCheck, Layers } from 'lucide-react'
 
 interface Props {
   setActiveSite: (s: string) => void
   setActiveTab: (t: string) => void
 }
-
-const MetricCard: React.FC<{ icon: React.ReactNode; label: string; value: string; accent: string; sub?: string }> = ({ icon, label, value, accent, sub }) => (
-  <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.1rem 1.25rem' }}>
-    <div style={{ width: 44, height: 44, borderRadius: 10, background: `${accent}1A`, color: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      {icon}
-    </div>
-    <div>
-      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
-      <div style={{ fontSize: '1.55rem', fontWeight: 800, color: '#1B3A5C', lineHeight: 1.15 }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{sub}</div>}
-    </div>
-  </div>
-)
 
 /**
  * Tier 4 — Executive Management view.

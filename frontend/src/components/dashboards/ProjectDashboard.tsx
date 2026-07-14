@@ -2,6 +2,7 @@ import React from 'react'
 import { PageHeader } from '../PageHeader'
 import { usePortfolio } from './usePortfolio'
 import { LIGHT_STYLE } from '../../lib/status'
+import { StatusBadge } from '../ui'
 import { ChevronRight } from 'lucide-react'
 
 interface Props {
@@ -51,11 +52,8 @@ export const ProjectDashboard: React.FC<Props> = ({ setActiveSite, setActiveTab 
             >
               {/* Header row: project name + traffic-light chip */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#1B3A5C' }}>{s.site}</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: style.bg, color: style.color, fontWeight: 700, fontSize: '0.72rem', borderRadius: 999, padding: '3px 11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: style.dot }} />
-                  {style.label}
-                </span>
+                <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#0B1240' }}>{s.site}</span>
+                <StatusBadge status={s.light} />
               </div>
 
               {/* Compliance + actions */}
