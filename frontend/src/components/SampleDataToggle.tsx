@@ -11,46 +11,10 @@
  */
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { Switch } from './ui/Toggle'
 
-export const Switch: React.FC<{
-  value: boolean
-  onChange: (v: boolean) => void
-  disabled?: boolean
-  /** Show the "Enabled / Disabled" text beside the switch. */
-  showLabel?: boolean
-}> = ({ value, onChange, disabled, showLabel }) => (
-  <div
-    role="switch"
-    aria-checked={value}
-    aria-label="Sample data"
-    onClick={() => !disabled && onChange(!value)}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      cursor: disabled ? 'wait' : 'pointer',
-      gap: '0.5rem',
-      userSelect: 'none',
-      opacity: disabled ? 0.6 : 1,
-    }}
-  >
-    <div style={{
-      width: '44px', height: '24px', borderRadius: '12px',
-      background: value ? '#2E5D8A' : '#cbd5e1',
-      position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-    }}>
-      <div style={{
-        position: 'absolute', top: '3px', left: value ? '23px' : '3px',
-        width: '18px', height: '18px', borderRadius: '50%',
-        background: '#ffffff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
-      }} />
-    </div>
-    {showLabel && (
-      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: value ? '#1B3A5C' : '#94a3b8' }}>
-        {value ? 'Enabled' : 'Disabled'}
-      </span>
-    )}
-  </div>
-)
+// Re-exported for existing importers; the component itself now lives in ui/Toggle.
+export { Switch }
 
 /**
  * `variant="card"` — the full Settings block with an explanation.
@@ -102,7 +66,7 @@ export const SampleDataToggle: React.FC<{ variant?: 'card' | 'inline' }> = ({
           <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             {saving ? 'Saving…' : 'Sample data'}
           </span>
-          <Switch value={showSampleData} onChange={handle} disabled={saving} />
+          <Switch value={showSampleData} onChange={handle} disabled={saving} ariaLabel="Sample data" />
         </div>
       </div>
     )
@@ -124,7 +88,7 @@ export const SampleDataToggle: React.FC<{ variant?: 'card' | 'inline' }> = ({
             production and regulatory work.
           </div>
         </div>
-        <Switch value={showSampleData} onChange={handle} disabled={saving} showLabel />
+        <Switch value={showSampleData} onChange={handle} disabled={saving} showLabel ariaLabel="Sample data" />
       </div>
       {error && (
         <div style={{ marginTop: '0.75rem', background: '#FFC7CE', color: '#9C0006', border: '1px solid #f87171', borderRadius: 6, padding: '0.65rem 1rem', fontSize: '0.8rem' }}>
