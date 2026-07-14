@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useAuth as useClerkAuth, useUser } from '@clerk/react'
 
 interface AuthContextType {
-  user: { id: string; email: string } | null
+  user: { id: string; email: string; name: string } | null
   loading: boolean
   role: string
   organizationId: string | null
@@ -121,7 +121,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setShowSampleDataState(value)
   }, [getToken, email])
 
-  const user = isSignedIn && clerkUser ? { id: clerkUser.id, email } : null
+  const user = isSignedIn && clerkUser
+    ? { id: clerkUser.id, email, name: clerkUser.fullName ?? '' }
+    : null
 
   return (
     <AuthContext.Provider

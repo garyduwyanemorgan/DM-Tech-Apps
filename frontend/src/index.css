@@ -48,6 +48,14 @@ body {
   flex-shrink: 0;
   overflow-y: auto;
   color: rgba(255,255,255,0.9);
+  transition: width 0.2s ease, min-width 0.2s ease, padding 0.2s ease;
+}
+
+/* Icon rail (desktop collapse via the header button) */
+.sidebar.sidebar-collapsed {
+  width: 68px;
+  min-width: 68px;
+  padding: 1.5rem 0.65rem;
 }
 
 /* Nav buttons inside sidebar */
@@ -369,6 +377,13 @@ button.secondary:hover:not(:disabled) {
   }
 
   .sidebar.sidebar-open { left: 0; }
+
+  /* The desktop icon-rail state must not shrink the mobile overlay drawer. */
+  .sidebar.sidebar-collapsed {
+    width: 280px;
+    min-width: 280px;
+    padding: 1.5rem 1rem;
+  }
 
   .main-content {
     padding: 1rem;
