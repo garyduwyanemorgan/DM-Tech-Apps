@@ -577,6 +577,7 @@ class CreateSiteRequest(BaseModel):
     name:               str   = Field(..., min_length=1, max_length=80, description="Unique site name")
     volume_m3:          float = Field(0.0,  ge=0, description="Lagoon volume in cubic metres")
     salinity_baseline:  float = Field(45.0, ge=0, description="Baseline salinity PSU")
+    address:            str | None = Field(None, max_length=300, description="Street address — pinned on the site map")
 
 
 @app.get("/sites", tags=["Sites"])
@@ -591,8 +592,13 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
         client = get_client()
         if not client:
             return {"sites": []}
-        # Query 1: all sites for this org
-        sites_res = client.table("sites").select("id, name").eq("organization_id", org_id).execute()
+        # Query 1: all sites for this org. The address column arrives with
+        # migration 015 — retry without it so an unapplied migration degrades
+        # to address-less sites instead of an empty list.
+        try:
+            sites_res = client.table("sites").select("id, name, address").eq("organization_id", org_id).execute()
+        except Exception:
+            sites_res = client.table("sites").select("id, name").eq("organization_id", org_id).execute()
         if not sites_res.data:
             return {"sites": []}
         # Phase 2: narrow to the caller's effective site scope (no-op while
@@ -608,7 +614,8 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
         # Query 2: reading counts for all sites at once
         readings_res = client.table("readings").select("site_id").in_("site_id", site_ids).execute()
         counts = Counter(r["site_id"] for r in (readings_res.data or []))
-        sites = [{"id": s["id"], "name": s["name"], "reading_count": counts.get(s["id"], 0)} for s in sites_res.data]
+        sites = [{"id": s["id"], "name": s["name"], "address": s.get("address"),
+                  "reading_count": counts.get(s["id"], 0)} for s in sites_res.data]
     except Exception:
         sites = []
     return {"sites": sites}
@@ -650,6 +657,7 @@ def create_site_endpoint(body: CreateSiteRequest, profile: dict = Depends(get_cu
             name=body.name,
             volume_m3=body.volume_m3,
             salinity_baseline=body.salinity_baseline,
+            address=(body.address or "").strip() or None,
             token=profile["token"],
         )
         if not site_id:

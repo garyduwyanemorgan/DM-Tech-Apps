@@ -320,7 +320,8 @@ def create_organization(name: str, token: str | None = None) -> str | None:
 
 
 def create_site(organization_id: str, name: str, volume_m3: float = 0.0,
-                salinity_baseline: float = 45.0, token: str | None = None) -> str | None:
+                salinity_baseline: float = 45.0, address: str | None = None,
+                token: str | None = None) -> str | None:
     """Create a dynamic site for an organization and return its UUID."""
     # Use service role client — authenticated role lacks INSERT on sites.
     # organization_id is already validated from the user's JWT in the API layer.
@@ -328,12 +329,17 @@ def create_site(organization_id: str, name: str, volume_m3: float = 0.0,
     if not client:
         return None
     try:
-        res = client.table("sites").insert({
+        row = {
             "organization_id": organization_id,
             "name": name,
             "volume_m3": volume_m3,
             "salinity_baseline": salinity_baseline,
-        }).execute()
+        }
+        if address:
+            # address column arrives with migration 015; only sent when set so
+            # an unapplied migration doesn't break address-less creates.
+            row["address"] = address
+        res = client.table("sites").insert(row).execute()
         if res.data:
             return res.data[0]["id"]
     except Exception:
