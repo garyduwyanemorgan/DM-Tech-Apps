@@ -4,6 +4,7 @@ import { PageHeader } from './PageHeader'
 import { SiteManager } from './SiteManager'
 import { UserManager } from './UserManager'
 import { SampleDataToggle } from './SampleDataToggle'
+import { hasPermission } from '../lib/permissions'
 
 interface SettingsProps {
   activeSite: string
@@ -258,6 +259,116 @@ const BillingPanel: React.FC<{ organizationId: string | null; token: string | nu
   )
 }
 
+interface DemoStatus {
+  exists: boolean
+  active: boolean
+  expired: boolean
+  days_left: number
+  activated_at: string | null
+  expires_at: string | null
+  has_subscription: boolean
+  can_activate: boolean
+}
+
+const DEMO_EXPLAINER =
+  'Demo mode unlocks the full system for one month — unlimited sites, all features — so you ' +
+  'can test end-to-end: add your real sites, invite your team, upload readings. When the month ' +
+  'ends the system becomes read-only until you choose a plan; everything you set up carries ' +
+  'over to your live system. One demo per organisation.'
+
+const DemoPanel: React.FC<{ organizationId: string | null; token: string | null; role: string | null }> = ({ organizationId, token, role }) => {
+  const [status, setStatus] = useState<DemoStatus | null>(null)
+  const [activating, setActivating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const headers = (): HeadersInit => {
+    const h: HeadersInit = { 'Content-Type': 'application/json' }
+    if (token) h['Authorization'] = `Bearer ${token}`
+    if (organizationId) h['X-Organization-ID'] = organizationId
+    return h
+  }
+
+  const loadStatus = async () => {
+    try {
+      const res = await fetch('/api/demo/status', { headers: headers() })
+      if (res.ok) setStatus(await res.json())
+    } catch { /* panel simply stays hidden */ }
+  }
+
+  useEffect(() => { loadStatus() }, [organizationId])
+
+  const handleActivate = async () => {
+    setActivating(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/demo/activate', { method: 'POST', headers: headers() })
+      const data = await res.json()
+      if (!res.ok) { setError(data.detail || 'Could not activate the demo.'); return }
+      await loadStatus()
+    } catch { setError('Network error. Try again.') }
+    finally { setActivating(false) }
+  }
+
+  // Live orgs don't need the demo panel; hide until the status has loaded too.
+  if (!status || status.has_subscription) return null
+  const mayActivate = hasPermission(role, 'demo.activate')
+
+  return (
+    <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
+      <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1rem' }}>Demo Mode</h3>
+
+      {error && (
+        <div style={{ background: '#FFC7CE', color: '#9C0006', padding: '0.75rem 1rem', borderRadius: 6, fontSize: '0.875rem', marginBottom: '1rem' }}>
+          {error}
+        </div>
+      )}
+
+      {!status.exists ? (
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <p style={{ flex: '1 1 320px', margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: 1.6 }}>
+            {DEMO_EXPLAINER}
+          </p>
+          {mayActivate ? (
+            <button
+              onClick={handleActivate}
+              disabled={activating}
+              title={DEMO_EXPLAINER}
+              style={{ padding: '0.55rem 1.25rem', fontSize: '0.9rem', fontWeight: 600 }}
+            >
+              {activating ? 'Activating…' : '🚀 Activate Demo — 1 Month'}
+            </button>
+          ) : (
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+              Only Executive Management can activate the demo.
+            </span>
+          )}
+        </div>
+      ) : status.active ? (
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{
+            background: '#D6E4F0', color: '#1B3A5C', border: '1px solid #93c5fd',
+            borderRadius: 10, padding: '0.75rem 1.25rem', fontWeight: 700, fontSize: '1.05rem',
+            display: 'flex', alignItems: 'baseline', gap: '0.4rem',
+          }}>
+            <span style={{ fontSize: '1.5rem' }}>{status.days_left}</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>day{status.days_left === 1 ? '' : 's'} left</span>
+          </div>
+          <p style={{ flex: '1 1 280px', margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.6 }}>
+            Demo is active — unlimited sites, all features.
+            {status.expires_at && <> Ends {new Date(status.expires_at).toLocaleDateString()}.</>}{' '}
+            Switch to live any time by choosing a plan below; everything carries over.
+          </p>
+        </div>
+      ) : (
+        <div style={{ background: '#FFEB9C', color: '#856404', border: '1px solid #fcd34d', borderRadius: 8, padding: '0.85rem 1rem', fontSize: '0.85rem', lineHeight: 1.6 }}>
+          <strong>Your demo has ended</strong> — the system is now read-only. Choose a plan under
+          Subscription &amp; Billing to switch to live; everything you set up during the demo carries over.
+        </div>
+      )}
+    </div>
+  )
+}
+
 const APP_VERSION = import.meta.env.VITE_APP_VERSION
 const BUILD_TIME = import.meta.env.VITE_BUILD_TIME
 
@@ -319,6 +430,9 @@ export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite })
   return (
     <div style={{ maxWidth: 960 }}>
       <PageHeader title="Settings" subtitle="Platform configuration, billing, and administration" icon="⚙️" />
+
+      {/* Demo mode — hidden for live (subscribed) orgs */}
+      {isAdmin && <DemoPanel organizationId={organizationId} token={token} role={role} />}
 
       {/* Billing — admin only */}
       {isAdmin && (

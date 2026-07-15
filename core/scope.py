@@ -30,7 +30,9 @@ def resolve_site_scope(
     """The set of site ids a role may act within, or ALL_SITES for org-wide.
 
     operator     -> explicitly assigned sites (Site Supervisor boundary)
-    admin        -> sites of assigned projects/contracts (Project Manager boundary)
+    admin        -> sites of assigned projects/contracts, plus any directly
+                    assigned sites (Project Managers routinely span sites, and
+                    the User Management "Sites" column assigns sites directly)
     auditor      -> sites across the assigned portfolio/business-units (read-only GM)
     super_admin  -> ALL_SITES (Executive, org-wide)
     anything else (pending/unknown) -> empty (deny)
@@ -40,7 +42,7 @@ def resolve_site_scope(
     if role == ROLE_AUDITOR:
         return frozenset(portfolio_site_ids)
     if role == ROLE_ADMIN:
-        return frozenset(project_site_ids)
+        return frozenset(project_site_ids) | frozenset(assigned_site_ids)
     if role == ROLE_OPERATOR:
         return frozenset(assigned_site_ids)
     return frozenset()

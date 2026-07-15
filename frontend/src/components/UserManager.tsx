@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { Trash2, UserPlus, AlertTriangle, Mail } from 'lucide-react'
+import { Trash2, UserPlus, AlertTriangle, Mail, ChevronDown, MapPin } from 'lucide-react'
 import { RoleBadge } from './RoleBadge'
 import { ROLE_META, ASSIGNABLE_ROLES, type Role } from '../lib/roles'
+import { hasPermission } from '../lib/permissions'
 
 interface OrgUser {
   id: string
@@ -13,6 +14,12 @@ interface OrgUser {
   created_at: string
   last_sign_in: string
   provider: string
+  site_ids: string[]
+}
+
+interface SiteOption {
+  id: string
+  name: string
 }
 
 interface UserManagerProps {
@@ -52,6 +59,98 @@ const TD: React.CSSProperties = {
   verticalAlign: 'middle',
 }
 
+// Multi-select dropdown of the organisation's sites. Each option is a checkbox;
+// every checked site is one the user may work on. Read-only unless the viewer
+// holds users.sites.assign (Executive Management).
+const SitesCell: React.FC<{
+  sites: SiteOption[]
+  selectedIds: string[]
+  editable: boolean
+  saving: boolean
+  pendingSignIn: boolean
+  onToggle: (siteId: string) => void
+}> = ({ sites, selectedIds, editable, saving, pendingSignIn, onToggle }) => {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  const selected = sites.filter(s => selectedIds.includes(s.id))
+  const summary =
+    selected.length === 0 ? 'No sites' :
+    selected.length === 1 ? selected[0].name :
+    `${selected.length} sites`
+
+  if (!editable) {
+    return (
+      <span style={{ fontSize: '0.8rem', color: selected.length ? '#374151' : '#94a3b8' }} title={selected.map(s => s.name).join(', ')}>
+        {summary}
+      </span>
+    )
+  }
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        disabled={saving || pendingSignIn}
+        title={pendingSignIn ? 'User has not signed in yet — sites can be assigned after their first sign-in.' : 'Assign sites this user can work on'}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+          padding: '3px 10px', border: '1px solid #cbd5e1', borderRadius: 6,
+          fontSize: '0.8rem', fontFamily: 'inherit', fontWeight: 600,
+          background: '#fff', color: pendingSignIn ? '#94a3b8' : '#374151',
+          cursor: pendingSignIn ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
+        }}
+      >
+        <MapPin size={12} />
+        {saving ? 'Saving…' : summary}
+        <ChevronDown size={12} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '0.4rem',
+          minWidth: 200, maxHeight: 240, overflowY: 'auto',
+        }}>
+          {sites.length === 0 ? (
+            <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: '#94a3b8' }}>No sites in this organisation yet.</div>
+          ) : sites.map(s => (
+            <label
+              key={s.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.35rem 0.5rem', borderRadius: 6, cursor: 'pointer',
+                fontSize: '0.82rem', color: '#374151', userSelect: 'none',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f8fafc' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(s.id)}
+                disabled={saving}
+                onChange={() => onToggle(s.id)}
+                style={{ cursor: 'pointer' }}
+              />
+              {s.name}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
   const { organizationId, token, role: myRole, user } = useAuth()
   const [users, setUsers] = useState<OrgUser[]>([])
@@ -68,12 +167,17 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
   // Role change
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
+  // Site assignment
+  const [sites, setSites] = useState<SiteOption[]>([])
+  const [savingSitesId, setSavingSitesId] = useState<string | null>(null)
+
   // Remove confirmation
   const [pendingRemove, setPendingRemove] = useState<OrgUser | null>(null)
   const [removing, setRemoving] = useState(false)
 
   const isAdmin = myRole === 'admin' || myRole === 'super_admin'
   const isSuperAdmin = myRole === 'super_admin'
+  const canAssignSites = hasPermission(myRole, 'users.sites.assign')
 
   const makeHeaders = useCallback((): HeadersInit => {
     const h: HeadersInit = { 'Content-Type': 'application/json' }
@@ -89,7 +193,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
       const res = await fetch('/api/users', { headers: makeHeaders() })
       const data = await res.json()
       if (!res.ok) { setError(data.detail || 'Failed to load users.'); return }
-      setUsers(data.users || [])
+      setUsers((data.users || []).map((u: OrgUser) => ({ ...u, site_ids: u.site_ids || [] })))
     } catch {
       setError('Network error loading users.')
     } finally {
@@ -97,7 +201,20 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
     }
   }, [makeHeaders])
 
-  useEffect(() => { if (isAdmin) fetchUsers() }, [fetchUsers, isAdmin])
+  const fetchSites = useCallback(async () => {
+    try {
+      const res = await fetch('/api/sites', { headers: makeHeaders() })
+      const data = await res.json()
+      if (!res.ok) return
+      setSites((data.sites || [])
+        .filter((s: { id?: string }) => s.id)
+        .map((s: { id: string; name: string }) => ({ id: s.id, name: s.name })))
+    } catch {
+      // Sites column degrades to "No sites"; the rest of the page still works.
+    }
+  }, [makeHeaders])
+
+  useEffect(() => { if (isAdmin) { fetchUsers(); fetchSites() } }, [fetchUsers, fetchSites, isAdmin])
 
   const handleRoleChange = async (targetUser: OrgUser, newRole: string) => {
     setUpdatingId(targetUser.id)
@@ -116,6 +233,28 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
       setError('Network error updating role.')
     } finally {
       setUpdatingId(null)
+    }
+  }
+
+  const handleSiteToggle = async (targetUser: OrgUser, siteId: string) => {
+    const next = targetUser.site_ids.includes(siteId)
+      ? targetUser.site_ids.filter(id => id !== siteId)
+      : [...targetUser.site_ids, siteId]
+    setSavingSitesId(targetUser.id)
+    setError(null); setSuccess(null)
+    try {
+      const res = await fetch(`/api/users/${targetUser.id}/sites`, {
+        method: 'PUT',
+        headers: makeHeaders(),
+        body: JSON.stringify({ site_ids: next }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.detail || 'Failed to update site assignments.'); return }
+      setUsers(u => u.map(x => x.id === targetUser.id ? { ...x, site_ids: next } : x))
+    } catch {
+      setError('Network error updating site assignments.')
+    } finally {
+      setSavingSitesId(null)
     }
   }
 
@@ -241,12 +380,13 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
             <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem' }}>No users found.</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '560px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '680px' }}>
                 <thead>
                   <tr>
                     <th style={TH}>User</th>
                     <th style={TH}>Login Method</th>
                     <th style={TH}>Role</th>
+                    <th style={TH}>Sites</th>
                     <th style={{ ...TH, textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
@@ -280,6 +420,16 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
                               {availableRoles.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
                             </select>
                           )}
+                        </td>
+                        <td style={TD}>
+                          <SitesCell
+                            sites={sites}
+                            selectedIds={u.site_ids}
+                            editable={canAssignSites}
+                            saving={savingSitesId === u.id}
+                            pendingSignIn={!u.clerk_id}
+                            onToggle={siteId => handleSiteToggle(u, siteId)}
+                          />
                         </td>
                         <td style={{ ...TD, textAlign: 'center' }}>
                           {!isMe && (isSuperAdmin || u.role !== 'super_admin') ? (

@@ -25,6 +25,10 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [1.0.0] - 2026-07-15
+
+- Maintenance release (no itemized changes).
+
 ## [0.7.0] - 2026-07-14
 
 - feat(design): ERP-style sidebar — collapsible groups, icon rail, signed-in user
@@ -116,7 +120,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.7.0...v1.0.0
 [0.7.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.4.1...v0.5.0

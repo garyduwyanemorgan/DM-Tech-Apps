@@ -655,6 +655,55 @@ def set_user_site_assignments(user_clerk_id: str, site_ids: list[str],
         return False, f"Database error: {str(exc)}"
 
 
+# ── Demo mode (migration 013) ─────────────────────────────────────────────────
+# One server-provisioned demo key per organization. Fail-safe: if the table is
+# missing or the DB is down, reads return None — no key means no demo and no
+# expired-demo block, so nothing locks up.
+
+def get_demo_key(organization_id: str) -> dict | None:
+    """The org's demo key row (key_code, activated_at, expires_at), or None."""
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    try:
+        res = (client.table("demo_keys")
+               .select("key_code, activated_by, activated_at, expires_at")
+               .eq("organization_id", organization_id).limit(1).execute())
+        return (res.data or [None])[0]
+    except Exception:
+        return None
+
+
+def create_demo_key(organization_id: str, activated_by: str | None) -> tuple[dict | None, str]:
+    """Provision + activate the org's demo key (one per org, ever).
+
+    Returns (row, message); row is None on failure. The UNIQUE(organization_id)
+    constraint makes double-activation race-safe.
+    """
+    from datetime import datetime, timezone
+    from core.demo import demo_expiry, generate_demo_key
+    client = get_client()
+    if not client or not organization_id:
+        return None, "Database not available."
+    now = datetime.now(timezone.utc)
+    row = {
+        "organization_id": organization_id,
+        "key_code": generate_demo_key(),
+        "activated_by": activated_by,
+        "activated_at": now.isoformat(),
+        "expires_at": demo_expiry(now).isoformat(),
+    }
+    try:
+        res = client.table("demo_keys").insert(row).execute()
+        if res.data:
+            return res.data[0], "Demo activated."
+        return None, "Failed to activate demo."
+    except Exception as exc:
+        if "duplicate" in str(exc).lower() or "unique" in str(exc).lower():
+            return None, "This organisation has already used its demo."
+        return None, f"Database error: {str(exc)}"
+
+
 # ── Corrective actions (migration 008) ────────────────────────────────────────
 # Org-scoped workflow with an append-only event history. All writes go through the
 # service-role client; callers enforce permission + state-machine rules first.

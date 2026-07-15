@@ -46,9 +46,10 @@ PERMISSIONS: FrozenSet[str] = frozenset({
     "analytics.site.read", "analytics.project.read",
     "analytics.portfolio.read", "analytics.executive.read",
     "users.read", "users.invite", "users.role.assign",
-    "users.executive.assign", "users.remove",
+    "users.executive.assign", "users.sites.assign", "users.remove",
     "billing.read", "billing.manage",
     "organization.configure", "audit.read", "permissions.configure",
+    "demo.activate",
 })
 
 # ── Role -> permission bundle (PERMISSIONS_MATRIX.md permission map). ──────────
@@ -94,9 +95,14 @@ _AUDITOR: FrozenSet[str] = frozenset({
 _SUPER_ADMIN: FrozenSet[str] = (
     _ADMIN | _AUDITOR | frozenset({
         "users.executive.assign",
+        # Site assignments decide what each user can work on — Executive
+        # Management only (Project Managers may read them, not change them).
+        "users.sites.assign",
         "inventory.valuation.read",
         "analytics.portfolio.read", "analytics.executive.read",
         "organization.configure", "permissions.configure",
+        # Starting the org's one-month demo is an org-level commitment.
+        "demo.activate",
     })
 )
 

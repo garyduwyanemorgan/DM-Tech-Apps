@@ -369,6 +369,37 @@ def get_current_user_profile(
     }
 
 
+_DEMO_STATE_TTL_SECONDS = 60
+_demo_state_cache: dict = {}  # org_id -> (fetched_monotonic, state | None)
+
+
+def _demo_state(org_id: str | None):
+    """The org's demo state, or None for orgs that never activated a demo or
+    that hold a live subscription (a subscription supersedes demo entirely —
+    that is the one-click "switch to live"). Cached ~60s per org, so demo
+    checks don't add a DB round-trip to every write request.
+    """
+    if not org_id:
+        return None
+    import time as _time
+    cached = _demo_state_cache.get(org_id)
+    if cached and _time.monotonic() - cached[0] < _DEMO_STATE_TTL_SECONDS:
+        return cached[1]
+    from core.demo import demo_status
+    from db.queries import get_demo_key
+    from billing import get_org_billing, has_subscription
+    state = None
+    row = get_demo_key(org_id)
+    if row and not has_subscription(get_org_billing(org_id)):
+        state = {
+            **demo_status(row.get("expires_at")),
+            "activated_at": row.get("activated_at"),
+            "expires_at": row.get("expires_at"),
+        }
+    _demo_state_cache[org_id] = (_time.monotonic(), state)
+    return state
+
+
 def _ensure_permission(
     profile: dict,
     permission: str,
@@ -383,9 +414,20 @@ def _ensure_permission(
     new endpoint cannot silently ship without an explicit permission.
 
     Answers only *what* the role may do; data-scope (assigned org/project/site) is
-    enforced separately at the query layer.
+    enforced separately at the query layer. An org whose demo has expired (and
+    that has not gone live) is read-only: writes 402 here, billing stays open.
     """
     if has_permission(profile.get("role"), permission):
+        from core.demo import blocked_when_demo_expired
+        if blocked_when_demo_expired(permission):
+            demo = _demo_state(profile.get("organization_id"))
+            if demo and demo["expired"]:
+                raise HTTPException(
+                    status_code=402,
+                    detail=("Your one-month demo has ended and the system is now "
+                            "read-only. Choose a plan in Settings to switch to live — "
+                            "everything you set up during the demo carries over."),
+                )
         return
     audit_denial(
         permission,
@@ -566,7 +608,7 @@ def list_sites(profile: dict = Depends(get_current_user_profile)):
         # Query 2: reading counts for all sites at once
         readings_res = client.table("readings").select("site_id").in_("site_id", site_ids).execute()
         counts = Counter(r["site_id"] for r in (readings_res.data or []))
-        sites = [{"name": s["name"], "reading_count": counts.get(s["id"], 0)} for s in sites_res.data]
+        sites = [{"id": s["id"], "name": s["name"], "reading_count": counts.get(s["id"], 0)} for s in sites_res.data]
     except Exception:
         sites = []
     return {"sites": sites}
@@ -580,12 +622,14 @@ def create_site_endpoint(body: CreateSiteRequest, profile: dict = Depends(get_cu
     if not org_id:
         raise HTTPException(status_code=400, detail="No organization associated with this account.")
 
-    # ── Billing: enforce site limit ──────────────────────────────────────────
+    # ── Billing: enforce site limit (waived while a demo is active — the demo
+    # is unlimited so prospects can test end-to-end; expiry is the control) ────
     from billing import get_org_billing, count_sites, PLANS
+    demo = _demo_state(org_id)
     billing = get_org_billing(org_id)
     site_limit = billing.get("site_limit", 1)
     current_count = count_sites(org_id)
-    if current_count >= site_limit:
+    if (demo is None or not demo["active"]) and current_count >= site_limit:
         plan_name = billing.get("plan_name", "starter")
         plan = PLANS.get(plan_name, PLANS["starter"])
         raise HTTPException(
@@ -713,6 +757,17 @@ def list_users(profile: dict = Depends(get_current_user_profile)):
             .eq("organization_id", org_id)
             .execute()
         )
+        # One batched query for the whole org's site assignments (keyed by
+        # clerk_id) so the Sites column doesn't need a request per user.
+        assignments: dict[str, list[str]] = {}
+        try:
+            asg = (client.table("user_site_assignments")
+                   .select("user_clerk_id, site_id")
+                   .eq("organization_id", org_id).execute())
+            for row in (asg.data or []):
+                assignments.setdefault(row["user_clerk_id"], []).append(row["site_id"])
+        except Exception:
+            pass  # column degrades to empty; assignments UI still loads per-user
         users = [
             {
                 "id": p["id"],
@@ -722,6 +777,7 @@ def list_users(profile: dict = Depends(get_current_user_profile)):
                 "created_at": str(p.get("created_at") or ""),
                 "last_sign_in": "",
                 "provider": "email" if p.get("clerk_id") else "pending",
+                "site_ids": assignments.get(p.get("clerk_id") or "", []),
             }
             for p in (profiles_res.data or [])
         ]
@@ -817,7 +873,7 @@ def _resolve_target_clerk_id(user_id: str, org_id: str) -> str:
 @app.get("/users/{user_id}/sites", tags=["Users"])
 def get_user_sites(user_id: str, profile: dict = Depends(get_current_user_profile)):
     """List the site ids assigned to a user (Phase 2 scope administration)."""
-    _ensure_permission(profile, "users.role.assign", detail="Admin access required.")
+    _ensure_permission(profile, "users.read", detail="Admin access required.")
     org_id = profile.get("organization_id")
     clerk_id = _resolve_target_clerk_id(user_id, org_id)
     from db.queries import list_user_site_assignments
@@ -828,9 +884,10 @@ def get_user_sites(user_id: str, profile: dict = Depends(get_current_user_profil
 def put_user_sites(user_id: str, body: SiteAssignmentRequest,
                    profile: dict = Depends(get_current_user_profile)):
     """Replace a user's site assignments. Only org-owned site ids are accepted
-    (server-side validated); the rest are ignored. Least-privilege delegation:
-    requires users.role.assign (admin/super_admin)."""
-    _ensure_permission(profile, "users.role.assign", detail="Admin access required.",
+    (server-side validated); the rest are ignored. Site assignments decide what
+    a user can work on, so only Executive Management may change them."""
+    _ensure_permission(profile, "users.sites.assign",
+                       detail="Only Executive Management can manage site assignments.",
                        target_type="user", target_id=user_id)
     org_id = profile.get("organization_id")
     clerk_id = _resolve_target_clerk_id(user_id, org_id)
@@ -1029,6 +1086,56 @@ class CheckoutRequest(BaseModel):
 
 class PortalRequest(BaseModel):
     return_url: str
+
+
+@app.get("/demo/status", tags=["Demo"])
+def demo_status_endpoint(profile: dict = Depends(get_current_user_profile)):
+    """The org's demo state: whether a demo can be activated, is running (with
+    days left), or has expired. Any authenticated member may read it."""
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+    from billing import get_org_billing, has_subscription
+    subscribed = has_subscription(get_org_billing(org_id))
+    from db.queries import get_demo_key
+    row = get_demo_key(org_id)
+    if not row:
+        return {"exists": False, "active": False, "expired": False, "days_left": 0,
+                "activated_at": None, "expires_at": None,
+                "has_subscription": subscribed, "can_activate": not subscribed}
+    from core.demo import demo_status
+    st = demo_status(row.get("expires_at"))
+    return {"exists": True, **st,
+            "activated_at": row.get("activated_at"), "expires_at": row.get("expires_at"),
+            "has_subscription": subscribed, "can_activate": False}
+
+
+@app.post("/demo/activate", tags=["Demo"], status_code=201)
+def activate_demo(profile: dict = Depends(get_current_user_profile)):
+    """One-click demo activation. Provisions the org's demo key server-side
+    (the user never sees or enters it) and starts the one-month clock. One demo
+    per organisation, ever; Executive Management only."""
+    _ensure_permission(profile, "demo.activate",
+                       detail="Only Executive Management can activate the demo.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+    from billing import get_org_billing, has_subscription
+    if has_subscription(get_org_billing(org_id)):
+        raise HTTPException(status_code=409, detail="This organisation is already on a live plan.")
+    from db.queries import create_demo_key, get_demo_key
+    if get_demo_key(org_id):
+        raise HTTPException(status_code=409, detail="This organisation has already used its demo.")
+    row, msg = create_demo_key(org_id, activated_by=profile.get("user_id"))
+    if not row:
+        raise HTTPException(status_code=500, detail=msg)
+    _demo_state_cache.pop(org_id, None)
+    audit_emit("demo.activate", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               expires_at=row.get("expires_at"))
+    from core.demo import demo_status
+    return {"activated": True, **demo_status(row.get("expires_at")),
+            "activated_at": row.get("activated_at"), "expires_at": row.get("expires_at")}
 
 
 @app.get("/billing/status", tags=["Billing"])

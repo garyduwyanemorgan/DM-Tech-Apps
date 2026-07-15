@@ -66,8 +66,9 @@ def test_extract_excludes_auditor():
 
 
 def test_executive_only_permissions():
-    for exec_perm in ("users.executive.assign", "analytics.executive.read",
-                      "permissions.configure"):
+    for exec_perm in ("users.executive.assign", "users.sites.assign",
+                      "analytics.executive.read", "permissions.configure",
+                      "demo.activate"):
         assert has_permission("super_admin", exec_perm), exec_perm
         assert not has_permission("admin", exec_perm), exec_perm
         assert not has_permission("auditor", exec_perm), exec_perm

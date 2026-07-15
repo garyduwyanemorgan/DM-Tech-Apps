@@ -21,9 +21,10 @@ export type Permission =
   | 'analytics.site.read' | 'analytics.project.read'
   | 'analytics.portfolio.read' | 'analytics.executive.read'
   | 'users.read' | 'users.invite' | 'users.role.assign'
-  | 'users.executive.assign' | 'users.remove'
+  | 'users.executive.assign' | 'users.sites.assign' | 'users.remove'
   | 'billing.read' | 'billing.manage'
   | 'organization.configure' | 'audit.read' | 'permissions.configure'
+  | 'demo.activate'
 
 const OPERATOR: Permission[] = [
   'sites.read', 'readings.read', 'readings.create', 'readings.overwrite',
@@ -57,9 +58,10 @@ const AUDITOR: Permission[] = [
 
 const SUPER_ADMIN: Permission[] = [
   ...ADMIN, ...AUDITOR,
-  'users.executive.assign', 'inventory.valuation.read',
+  'users.executive.assign', 'users.sites.assign', 'inventory.valuation.read',
   'analytics.portfolio.read', 'analytics.executive.read',
   'organization.configure', 'permissions.configure',
+  'demo.activate',
 ]
 
 const BUNDLES: Record<Role, Set<Permission>> = {
