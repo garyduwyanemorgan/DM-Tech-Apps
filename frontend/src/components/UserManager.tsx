@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { Trash2, UserPlus, AlertTriangle, Mail, ChevronDown, MapPin } from 'lucide-react'
+import { Trash2, UserPlus, AlertTriangle, Mail } from 'lucide-react'
 import { RoleBadge } from './RoleBadge'
 import { ROLE_META, ASSIGNABLE_ROLES, type Role } from '../lib/roles'
 import { hasPermission } from '../lib/permissions'
+import { MultiSelectDropdown } from './ui'
 
 interface OrgUser {
   id: string
@@ -59,32 +60,24 @@ const TD: React.CSSProperties = {
   verticalAlign: 'middle',
 }
 
-// Multi-select dropdown of the organisation's sites. Each option is a checkbox;
-// every checked site is one the user may work on. Read-only unless the viewer
-// holds users.sites.assign (Executive Management).
+// Sites cell: design-system MultiSelectDropdown (Untitled UI "dropdown with
+// search" pattern) — anchored popover with search, checkbox rows (~20 per view
+// then scroll), Select all / Clear. The draft applies once when the popover
+// closes. Read-only unless the viewer holds users.sites.assign (Executive
+// Management).
 const SitesCell: React.FC<{
   sites: SiteOption[]
   selectedIds: string[]
   editable: boolean
   saving: boolean
   pendingSignIn: boolean
-  onToggle: (siteId: string) => void
-}> = ({ sites, selectedIds, editable, saving, pendingSignIn, onToggle }) => {
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const close = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [open])
-
+  userEmail: string
+  onSave: (siteIds: string[]) => void
+}> = ({ sites, selectedIds, editable, saving, pendingSignIn, userEmail, onSave }) => {
   const selected = sites.filter(s => selectedIds.includes(s.id))
   const summary =
     selected.length === 0 ? 'No sites' :
+    sites.length > 0 && selected.length === sites.length ? `All sites (${sites.length})` :
     selected.length === 1 ? selected[0].name :
     `${selected.length} sites`
 
@@ -97,57 +90,18 @@ const SitesCell: React.FC<{
   }
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        disabled={saving || pendingSignIn}
-        title={pendingSignIn ? 'User has not signed in yet — sites can be assigned after their first sign-in.' : 'Assign sites this user can work on'}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-          padding: '3px 10px', border: '1px solid #cbd5e1', borderRadius: 6,
-          fontSize: '0.8rem', fontFamily: 'inherit', fontWeight: 600,
-          background: '#fff', color: pendingSignIn ? '#94a3b8' : '#374151',
-          cursor: pendingSignIn ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
-        }}
-      >
-        <MapPin size={12} />
-        {saving ? 'Saving…' : summary}
-        <ChevronDown size={12} />
-      </button>
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
-          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '0.4rem',
-          minWidth: 200, maxHeight: 240, overflowY: 'auto',
-        }}>
-          {sites.length === 0 ? (
-            <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: '#94a3b8' }}>No sites in this organisation yet.</div>
-          ) : sites.map(s => (
-            <label
-              key={s.id}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.35rem 0.5rem', borderRadius: 6, cursor: 'pointer',
-                fontSize: '0.82rem', color: '#374151', userSelect: 'none',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f8fafc' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-            >
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(s.id)}
-                disabled={saving}
-                onChange={() => onToggle(s.id)}
-                style={{ cursor: 'pointer' }}
-              />
-              {s.name}
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
+    <MultiSelectDropdown
+      label={saving ? 'Saving…' : summary}
+      title={pendingSignIn
+        ? 'User has not signed in yet — sites can be assigned after their first sign-in.'
+        : `Sites ${userEmail} can work on`}
+      options={sites.map(s => ({ id: s.id, label: s.name }))}
+      selectedIds={selectedIds}
+      onApply={onSave}
+      disabled={saving || pendingSignIn}
+      searchPlaceholder="Search sites…"
+      emptyText="No sites in this organisation yet."
+    />
   )
 }
 
@@ -236,10 +190,7 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
     }
   }
 
-  const handleSiteToggle = async (targetUser: OrgUser, siteId: string) => {
-    const next = targetUser.site_ids.includes(siteId)
-      ? targetUser.site_ids.filter(id => id !== siteId)
-      : [...targetUser.site_ids, siteId]
+  const handleSitesSave = async (targetUser: OrgUser, next: string[]) => {
     setSavingSitesId(targetUser.id)
     setError(null); setSuccess(null)
     try {
@@ -428,7 +379,8 @@ export const UserManager: React.FC<UserManagerProps> = ({ embedded }) => {
                             editable={canAssignSites}
                             saving={savingSitesId === u.id}
                             pendingSignIn={!u.clerk_id}
-                            onToggle={siteId => handleSiteToggle(u, siteId)}
+                            userEmail={u.email}
+                            onSave={next => handleSitesSave(u, next)}
                           />
                         </td>
                         <td style={{ ...TD, textAlign: 'center' }}>
