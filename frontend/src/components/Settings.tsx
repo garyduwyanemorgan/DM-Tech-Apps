@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import { Tab, TabList, TabPanel, Tabs, type Key } from 'react-aria-components'
 import { useAuth } from '../context/AuthContext'
 import { PageHeader } from './PageHeader'
 import { SiteManager } from './SiteManager'
 import { UserManager } from './UserManager'
 import { SampleDataToggle } from './SampleDataToggle'
 import { hasPermission } from '../lib/permissions'
+import { COLORS } from '../lib/tokens'
 
 interface SettingsProps {
   activeSite: string
@@ -423,61 +425,123 @@ const AboutPanel: React.FC = () => {
   )
 }
 
+const SETTINGS_TAB_KEY = 'settingsActiveTab'
+
+// Untitled UI settings-page pattern (settings-01): the page header, a single
+// horizontal row of tab labels, and ONE section per tab — no scrolling up and
+// down a long page hunting for the right card.
 export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite }) => {
   const { role, organizationId, token } = useAuth()
   const isAdmin = role === 'admin' || role === 'super_admin'
+
+  const tabs: { id: string; label: string }[] = [
+    ...(isAdmin ? [{ id: 'billing', label: 'Plan & Billing' }] : []),
+    { id: 'display', label: 'Data & Display' },
+    ...(isAdmin ? [
+      { id: 'sites', label: 'Site Management' },
+      { id: 'users', label: 'User Management' },
+    ] : []),
+    { id: 'about', label: 'About' },
+  ]
+
+  const [tab, setTab] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(SETTINGS_TAB_KEY)
+      if (saved && tabs.some(t => t.id === saved)) return saved
+    } catch { /* ignore */ }
+    return tabs[0].id
+  })
+
+  const handleTab = (key: Key) => {
+    const id = String(key)
+    setTab(id)
+    try { localStorage.setItem(SETTINGS_TAB_KEY, id) } catch { /* ignore */ }
+  }
+
+  const tabStyle = ({ isSelected, isFocusVisible }: { isSelected: boolean; isFocusVisible: boolean }): React.CSSProperties => ({
+    padding: '0.65rem 0.25rem',
+    marginBottom: -1,
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    color: isSelected ? COLORS.accent : COLORS.slate,
+    borderBottom: `2px solid ${isSelected ? COLORS.accent : 'transparent'}`,
+    cursor: 'pointer',
+    outline: isFocusVisible ? `2px solid ${COLORS.accent}` : 'none',
+    outlineOffset: 2,
+    whiteSpace: 'nowrap',
+    transition: 'color 0.15s, border-color 0.15s',
+  })
+
+  const panelStyle: React.CSSProperties = { paddingTop: '1.5rem', outline: 'none' }
 
   return (
     <div style={{ maxWidth: 960 }}>
       <PageHeader title="Settings" subtitle="Platform configuration, billing, and administration" icon="⚙️" />
 
-      {/* Demo mode — hidden for live (subscribed) orgs */}
-      {isAdmin && <DemoPanel organizationId={organizationId} token={token} role={role} />}
+      <Tabs selectedKey={tab} onSelectionChange={handleTab}>
+        <TabList
+          aria-label="Settings sections"
+          style={{
+            display: 'flex', gap: '1.5rem', borderBottom: `1px solid ${COLORS.border}`,
+            overflowX: 'auto', paddingBottom: 0,
+          }}
+        >
+          {tabs.map(t => <Tab key={t.id} id={t.id} style={tabStyle}>{t.label}</Tab>)}
+        </TabList>
 
-      {/* Billing — admin only */}
-      {isAdmin && (
-        <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
-          <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1.25rem' }}>
-            Subscription &amp; Billing
-          </h3>
-          <BillingPanel organizationId={organizationId} token={token} />
-        </div>
-      )}
+        {isAdmin && (
+          <TabPanel id="billing" style={panelStyle}>
+            <DemoPanel organizationId={organizationId} token={token} role={role} />
+            <div className="glass-card">
+              <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1.25rem' }}>
+                Subscription &amp; Billing
+              </h3>
+              <BillingPanel organizationId={organizationId} token={token} />
+            </div>
+          </TabPanel>
+        )}
 
-      {/* Data & Display — visible to every role, including Executive Management and the
-          General Manager. Same switch as the one on their dashboards. */}
-      <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
-        <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1rem' }}>Data &amp; Display</h3>
-        <SampleDataToggle variant="card" />
-      </div>
+        <TabPanel id="display" style={panelStyle}>
+          {/* Visible to every role, including Executive Management and the
+              General Manager. Same switch as the one on their dashboards. */}
+          <div className="glass-card">
+            <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1rem' }}>Data &amp; Display</h3>
+            <SampleDataToggle variant="card" />
+          </div>
+          {!isAdmin && (
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem', marginTop: '1.5rem' }}>
+              Billing, site, and user management are visible to Admins and Super Admins only.
+            </div>
+          )}
+        </TabPanel>
 
-      {/* Site Manager — admin only */}
-      {isAdmin && (
-        <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
-          <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1.25rem' }}>Site Management</h3>
-          <SiteManager activeSite={activeSite} setActiveSite={setActiveSite} onSitesChanged={() => {}} embedded />
-        </div>
-      )}
+        {isAdmin && (
+          <TabPanel id="sites" style={panelStyle}>
+            <div className="glass-card">
+              <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1.25rem' }}>Site Management</h3>
+              <SiteManager activeSite={activeSite} setActiveSite={setActiveSite} onSitesChanged={() => {}} embedded />
+            </div>
+          </TabPanel>
+        )}
 
-      {/* User Management — admin only */}
-      {isAdmin && (
-        <div className="glass-card">
-          <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1.25rem' }}>User Management</h3>
-          <UserManager activeSite={activeSite} setActiveSite={setActiveSite} embedded />
-        </div>
-      )}
+        {isAdmin && (
+          <TabPanel id="users" style={panelStyle}>
+            <div className="glass-card">
+              <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1.25rem' }}>User Management</h3>
+              <UserManager activeSite={activeSite} setActiveSite={setActiveSite} embedded />
+            </div>
+          </TabPanel>
+        )}
 
-      {!isAdmin && (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-          Billing, site, and user management are visible to Admins and Super Admins only.
-        </div>
-      )}
-
-      {/* About — visible to every role, so support can ask "what version are you on?" */}
-      <div className="glass-card" style={{ marginTop: '1.5rem' }}>
-        <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '0.75rem' }}>About</h3>
-        <AboutPanel />
-      </div>
+        <TabPanel id="about" style={panelStyle}>
+          {/* Visible to every role, so support can ask "what version are you on?" */}
+          <div className="glass-card">
+            <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '0.75rem' }}>About</h3>
+            <AboutPanel />
+          </div>
+        </TabPanel>
+      </Tabs>
     </div>
   )
 }
