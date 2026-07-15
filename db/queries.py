@@ -655,7 +655,7 @@ def set_user_site_assignments(user_clerk_id: str, site_ids: list[str],
         return False, f"Database error: {str(exc)}"
 
 
-# ── Demo mode (migration 013) ─────────────────────────────────────────────────
+# ── Demo mode (migration 014) ─────────────────────────────────────────────────
 # One server-provisioned demo key per organization. Fail-safe: if the table is
 # missing or the DB is down, reads return None — no key means no demo and no
 # expired-demo block, so nothing locks up.

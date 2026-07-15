@@ -1,15 +1,14 @@
 BEGIN;
 
--- ── Migration 013: Demo mode ──────────────────────────────────────────────────
--- (013, not 012 — a "012 fix append-only triggers" migration already exists in
--- the Supabase project's saved queries, outside this repo.)
+-- ── Migration 014: Demo mode ──────────────────────────────────────────────────
 -- Self-service one-month demo. A super_admin clicks "Activate Demo"; the backend
 -- provisions the key server-side (the user never sees or types it) and the org
 -- gets full access — unlimited sites — until expires_at. After expiry the org is
 -- read-only until it subscribes to a paid plan (the existing billing checkout is
 -- the "switch to live" — no demo data is touched, everything carries over).
 -- One demo per organization, ever: UNIQUE(organization_id).
--- Run in Supabase SQL editor. Reversible: see 013_demo_mode_down.sql.
+-- Run in Supabase SQL editor (already applied 2026-07-15). Reversible: see
+-- 014_demo_mode_down.sql.
 
 CREATE TABLE IF NOT EXISTS public.demo_keys (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),

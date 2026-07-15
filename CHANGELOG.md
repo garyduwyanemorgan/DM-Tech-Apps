@@ -27,7 +27,15 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 
 ## [1.0.0] - 2026-07-15
 
-- Maintenance release (no itemized changes).
+- feat(demo): self-service demo mode — one-click 30-day activation (server-provisioned
+  key, never typed by the user), unlimited sites while active, read-only after expiry
+  with billing kept open as the one-click switch-to-live (migration 014)
+- feat(users): Sites column in User Management — checkbox multi-select of the sites each
+  user can work on; editable by Executive Management only (`users.sites.assign`)
+- feat(authz): admin site scope now honours direct site assignments in addition to
+  project-derived sites
+- feat(api): `/sites` returns site ids; `/users` returns per-user `site_ids` (batched)
+- test: demo-mode decision logic + executive-only permission coverage
 
 ## [0.7.0] - 2026-07-14
 
