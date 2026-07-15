@@ -116,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onSitesChanged: _onSitesChanged,
 }) => {
-  const { signOut, role, organizationId, user } = useAuth()
+  const { signOut, role, organizationId, user, showSampleData, getToken, email } = useAuth()
   const [sites, setSites] = useState<string[]>([])
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -128,7 +128,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   useEffect(() => {
     if (organizationId) fetchSites()
-  }, [organizationId])
+    // Re-fetch when the active site changes too — creating/deleting a site
+    // switches the active site, and the list here must pick that up.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationId, activeSite])
 
   // The group holding the active tab always stays visible.
   useEffect(() => {
@@ -151,8 +154,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const fetchSites = async () => {
     try {
+      // Fresh token per request — the backend fails closed on unauthenticated
+      // calls, so an anonymous fetch 401s and the site list looks empty.
       const headers: HeadersInit = {}
+      const t = await getToken()
+      if (t) headers['Authorization'] = `Bearer ${t}`
       if (organizationId) headers['X-Organization-ID'] = organizationId
+      if (email) headers['X-User-Email'] = email
       const res = await fetch('/api/sites', { headers })
       const data = await res.json()
       if (data.sites) {
@@ -324,8 +332,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
+          {/* "Showing sample data" tracks the account's sample-data flag — it
+              must never appear while the flag is off (the label previously
+              keyed off an empty site list, which is unrelated). */}
           <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', marginTop: '0.3rem', paddingLeft: '2px' }}>
-            {sites.length === 0 ? 'Showing sample data' : `${sites.length} site${sites.length > 1 ? 's' : ''} available`}
+            {showSampleData
+              ? 'Showing sample data'
+              : sites.length === 0
+                ? 'No sites configured yet'
+                : `${sites.length} site${sites.length > 1 ? 's' : ''} available`}
           </div>
         </div>
       )}
