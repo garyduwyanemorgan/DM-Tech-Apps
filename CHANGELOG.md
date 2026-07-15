@@ -25,6 +25,11 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [1.0.1] - 2026-07-15
+
+- feat(ui): searchable multi-select dropdown for site assignment
+- chore: itemize v1.0.0 changelog and renumber demo migration to 014
+
 ## [1.0.0] - 2026-07-15
 
 - feat(demo): self-service demo mode — one-click 30-day activation (server-provisioned
@@ -128,7 +133,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.7.0...v1.0.0
 [0.7.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v0.5.0...v0.6.0
