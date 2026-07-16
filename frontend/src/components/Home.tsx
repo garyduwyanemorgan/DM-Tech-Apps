@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Waves } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useFeatures, featureForTab } from '../context/FeaturesContext'
 
 interface HomeProps {
   activeSite: string
@@ -9,6 +10,7 @@ interface HomeProps {
 
 export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
   const { organizationId, token, showSampleData } = useAuth()
+  const { features } = useFeatures()
   const [siteCount, setSiteCount] = useState<number | null>(null)
 
   useEffect(() => {
@@ -133,7 +135,12 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
               btn: 'Compliance Reporting',
               tab: 'compliance',
             },
-          ].map(item => (
+          ].filter(item => {
+            // Shortcuts into a feature switched off in Settings › Features are
+            // hidden along with the feature's sidebar section.
+            const owner = featureForTab(item.tab)
+            return !owner || features[owner]
+          }).map(item => (
             <div
               key={item.tab}
               style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}

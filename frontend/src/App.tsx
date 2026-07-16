@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Menu, Waves } from 'lucide-react'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { FeaturesProvider, useFeatures, featureForTab } from './context/FeaturesContext'
 import { roleMeta } from './lib/roles'
 import { Login } from './components/Login'
 import { Sidebar } from './components/Sidebar'
@@ -59,6 +60,7 @@ const TAB_TITLES: Record<string, string> = {
 
 function AppContent() {
   const { user, loading, role } = useAuth()
+  const { features } = useFeatures()
   const [activeTab, setActiveTab] = useState('home')
   const [activeSite, setActiveSite] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -72,6 +74,15 @@ function AppContent() {
       setActiveTab('dashboard')
     }
   }, [loading, user])
+
+  // If the page being viewed belongs to a feature that has been switched off
+  // in Settings › Features, fall back to Home rather than showing a page the
+  // navigation no longer offers.
+  useEffect(() => {
+    const owner = featureForTab(activeTab)
+    if (owner && !features[owner]) setActiveTab('home')
+  }, [activeTab, features])
+
   if (loading) {
     return (
       <div style={{ display: 'flex', flex: 1, minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
@@ -171,7 +182,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <FeaturesProvider>
+        <AppContent />
+      </FeaturesProvider>
     </AuthProvider>
   )
 }

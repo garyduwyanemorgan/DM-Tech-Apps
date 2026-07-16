@@ -5,6 +5,8 @@ import { PageHeader } from './PageHeader'
 import { SiteManager } from './SiteManager'
 import { UserManager } from './UserManager'
 import { SampleDataToggle } from './SampleDataToggle'
+import { Switch } from './ui/Toggle'
+import { FEATURES, useFeatures } from '../context/FeaturesContext'
 import { hasPermission } from '../lib/permissions'
 import { COLORS } from '../lib/tokens'
 
@@ -371,6 +373,46 @@ const DemoPanel: React.FC<{ organizationId: string | null; token: string | null;
   )
 }
 
+// Settings › Features — switch whole platform sections on and off. Off = the
+// section's sidebar group and its Home-page shortcuts disappear; on = they
+// come straight back. Same card layout as the Sample/Demo Data block.
+const FeaturesPanel: React.FC = () => {
+  const { features, setFeature } = useFeatures()
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {FEATURES.map(f => (
+        <div
+          key={f.key}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0',
+            borderRadius: '8px', gap: '1rem', flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ flex: '1 1 320px' }}>
+            <div style={{ fontWeight: 600, color: '#1B3A5C', marginBottom: '2px' }}>{f.label}</div>
+            <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>
+              {f.description}
+            </div>
+          </div>
+          <Switch
+            value={features[f.key]}
+            onChange={(v) => setFeature(f.key, v)}
+            showLabel
+            ariaLabel={f.label}
+          />
+        </div>
+      ))}
+      <div style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.5 }}>
+        Switching a feature off hides its section from the sidebar and its shortcuts
+        from the Home page. Nothing is deleted — switch it back on and everything
+        returns exactly as it was. Saved to this browser.
+      </div>
+    </div>
+  )
+}
+
 const APP_VERSION = import.meta.env.VITE_APP_VERSION
 const BUILD_TIME = import.meta.env.VITE_BUILD_TIME
 
@@ -437,6 +479,7 @@ export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite })
   const tabs: { id: string; label: string }[] = [
     ...(isAdmin ? [{ id: 'billing', label: 'Plan & Billing' }] : []),
     { id: 'display', label: 'Data & Display' },
+    { id: 'features', label: 'Features' },
     ...(isAdmin ? [
       { id: 'sites', label: 'Site Management' },
       { id: 'users', label: 'User Management' },
@@ -514,6 +557,15 @@ export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite })
               Billing, site, and user management are visible to Admins and Super Admins only.
             </div>
           )}
+        </TabPanel>
+
+        <TabPanel id="features" style={panelStyle}>
+          {/* Visible to every role — the toggles are a per-browser display
+              preference, like Data & Display. */}
+          <div className="glass-card">
+            <h3 className="section-heading" style={{ marginTop: 0, marginBottom: '1rem' }}>Features</h3>
+            <FeaturesPanel />
+          </div>
         </TabPanel>
 
         {isAdmin && (

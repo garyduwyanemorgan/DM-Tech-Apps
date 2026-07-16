@@ -18,6 +18,7 @@ import {
 import { RoleBadge } from './RoleBadge'
 import { COLORS } from '../lib/tokens'
 import { hasPermission, type Permission } from '../lib/permissions'
+import { useFeatures, type FeatureKey } from '../context/FeaturesContext'
 
 interface SidebarProps {
   activeTab: string
@@ -47,6 +48,8 @@ interface NavEntry {
   permission?: Permission
   /** Present on groups only. */
   children?: NavItem[]
+  /** Hidden entirely while this feature is switched off in Settings › Features. */
+  feature?: FeatureKey
 }
 
 const NAV: NavEntry[] = [
@@ -71,14 +74,14 @@ const NAV: NavEntry[] = [
     ],
   },
   {
-    icon: FileText, label: 'Reporting',
+    icon: FileText, label: 'Reporting', feature: 'reporting',
     children: [
       { id: 'compliance', label: 'Compliance Reporting' },
       { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
     ],
   },
   {
-    icon: FlaskConical, label: 'Intelligence',
+    icon: FlaskConical, label: 'Intelligence', feature: 'intelligence',
     children: [
       { id: 'drivers',    label: 'Environmental Drivers' },
       { id: 'chemistry',  label: 'Chemistry Loop' },
@@ -87,7 +90,7 @@ const NAV: NavEntry[] = [
     ],
   },
   {
-    icon: BookOpen, label: 'Reference',
+    icon: BookOpen, label: 'Reference', feature: 'reference',
     children: [
       { id: 'calendar',     label: 'Seasonal Treatment Calendar' },
       { id: 'technologies', label: 'Intervention Technologies' },
@@ -117,6 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSitesChanged: _onSitesChanged,
 }) => {
   const { signOut, role, organizationId, user, showSampleData, getToken, email } = useAuth()
+  const { features } = useFeatures()
   const [sites, setSites] = useState<string[]>([])
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
@@ -349,6 +353,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
         {NAV.map((entry) => {
           const Icon = entry.icon
+
+          // Feature switched off in Settings › Features — hide the whole entry.
+          if (entry.feature && !features[entry.feature]) return null
 
           // Single item
           if (entry.id) {
