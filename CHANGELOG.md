@@ -25,6 +25,11 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [1.7.0] - 2026-07-22
+
+- feat(landing): public landing page with the GDM mosaic globe as its hero
+- feat(scope): park the lagoon world behind a feature flag; drop "Start here"
+
 ## [1.6.0] - 2026-07-21
 
 - feat(standards,upload,docs): close the open issues
@@ -178,7 +183,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.4.0...v1.4.1
