@@ -119,10 +119,37 @@ def test_provenance_is_bound(name):
 
 
 @pytest.mark.parametrize("name", REPORTS)
-def test_gates_find_no_anomalies_in_known_good_reports(name):
-    """All three fixtures are clean reports; any anomaly means a parser regression."""
+def test_gates_find_no_parser_anomalies_in_known_good_reports(name):
+    """All three fixtures parse cleanly; any [parser] anomaly is a regression.
+
+    [source] findings are a different thing: they are true statements about the
+    document, not faults in our reading of it. These certificates legitimately
+    carry one — they cite a superseded edition of GU44 — so the assertion is
+    scoped to parser faults rather than demanding an empty list.
+    """
     sample = gates.apply(_load(name))
-    assert sample.anomalies == [], f"{name}: {sample.anomalies}"
+    parser_faults = [a for a in sample.anomalies if a.startswith("[parser]")]
+    assert parser_faults == [], f"{name}: {parser_faults}"
+
+
+@pytest.mark.parametrize("name", ["WD-R-260421-0222_microbiology.pdf",
+                                  "WD-R-260421-0235_legionella.pdf"])
+def test_superseded_gu44_citation_is_flagged(name):
+    """Both certificates cite DM-HSD-GU44-LCWS2 edition 2024 despite being
+    sampled in 2026, after V6 was issued on 19 August 2025. The limits are
+    unchanged, so the verdicts stand — but a regulator can reasonably ask why a
+    2026 certificate names a superseded document, and the client should hear it
+    from us first."""
+    sample = gates.apply(_load(name))
+    stale = [a for a in sample.anomalies if "superseding" in a]
+    assert len(stale) == 1, sample.anomalies
+    assert "DM-HSD-GU44-LCWS2" in stale[0] and "2025-08-19" in stale[0]
+
+
+def test_a_certificate_citing_no_standard_is_not_flagged():
+    """The chemistry form cites nothing, so there is no edition to be stale."""
+    sample = gates.apply(_load("WD-R-260616-0203_chemistry.pdf"))
+    assert not any("superseding" in a for a in sample.anomalies)
 
 
 @pytest.mark.parametrize("name", REPORTS)

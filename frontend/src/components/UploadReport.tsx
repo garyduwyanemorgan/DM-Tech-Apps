@@ -115,6 +115,16 @@ interface FormRow {
 }
 
 const ADD_NEW = '__add_new__'
+/** Default choice: let the certificate declare its own type.
+ *
+ *  A facilities client cannot reasonably tell "Lagoon Water Quality" from
+ *  "Chemical Analysis" — that is a laboratory distinction, not theirs. But the
+ *  certificate already states it: every Wimpey form carries a `Form No:` code
+ *  the parser reads with certainty (WRF1-W-001 chemistry, WRF2-W-001
+ *  microbiology, WRF2-W-002 legionella). So the default is to detect it and
+ *  show what was found, and the dropdown becomes an override rather than a
+ *  question the client has to answer before they can upload anything. */
+const DETECT = '__detect__'
 
 /** A sampled asset — the thing a certificate is about, and the thing that
  *  carries the specification scope. */
@@ -714,7 +724,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   const [error, setError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [reportTypes, setReportTypes] = useState<ReportTypeOption[]>([])
-  const [selectedType, setSelectedType] = useState<string>('lagoon')
+  const [selectedType, setSelectedType] = useState<string>(DETECT)
   const [showAddType, setShowAddType] = useState(false)
   const [conflict, setConflict] = useState<TypeConflict | null>(null)
   /** Step 2 rows. Empty until an extraction (or the lagoon manual fallback)
@@ -743,6 +753,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   // fixed monthly `readings` table, so it is identified by its own report type.
   // Everything else is a certificate about an asset and goes to lab_samples.
   const isLagoon = selectedType === 'lagoon'
+  const detecting = selectedType === DETECT
   const selectedAsset = assets.find(a => a.id === assetId) ?? null
   const typeLabel = (key?: string | null) =>
     assetTypes.find(t => t.key === key)?.label ?? (key ?? '').replace(/_/g, ' ')
@@ -875,7 +886,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       form.append('file', compact)
       // The chosen type is sent so the server can report a disagreement with the
       // certificate's own form code. It never overrides what the document says.
-      form.append('report_type', selectedType)
+      form.append('report_type', detecting ? '' : selectedType)
       const headers: Record<string, string> = {}
       if (organizationId) headers['X-Organization-ID'] = organizationId
       const extractToken = await getToken()
@@ -893,6 +904,11 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       if (extracted?.remarks) setExtractNotes(extracted.remarks)
       const found = extracted?.results?.length ?? 0
 
+      // The certificate declares its own type; adopt it so the rest of the flow
+      // agrees with the document rather than with a guess made before upload.
+      if (detecting && extracted?.report_type && extracted.report_type !== 'scanned') {
+        setSelectedType(extracted.report_type)
+      }
       // Step 2 is now built from the document: one field per reported parameter.
       setRows(rowsFromSample(extracted))
       const prefilled = prefillFromSample(extracted, setFields)
@@ -964,7 +980,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       const res = await fetch('/api/lab-samples', {
         method: 'POST', headers,
         body: JSON.stringify({ sample, results: edited, site: activeSite,
-                               report_type: selectedType,
+                               report_type: detecting ? (sample?.report_type ?? '') : selectedType,
                                asset_id: assetId || null, asset_type: assetType || null }),
       })
       const data = await res.json()
@@ -1071,15 +1087,18 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
             }}
             style={{ width: '100%', boxSizing: 'border-box' }}
           >
+            <option value={DETECT}>Detect from the certificate</option>
             {reportTypes.map(t => (
               <option key={t.key} value={t.key}>{t.label}</option>
             ))}
             <option value={ADD_NEW}>+ Add new report type…</option>
           </select>
           <span style={hintStyle}>
-            {isLagoon
-              ? 'Monthly lagoon reading — saved to the compliance record.'
-              : 'Which limits apply is decided by the asset this certificate is about.'}
+            {detecting
+              ? 'Read from the certificate itself — you do not need to know which analysis it is.'
+              : isLagoon
+                ? 'Monthly lagoon reading — saved to the compliance record.'
+                : `Set manually to ${reportTypes.find(t => t.key === selectedType)?.label ?? selectedType}. Clear this back to "Detect" unless you know the certificate is mislabelled.`}
           </span>
         </div>
 

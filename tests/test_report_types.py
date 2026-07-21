@@ -283,3 +283,38 @@ def test_stored_class_beats_the_type_key_when_they_disagree():
 def test_pre_019_rows_without_a_class_fall_back_to_the_builtin_taxonomy():
     assert scope_of_asset({"asset_type": "water_tank", "scope": SCOPE_FACILITIES}) == SCOPE_FACILITIES
     assert scope_of_asset({"asset_type": "pump", "scope": SCOPE_FACILITIES}) is None
+
+
+# --------------------------------------------------------------------------
+# Standard editions — stale citation detection
+# --------------------------------------------------------------------------
+
+def test_citation_check_is_silent_on_unknown_standards():
+    """We only speak when we hold the edition facts. A confident 'your citation
+    is out of date' about a document we have never read would send the client to
+    argue with their laboratory over nothing."""
+    from core.standards import citation_is_stale
+    assert citation_is_stale("SOME-OTHER-CODE", "2019") is None
+    assert citation_is_stale("", "2019") is None
+
+
+def test_citation_check_needs_a_readable_year():
+    from core.standards import citation_is_stale
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "") is None
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "n/a") is None
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "24") is None
+
+
+def test_current_or_newer_citation_is_not_flagged():
+    from core.standards import citation_is_stale
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "2025") is None
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "2026") is None
+
+
+def test_a_sample_taken_before_the_reissue_is_not_flagged():
+    """The old citation was correct at the time. The certificate is not wrong,
+    it is simply old, and flagging it would be noise."""
+    from datetime import date
+    from core.standards import citation_is_stale
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "2024", date(2025, 1, 5)) is None
+    assert citation_is_stale("DM-HSD-GU44-LCWS2", "2024", date(2026, 4, 21)) is not None

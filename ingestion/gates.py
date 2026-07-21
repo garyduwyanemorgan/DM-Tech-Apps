@@ -83,6 +83,16 @@ def check_consistency(sample: LabSample) -> list[str]:
     if not sample.sampling_point:
         anomalies.append("[parser] no sampling point — the record cannot be tied to an asset")
 
+    # ── the citation itself ──
+    # A laboratory's LIMS template can keep printing a superseded edition long
+    # after the regulator reissues the guideline. The limits usually survive
+    # unchanged, so the numbers stay right while the citation does not — and the
+    # client is the one who has to answer for it.
+    from core.standards import citation_is_stale
+    stale = citation_is_stale(sample.standard_code, sample.standard_year, sample.sampled_at)
+    if stale:
+        anomalies.append(stale)
+
     return anomalies
 
 
