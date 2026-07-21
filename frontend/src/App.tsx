@@ -3,7 +3,7 @@ import { Menu, Waves } from 'lucide-react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { FeaturesProvider, useFeatures, featureForTab } from './context/FeaturesContext'
 import { roleMeta } from './lib/roles'
-import { Login } from './components/Login'
+import { Landing } from './components/Landing'
 import { Sidebar } from './components/Sidebar'
 import { Dashboard } from './components/Dashboard'
 import { ProjectDashboard } from './components/dashboards/ProjectDashboard'
@@ -92,7 +92,9 @@ function AppContent() {
   }
 
   if (!user) {
-    return <Login />
+    // Public landing page in front of the gate. It renders <Login /> itself once
+    // the visitor asks to sign in, so nothing behind authentication changes.
+    return <Landing />
   }
 
   const handleTabChange = (tab: string) => {
