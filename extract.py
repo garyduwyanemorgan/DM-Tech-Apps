@@ -13,9 +13,8 @@ Images are downscaled/re-encoded before the API call: a 10MB phone photo adds
 seconds of transfer + vision tokens for zero accuracy gain at lab-report text
 sizes.
 
-Requires an Anthropic API key: either the `[anthropic] api_key` entry in
-.streamlit/secrets.toml (local dev) or the ANTHROPIC_API_KEY environment
-variable (Render/serverless).
+Requires an Anthropic API key: set ANTHROPIC_API_KEY (env var on Render, or
+`.env` locally). See core/config.py for the full resolution order.
 """
 from __future__ import annotations
 
@@ -25,6 +24,8 @@ import os
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+from core.config import secret
 
 DEFAULT_MODEL = "claude-haiku-4-5"
 
@@ -73,23 +74,8 @@ _PROMPT = (
 
 
 def _anthropic_api_key() -> str:
-    """Resolve the Anthropic API key from .streamlit/secrets.toml [anthropic] or
-    the ANTHROPIC_API_KEY env var (secrets.toml wins locally; env var is used on
-    Render/serverless, matching how the rest of the app resolves secrets)."""
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib  # Python < 3.11 fallback
-    try:
-        import pathlib
-        toml_path = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
-        with open(toml_path, "rb") as f:
-            key = tomllib.load(f).get("anthropic", {}).get("api_key", "")
-        if key:
-            return key
-    except Exception:
-        pass
-    return os.environ.get("ANTHROPIC_API_KEY", "")
+    """Resolve the Anthropic API key (ANTHROPIC_API_KEY env -> .env -> secrets.toml)."""
+    return secret("anthropic", "api_key")
 
 
 def is_configured() -> bool:

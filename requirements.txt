@@ -17,7 +17,12 @@ httpx==0.28.1              # Checkout.com provider (REST) — also a supabase de
 # ── PDF report generation (the paid deliverable) ──
 reportlab==4.5.1
 
-# ── Lab-report photo/PDF extraction (Claude vision) ──
+# ── Lab-report ingestion ──
+# Wimpey Laboratories PDFs carry a text layer and ruled tables, so they are
+# parsed deterministically (ingestion/wimpey.py) — no model call, exact values,
+# reproducible from the source document for audit. Vision is the fallback for
+# scanned reports only.
+pdfplumber==0.11.9
 anthropic==0.109.2
 pillow==12.2.0            # image downscale before vision call (extract.py)
 

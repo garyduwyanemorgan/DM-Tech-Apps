@@ -115,14 +115,11 @@ def get_site_names(organization_id: str | None = None, token: str | None = None)
             pass
 
     # ── Fallbacks ──
-    # 1. Streamlit secrets
-    try:
-        import streamlit as st
-        names = list(st.secrets.get("site_passwords", {}).keys())
-        if names:
-            return names
-    except Exception:
-        pass
+    # 1. Local secrets.toml [site_passwords] — one entry per client site
+    from core.config import secret_block
+    names = list(secret_block("site_passwords").keys())
+    if names:
+        return names
     # 2. Environment variable
     import os
     raw = os.environ.get("LAGOON_SITES", "")

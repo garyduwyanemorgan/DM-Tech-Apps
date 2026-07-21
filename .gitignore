@@ -6,6 +6,19 @@
 *.env
 *.key
 *.bak
+# ...but the placeholder-only template IS tracked (re-included after the globs
+# above, which would otherwise swallow it via `.env.*`).
+!.env.example
+
+# ── Client lab reports & SOPs ──
+# ~31 MB of PDFs/DOCX/images (one 16.6 MB PDF, one 7.3 MB PNG). They stay on disk
+# but out of git: binaries bloat history permanently and git cannot diff them.
+# Globbing the *contents*, not the directory, so the negation below still applies —
+# git will not descend into an excluded directory to reconsider a file.
+# The extraction/reporting protocol note IS tracked (real project documentation),
+# and the three parser regression fixtures live in tests/fixtures/wimpey/.
+Lab Reports Example/*
+!Lab Reports Example/*.md
 
 # Node / frontend build
 node_modules/

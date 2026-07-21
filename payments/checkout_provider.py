@@ -1,13 +1,11 @@
 """Checkout.com implementation of PaymentProvider (active default).
 
-Credentials — [checkout] block in .streamlit/secrets.toml or env vars:
+Credentials (env var, .env, or the legacy [checkout] block in secrets.toml —
+see core/config.py):
 
-    [checkout]
-    secret_key      = "sk_..."        # sk_sbox_... routes to the sandbox API
-    webhook_secret  = "..."           # HMAC key used to sign webhook payloads
-    billing_country = "AE"            # ISO country for hosted payment pages
-
-    CHECKOUT_SECRET_KEY / CHECKOUT_WEBHOOK_SECRET / CHECKOUT_BILLING_COUNTRY
+    CHECKOUT_SECRET_KEY       # sk_sbox_... routes to the sandbox API
+    CHECKOUT_WEBHOOK_SECRET   # HMAC key used to sign webhook payloads
+    CHECKOUT_BILLING_COUNTRY  # ISO country for hosted payment pages (default AE)
 
 How subscriptions work here (Checkout.com has no Stripe-style subscription
 object, so the subscription lifecycle lives in the organizations table):
@@ -35,7 +33,6 @@ import hashlib
 import hmac
 import json
 import logging
-import os
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -69,14 +66,12 @@ class CheckoutComProvider(PaymentProvider):
     # ── secrets / HTTP plumbing ───────────────────────────────────────────
 
     def _secrets(self) -> dict:
-        block = read_secrets_block("checkout")
-        if block.get("secret_key"):
-            return block
-        return {
-            "secret_key":      os.environ.get("CHECKOUT_SECRET_KEY", ""),
-            "webhook_secret":  os.environ.get("CHECKOUT_WEBHOOK_SECRET", ""),
-            "billing_country": os.environ.get("CHECKOUT_BILLING_COUNTRY", "AE"),
-        }
+        """Read Checkout.com keys — CHECKOUT_* env vars, .env, then secrets.toml."""
+        return read_secrets_block("checkout", (
+            "secret_key",
+            "webhook_secret",
+            "billing_country",
+        ))
 
     def is_configured(self) -> bool:
         return bool(self._secrets().get("secret_key"))

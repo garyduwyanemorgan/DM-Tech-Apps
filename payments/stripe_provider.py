@@ -2,19 +2,15 @@
 
 DISABLED BY DEFAULT — the platform now runs on Checkout.com. This
 implementation is kept intact and can be re-enabled with no code changes by
-setting either:
+setting PAYMENT_PROVIDER=stripe.
 
-    PAYMENT_PROVIDER=stripe                      (environment variable)
-    [payments] provider = "stripe"               (.streamlit/secrets.toml)
-
-Credentials come from the [stripe] block in secrets.toml or STRIPE_* env
-vars, exactly as before. Stripe subscriptions bill automatically, so the
-base-class charge_recurring() no-op applies.
+Credentials are the STRIPE_* env vars (or the legacy [stripe] block in
+secrets.toml — see core/config.py). Stripe subscriptions bill automatically,
+so the base-class charge_recurring() no-op applies.
 """
 from __future__ import annotations
 
 import logging
-import os
 from typing import Optional
 
 from payments.base import PaymentProvider
@@ -30,17 +26,14 @@ class StripeProvider(PaymentProvider):
     # ── secrets ───────────────────────────────────────────────────────────
 
     def _secrets(self) -> dict:
-        """Read Stripe keys from secrets.toml or env vars."""
-        block = read_secrets_block("stripe")
-        if block.get("secret_key"):
-            return block
-        return {
-            "secret_key":         os.environ.get("STRIPE_SECRET_KEY", ""),
-            "webhook_secret":     os.environ.get("STRIPE_WEBHOOK_SECRET", ""),
-            "price_starter":      os.environ.get("STRIPE_PRICE_STARTER", ""),
-            "price_growth":       os.environ.get("STRIPE_PRICE_GROWTH", ""),
-            "price_professional": os.environ.get("STRIPE_PRICE_PROFESSIONAL", ""),
-        }
+        """Read Stripe keys — STRIPE_* env vars, .env, then secrets.toml [stripe]."""
+        return read_secrets_block("stripe", (
+            "secret_key",
+            "webhook_secret",
+            "price_starter",
+            "price_growth",
+            "price_professional",
+        ))
 
     def is_configured(self) -> bool:
         return bool(self._secrets().get("secret_key"))

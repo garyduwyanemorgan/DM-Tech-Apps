@@ -13,10 +13,8 @@ Available providers:
 """
 from __future__ import annotations
 
-import os
-
+from core.config import secret
 from payments.base import PaymentProvider
-from payments.config import read_secrets_block
 
 DEFAULT_PROVIDER = "checkout"
 
@@ -24,12 +22,8 @@ _instances: dict[str, PaymentProvider] = {}
 
 
 def provider_name() -> str:
-    """Resolve the configured provider name (env var → secrets.toml → default)."""
-    name = os.environ.get("PAYMENT_PROVIDER", "").strip().lower()
-    if not name:
-        block = read_secrets_block("payments")
-        name = str(block.get("provider", "")).strip().lower()
-    return name or DEFAULT_PROVIDER
+    """Resolve the configured provider name (env var → .env → secrets.toml → default)."""
+    return secret("payments", "provider").lower() or DEFAULT_PROVIDER
 
 
 def get_provider(name: str | None = None) -> PaymentProvider:

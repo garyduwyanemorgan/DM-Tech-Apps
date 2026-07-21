@@ -1,7 +1,207 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { Save, Upload, Sparkles, FileText } from 'lucide-react'
+import { Save, Upload, Sparkles, FileText, AlertTriangle, Clock } from 'lucide-react'
 import { PageHeader } from './PageHeader'
+import { StatusBadge } from './ui'
+import { COLORS, tableHeaderStyle, tableCellStyle } from '../lib/ui'
+
+// ── Lab sample (POST /api/extract response) ──────────────────────────────────
+export type LabResultStatus = 'PASS' | 'FAIL' | 'NOT_ASSESSED'
+export type ReviewerStatus = 'pending' | 'approved' | 'corrected' | 'rejected'
+
+export interface LabResult {
+  parameter: string
+  test_method?: string | null
+  unit?: string | null
+  /** Verbatim as printed on the certificate ("<1", "Not Detected", "7.42").
+   *  Always displayed as-is — never substitute value_num. */
+  value_raw?: string | null
+  value_num?: number | null
+  qualifier?: string | null
+  loq?: string | null
+  mou?: string | null
+  specification?: string | null
+  status?: LabResultStatus | null
+}
+
+export interface LabSample {
+  laboratory?: string | null
+  report_no?: string | null
+  form_type?: string | null
+  /** 'scanned' for the OCR/no-structure fallback path. */
+  report_type?: string | null
+  sampling_point?: string | null
+  sample_location?: string | null
+  sample_identification?: string | null
+  source_of_sample?: string | null
+  sample_description?: string | null
+  sampled_at?: string | null
+  received_at?: string | null
+  reported_at?: string | null
+  analysis_start?: string | null
+  analysis_end?: string | null
+  sampling_time?: string | null
+  sampled_by?: string | null
+  sampling_method?: string | null
+  sampling_apparatus?: string | null
+  sample_volume?: string | null
+  temperature_c?: number | string | null
+  analyst?: string | null
+  reviewed_by?: string | null
+  remarks?: string | null
+  results?: LabResult[] | null
+  source_filename?: string | null
+  source_sha256?: string | null
+  extraction_method?: string | null
+  /** 0–1 model confidence; rendered as a percentage. */
+  extraction_confidence?: number | null
+  reviewer_status?: ReviewerStatus | null
+  anomalies?: string[] | null
+}
+
+/** Em-dash placeholder so empty cells read as "not on the certificate"
+ *  rather than as a broken table. */
+const DASH = '—'
+const show = (v: unknown): string => {
+  if (v === null || v === undefined) return DASH
+  const s = String(v).trim()
+  return s === '' ? DASH : s
+}
+
+const STATUS_TONE: Record<LabResultStatus, 'green' | 'red' | 'slate'> = {
+  PASS: 'green', FAIL: 'red', NOT_ASSESSED: 'slate',
+}
+const STATUS_LABEL: Record<LabResultStatus, string> = {
+  PASS: 'Pass', FAIL: 'Fail', NOT_ASSESSED: 'Not assessed',
+}
+
+const REVIEW_COPY: Record<ReviewerStatus, { tone: 'amber' | 'green' | 'blue' | 'red'; label: string; note: string }> = {
+  pending: { tone: 'amber', label: 'Pending review', note: 'Nothing has been saved yet. A person must check these values against the certificate and approve them before they enter the record.' },
+  approved: { tone: 'green', label: 'Approved', note: 'These values have been checked against the certificate and approved.' },
+  corrected: { tone: 'blue', label: 'Corrected', note: 'A reviewer has amended these values against the certificate.' },
+  rejected: { tone: 'red', label: 'Rejected', note: 'A reviewer rejected this extraction — do not use these values.' },
+}
+
+const confidencePct = (c?: number | null): string =>
+  c === null || c === undefined || Number.isNaN(c) ? DASH : `${Math.round((c <= 1 ? c * 100 : c))}%`
+
+/** Provenance + results + anomalies for one extracted certificate. */
+const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
+  const results = sample.results ?? []
+  const anomalies = sample.anomalies ?? []
+  const review = REVIEW_COPY[sample.reviewer_status ?? 'pending'] ?? REVIEW_COPY.pending
+  const scanned = (sample.report_type ?? '').toLowerCase() === 'scanned'
+
+  const meta: { label: string; value: string }[] = [
+    { label: 'Laboratory', value: show(sample.laboratory) },
+    { label: 'Report No.', value: show(sample.report_no) },
+    { label: 'Report Type', value: show(sample.report_type) },
+    { label: 'Sampling Point', value: show(sample.sampling_point || sample.sample_location) },
+    { label: 'Sampled', value: show(sample.sampled_at) },
+    { label: 'Reported', value: show(sample.reported_at) },
+    { label: 'Analyst', value: show(sample.analyst) },
+    { label: 'Reviewed By', value: show(sample.reviewed_by) },
+    { label: 'Extracted By', value: show(sample.extraction_method) },
+    { label: 'Extraction Confidence', value: confidencePct(sample.extraction_confidence) },
+  ]
+
+  return (
+    <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+        <h3 className="section-heading" style={{ marginTop: 0, marginBottom: 0 }}>Extracted certificate</h3>
+        <StatusBadge tone={review.tone}>{review.label}</StatusBadge>
+      </div>
+
+      {/* Not-yet-saved banner — the single most important message on this panel. */}
+      <div style={{
+        display: 'flex', gap: '0.6rem', alignItems: 'flex-start',
+        background: COLORS.amberBg, color: COLORS.amberFg, border: `1px solid ${COLORS.amberBorder}`,
+        padding: '0.75rem 1rem', borderRadius: 6, margin: '0.9rem 0 1.1rem', fontSize: '0.875rem',
+      }}>
+        <Clock size={16} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+        <span><strong>{review.label}.</strong> {review.note}</span>
+      </div>
+
+      {/* Data-quality findings — must be impossible to miss. */}
+      {anomalies.length > 0 && (
+        <div
+          role="alert"
+          style={{
+            background: COLORS.redBg, color: COLORS.redFg, border: `2px solid ${COLORS.redBorder}`,
+            borderRadius: 8, padding: '0.9rem 1.1rem', marginBottom: '1.1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+            <AlertTriangle size={18} aria-hidden="true" />
+            {anomalies.length} data-quality {anomalies.length === 1 ? 'issue' : 'issues'} found — check before approving
+          </div>
+          <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.85rem', lineHeight: 1.55 }}>
+            {anomalies.map((a, i) => <li key={i}>{a}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {scanned && (
+        <p style={{ fontSize: '0.82rem', color: COLORS.slate, marginBottom: '1rem' }}>
+          This report was read as a scan, so header details and per-parameter methods or specifications may be missing.
+          Blank cells ({DASH}) mean the value was not present on the certificate.
+        </p>
+      )}
+
+      {/* Provenance */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '0.9rem 1.25rem', marginBottom: '1.5rem' }}>
+        {meta.map(m => (
+          <div key={m.label}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: COLORS.slate }}>{m.label}</div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1B3A5C', wordBreak: 'break-word' }}>{m.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Results */}
+      {results.length === 0 ? (
+        <p style={{ fontSize: '0.875rem', color: COLORS.slate }}>No individual test results were found in this report.</p>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+            <caption style={{ captionSide: 'top', textAlign: 'left', fontSize: '0.8rem', color: COLORS.slate, paddingBottom: '0.5rem' }}>
+              {results.length} test {results.length === 1 ? 'result' : 'results'} — shown exactly as printed on the certificate.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col" style={tableHeaderStyle}>Parameter</th>
+                <th scope="col" style={tableHeaderStyle}>Result</th>
+                <th scope="col" style={tableHeaderStyle}>Unit</th>
+                <th scope="col" style={tableHeaderStyle}>Method</th>
+                <th scope="col" style={tableHeaderStyle}>Specification</th>
+                <th scope="col" style={tableHeaderStyle}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((r, i) => {
+                const status = (r.status ?? 'NOT_ASSESSED') as LabResultStatus
+                const tone = STATUS_TONE[status] ?? 'slate'
+                return (
+                  <tr key={`${r.parameter}-${i}`}>
+                    <th scope="row" style={{ ...tableCellStyle, textAlign: 'left', fontWeight: 600, color: '#1B3A5C' }}>{show(r.parameter)}</th>
+                    {/* value_raw verbatim: '<1' and 'Not Detected' are regulatorily meaningful. */}
+                    <td style={{ ...tableCellStyle, fontWeight: 600, whiteSpace: 'nowrap' }}>{show(r.value_raw)}</td>
+                    <td style={tableCellStyle}>{show(r.unit)}</td>
+                    <td style={tableCellStyle}>{show(r.test_method)}</td>
+                    <td style={tableCellStyle}>{show(r.specification)}</td>
+                    <td style={tableCellStyle}>
+                      <StatusBadge tone={tone} variant="count">{STATUS_LABEL[status] ?? STATUS_LABEL.NOT_ASSESSED}</StatusBadge>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ── Extraction progress ───────────────────────────────────────────────────────
 // Stages: compress (client-side) → upload (real %) → ai (indeterminate + timer)
@@ -87,6 +287,42 @@ function defaultValues(): FieldValues {
   return v
 }
 
+const FIELD_KEYS = new Set(FIELDS.map(f => f.key))
+
+/**
+ * Prefill the Step 2 compliance form from an extracted sample.
+ *
+ * Only applies to scanned reports: the vision extractor emits exactly the 15
+ * lagoon compliance parameters, keyed by the same names as FIELDS. Wimpey
+ * certificates are microbiological/Legionella/full-chemistry and do NOT map onto
+ * this form — prefilling from them would put the wrong numbers in front of a
+ * reviewer, which is worse than leaving the defaults visible.
+ *
+ * Returns how many fields were populated, so the caller can say so.
+ */
+function prefillFromSample(
+  sample: LabSample | null,
+  setFields: React.Dispatch<React.SetStateAction<FieldValues>>,
+): number {
+  if (!sample || sample.report_type !== 'scanned') return 0
+
+  const patch: FieldValues = {}
+  for (const r of sample.results ?? []) {
+    if (FIELD_KEYS.has(r.parameter) && typeof r.value_num === 'number' && isFinite(r.value_num)) {
+      patch[r.parameter] = r.value_num
+    }
+  }
+  // Date the reading from the certificate rather than today, when it says.
+  if (sample.sampled_at) {
+    const [y, m, d] = sample.sampled_at.split('-').map(Number)
+    if (y && m && d) Object.assign(patch, { year: y, month: m, day: d })
+  }
+
+  const count = Object.keys(patch).filter(k => FIELD_KEYS.has(k)).length
+  if (count || sample.sampled_at) setFields(prev => ({ ...prev, ...patch }))
+  return count
+}
+
 export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) => {
   const { organizationId, getToken, email, role } = useAuth()
   const [fields, setFields] = useState<FieldValues>(defaultValues())
@@ -97,6 +333,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   const [uploadPct, setUploadPct] = useState(0)
   const [aiSeconds, setAiSeconds] = useState(0)
   const [extractNotes, setExtractNotes] = useState<string | null>(null)
+  const [sample, setSample] = useState<LabSample | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -106,6 +343,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   const handleFile = (f: File) => {
     setFile(f)
     setExtractNotes(null)
+    setSample(null)
     if (f.type.startsWith('image/')) {
       const url = URL.createObjectURL(f)
       setPreview(url)
@@ -134,6 +372,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     setExtracting(true)
     setError(null)
     setExtractNotes(null)
+    setSample(null)
     setUploadPct(0)
     try {
       setStage('compress')
@@ -154,14 +393,16 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       if (!res.ok) {
         throw new Error(res.json?.detail || 'Extraction failed')
       }
-      const extracted = res.json
-      const updated = { ...fields }
-      FIELDS.forEach(f => {
-        if (extracted[f.key] != null) updated[f.key] = extracted[f.key]
-      })
-      setFields(updated)
-      if (extracted.notes) setExtractNotes(extracted.notes)
-      setMessage('Values extracted — review and correct before saving.')
+      const extracted = res.json as LabSample
+      setSample(extracted)
+      if (extracted?.remarks) setExtractNotes(extracted.remarks)
+      const found = extracted?.results?.length ?? 0
+      const prefilled = prefillFromSample(extracted, setFields)
+      setMessage(
+        `Read ${found} test ${found === 1 ? 'result' : 'results'}` +
+        (prefilled ? `, ${prefilled} prefilled below` : '') +
+        ' — nothing is saved until you review and confirm below.'
+      )
     } catch (e: any) {
       setError(e.message || 'AI extraction failed. Enter values manually.')
     } finally {
@@ -294,11 +535,16 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
         )}
       </div>
 
+      {/* ── Extracted certificate (provenance + results + anomalies) ── */}
+      {sample && <ExtractedSample sample={sample} />}
+
       {/* ── Step 2: Review & confirm ── */}
       <div className="glass-card">
         <h3 className="section-heading" style={{ marginTop: 0 }}>Step 2 — Review and confirm</h3>
         <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1.25rem' }}>
-          Values are pre-filled from the report — correct anything the AI got wrong before saving.
+          {sample
+            ? 'Confirm the compliance values against the extracted certificate above. Nothing is stored until you save.'
+            : 'Enter or correct the compliance values for this reading before saving.'}
         </p>
 
         {message && <div style={{ background: '#C6EFCE', color: '#006100', padding: '0.75rem 1rem', borderRadius: 6, marginBottom: '1rem', fontWeight: 500 }}>{message}</div>}

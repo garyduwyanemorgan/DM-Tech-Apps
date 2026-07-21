@@ -1,7 +1,12 @@
 # Render Blueprint — deploys the Dubai Lagoon dashboard.
-# In Render: New + → Blueprint → connect this repo. Then set the three env
-# vars (SUPABASE_URL, SUPABASE_KEY, LAGOON_SITES) in the dashboard, and add the
-# custom domain lagoons.gdm-enviro.com.
+# In Render: New + → Blueprint → connect this repo. Then fill in every
+# `sync: false` value in the dashboard, and add the custom domain
+# lagoons.gdm-enviro.com.
+#
+# There is no secrets.toml and no .env on Render — every secret arrives as an
+# environment variable declared below. A name that is missing here can never be
+# set, and the feature that needs it reports itself unconfigured at runtime.
+# Names follow SECTION_KEY from core/config.py; see .env.example.
 services:
   # ── Unified Application: React Frontend + FastAPI Backend ──
   - type: web
@@ -29,6 +34,33 @@ services:
       - key: CLERK_PUBLISHABLE_KEY   # backend fallback (no secrets.toml on Render)
         sync: false
       - key: CLERK_SECRET_KEY        # SECRET — set in the Render dashboard, never here
+        sync: false
+      # AI lab-report extraction (extract.py). Without this the upload endpoint
+      # returns 503 "AI extraction needs an Anthropic API key".
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Payments. PAYMENT_PROVIDER selects which block below is used; the
+      # matching *_SECRET_KEY must be set or /api checkout routes return 503.
+      - key: PAYMENT_PROVIDER
+        value: "checkout"
+      - key: CHECKOUT_SECRET_KEY
+        sync: false
+      - key: CHECKOUT_WEBHOOK_SECRET
+        sync: false
+      - key: CHECKOUT_BILLING_COUNTRY
+        value: "AE"
+      # Access-request notifications. ADMIN_NOTIFY_EMAIL also gates which address
+      # may bootstrap itself as super_admin. Without SMTP_HOST, requests are
+      # logged to stderr instead of emailed.
+      - key: ADMIN_NOTIFY_EMAIL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
         sync: false
       - key: PYTHON_VERSION
         value: "3.12.7"

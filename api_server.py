@@ -42,6 +42,7 @@ from core.audit import emit as audit_emit, emit_denial as audit_denial
 from core.authz import has_permission
 from core.scope import ALL_SITES, resolve_site_scope
 from core.calculations import check_all_compliance, compliance_summary
+from core.config import secret
 from core.constants import ALERT_LABELS, MONTH_NAMES, TREATMENT_ACTIONS, AlertLevel
 from core.models import WaterReading
 from core.version import get_version, get_version_info
@@ -82,60 +83,34 @@ _clerk_jwks_cache: dict | None = None
 def _clerk_dev_publishable_key() -> str:
     """The pk_test_ key for the Clerk dev instance, if one is configured.
 
-    Only ever set in .streamlit/secrets.toml or CLERK_DEV_PUBLISHABLE_KEY, neither
+    Only ever set via CLERK_DEV_PUBLISHABLE_KEY (.env) or secrets.toml, neither
     of which exists on Render — so a value here means we are running locally and
     should authenticate against the dev instance. A live publishable key is bound
     to its registered domain and Clerk rejects it on localhost.
     """
-    pk = _read_secrets_toml().get("clerk", {}).get("dev_publishable_key", "")
-    return pk or os.environ.get("CLERK_DEV_PUBLISHABLE_KEY", "")
+    return secret("clerk", "dev_publishable_key")
 
 
 def _clerk_publishable_key() -> str:
-    """Resolve the Clerk publishable key from secrets.toml or the env var.
-
-    On Render/serverless there is no secrets.toml, so CLERK_PUBLISHABLE_KEY must
-    be set as an environment variable; locally the .streamlit/secrets.toml value
-    takes precedence. A configured dev key wins over both.
+    """Resolve the Clerk publishable key. A configured dev key wins.
 
     This key also selects which instance's JWKS tokens are verified against
     (_clerk_jwks_url), so it must name the same instance the frontend signed the
     user in with — otherwise every authenticated request 401s.
     """
-    dev_pk = _clerk_dev_publishable_key()
-    if dev_pk:
-        return dev_pk
-    pk = _read_secrets_toml().get("clerk", {}).get("publishable_key", "")
-    if pk:
-        return pk
-    return os.environ.get("CLERK_PUBLISHABLE_KEY", "")
-
-
-def _read_secrets_toml() -> dict:
-    """Load .streamlit/secrets.toml if present (local dev); {} on Render/serverless."""
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib  # Python < 3.11 fallback
-    try:
-        with open(os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml"), "rb") as f:
-            return tomllib.load(f)
-    except Exception:
-        return {}
+    return _clerk_dev_publishable_key() or secret("clerk", "publishable_key")
 
 
 def _clerk_secret_key() -> str:
-    """Clerk Backend API secret key from secrets.toml or CLERK_SECRET_KEY env.
+    """Clerk Backend API secret key.
 
     Mirrors _clerk_publishable_key: a configured dev secret key wins, so Backend
     API writes land on the same instance we verify tokens against.
     """
-    clerk = _read_secrets_toml().get("clerk", {})
-    dev_sk = clerk.get("dev_secret_key", "") or os.environ.get("CLERK_DEV_SECRET_KEY", "")
+    dev_sk = secret("clerk", "dev_secret_key")
     if dev_sk and _clerk_dev_publishable_key():
         return dev_sk
-    sk = clerk.get("secret_key", "")
-    return sk or os.environ.get("CLERK_SECRET_KEY", "")
+    return secret("clerk", "secret_key")
 
 
 def _clerk_key_instance(key: str) -> str:
@@ -149,8 +124,7 @@ def _clerk_key_instance(key: str) -> str:
 def _admin_notify_email() -> str:
     """The single gatekeeper email address. New-user access requests are sent here,
     and only this address is allowed to bootstrap itself as super_admin."""
-    email = _read_secrets_toml().get("admin", {}).get("notify_email", "")
-    return (email or os.environ.get("ADMIN_NOTIFY_EMAIL", "")).strip().lower()
+    return secret("admin", "notify_email").lower()
 
 
 def _clerk_jwks_url() -> str:
@@ -933,7 +907,7 @@ def _require_clerk_secret_key() -> str:
             detail=(
                 f"Clerk key mismatch: verifying logins against the '{pk_instance}' "
                 f"instance but the secret key targets '{sk_instance}'. Set "
-                f"clerk.dev_secret_key (sk_{pk_instance}_…) in .streamlit/secrets.toml "
+                f"CLERK_DEV_SECRET_KEY (sk_{pk_instance}_…) in .env "
                 f"to invite users against the '{pk_instance}' instance."
             ),
         )
@@ -1031,21 +1005,20 @@ class AccessRequest(BaseModel):
 
 
 def _send_admin_email(subject: str, body_text: str) -> bool:
-    """Email the gatekeeper address via SMTP ([smtp] in secrets.toml or SMTP_* envs).
-    Returns False (after logging the message) when SMTP is not configured."""
+    """Email the gatekeeper address via SMTP (SMTP_* env vars, .env, or [smtp] in
+    secrets.toml). Returns False (after logging the message) when SMTP is not configured."""
     to_addr = _admin_notify_email()
     if not to_addr:
         print(f"[access-request] ADMIN_NOTIFY_EMAIL not set; dropping notification:\n{body_text}", file=sys.stderr)
         return False
-    smtp_cfg = _read_secrets_toml().get("smtp", {})
-    host = smtp_cfg.get("host") or os.environ.get("SMTP_HOST", "")
+    host = secret("smtp", "host")
     if not host:
         print(f"[access-request] SMTP not configured; request for admin ({to_addr}):\n{body_text}", file=sys.stderr)
         return False
-    port = int(smtp_cfg.get("port") or os.environ.get("SMTP_PORT", "587"))
-    user = smtp_cfg.get("user") or os.environ.get("SMTP_USER", "")
-    password = smtp_cfg.get("password") or os.environ.get("SMTP_PASS", "")
-    from_addr = smtp_cfg.get("from") or os.environ.get("SMTP_FROM", user or to_addr)
+    port = int(secret("smtp", "port") or "587")
+    user = secret("smtp", "user")
+    password = secret("smtp", "password")
+    from_addr = secret("smtp", "from") or user or to_addr
     import smtplib
     from email.message import EmailMessage
     msg = EmailMessage()
@@ -1204,7 +1177,7 @@ def billing_checkout(body: CheckoutRequest, profile: dict = Depends(get_current_
     _ensure_permission(profile, "billing.manage", detail="Admin access required.")
     from billing import create_checkout_session, is_configured, PLANS
     if not is_configured():
-        raise HTTPException(status_code=503, detail="Payments are not configured. Add your payment provider keys to secrets.toml.")
+        raise HTTPException(status_code=503, detail="Payments are not configured. Set the provider's *_SECRET_KEY environment variable.")
     if body.plan not in PLANS:
         raise HTTPException(status_code=422, detail=f"Unknown plan '{body.plan}'. Choose: {', '.join(PLANS.keys())}")
     org_id = profile.get("organization_id", "")
@@ -1639,8 +1612,12 @@ async def extract_lab_report_endpoint(
     file: UploadFile = File(...),
     profile: dict = Depends(get_current_user_profile),
 ):
-    """Extract water-quality readings from a lab-report photo or PDF using Claude vision.
-    Returns the 14 Compliance parameters as JSON. Human review is required before saving.
+    """Parse an uploaded lab report into a structured, gated LabSample.
+
+    Wimpey Laboratories PDFs are parsed deterministically from their text layer;
+    scanned reports fall back to Claude vision at low confidence. Either way the
+    result comes back with `reviewer_status: pending` and is NOT persisted — a
+    human approves it before it becomes data (assurance gateway, gate 6).
     """
     # Gate before spending Anthropic credits. Require a real signed-in user
     # (the resolver now fails closed on no token, but keep the explicit check as
@@ -1651,24 +1628,28 @@ async def extract_lab_report_endpoint(
         raise HTTPException(status_code=401, detail="Sign in to extract lab reports.")
     _ensure_permission(profile, "readings.create",
                        detail="Your role may not upload or extract lab reports.")
-    from extract import extract_lab_report, is_configured
-    if not is_configured():
-        raise HTTPException(
-            status_code=503,
-            detail="AI extraction needs an Anthropic API key. Add it under [anthropic] api_key in .streamlit/secrets.toml (or set the ANTHROPIC_API_KEY env var), then try the upload again.",
-        )
+
     content = await file.read()
-    media_type = file.content_type or "image/jpeg"
+    media_type = file.content_type or "application/pdf"
+    from ingestion.router import ingest
     try:
-        # Blocking SDK call — run off the event loop so one extraction
-        # doesn't freeze every other request on the server.
+        # Parsing (and any vision fallback) is blocking — run it off the event
+        # loop so one extraction doesn't freeze every other request.
         from fastapi.concurrency import run_in_threadpool
-        result = await run_in_threadpool(extract_lab_report, content, media_type)
-        return result
+        sample = await run_in_threadpool(ingest, content, media_type, file.filename or "")
     except ValueError as exc:
         raise HTTPException(status_code=415, detail=str(exc))
     except RuntimeError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
+        # Raised when the scanned-report fallback has no Anthropic key configured.
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    audit_emit("lab_report.extract", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile.get("organization_id"),
+               target_type="lab_report", target_id=sample.report_no,
+               report_type=sample.report_type, extraction_method=sample.extraction_method,
+               parameters=len(sample.results), anomalies=len(sample.anomalies))
+    # mode="json" so dates serialise to ISO strings and enums to their values.
+    return sample.model_dump(mode="json")
 
 
 @app.get("/report/{site}", tags=["Reporting"])

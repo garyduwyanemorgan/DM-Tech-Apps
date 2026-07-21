@@ -1,15 +1,14 @@
 """Supabase client — singleton, lazy-initialised.
 
-Credentials are resolved from, in order:
-  1. Streamlit secrets  [supabase] url/key   (used by the dashboard)
-  2. Environment vars   SUPABASE_URL / SUPABASE_KEY  (used by the MCP server)
+Credentials are SUPABASE_URL / SUPABASE_KEY, resolved by core.config (env ->
+.env -> secrets.toml).
 
 Returns None gracefully when Supabase is not configured or the package
 is not installed, so the dashboard falls back to sample data silently.
 """
 from __future__ import annotations
 
-import os
+from core.config import secret
 
 try:
     from supabase import create_client, Client as SupabaseClient
@@ -21,33 +20,10 @@ _client: object | None = None
 
 
 def _secrets() -> dict | None:
-    """Return {url, key} from Streamlit secrets, secrets.toml file, or env vars."""
-    # 1. Streamlit secrets (dashboard runtime)
-    try:
-        import streamlit as st
-        block = dict(st.secrets["supabase"])
-        if block.get("url") and block.get("key"):
-            return block
-    except Exception:
-        pass
-    # 2. Read .streamlit/secrets.toml directly (FastAPI / uvicorn runtime)
-    try:
-        import tomllib
-        import pathlib
-        toml_path = pathlib.Path(__file__).parent.parent / ".streamlit" / "secrets.toml"
-        with open(toml_path, "rb") as f:
-            data = tomllib.load(f)
-        block = data.get("supabase", {})
-        if block.get("url") and block.get("key"):
-            return block
-    except Exception:
-        pass
-    # 3. Environment variables (CI / cloud runtime)
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_KEY")
-    if url and key:
-        return {"url": url, "key": key}
-    return None
+    """Return {url, key}, or None when Supabase is not configured."""
+    url = secret("supabase", "url")
+    key = secret("supabase", "key")
+    return {"url": url, "key": key} if url and key else None
 
 
 def get_client(token: str | None = None):
