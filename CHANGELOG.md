@@ -25,6 +25,13 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [1.5.0] - 2026-07-21
+
+- feat(kpi,dashboards,nav): connect uploaded certificates to the dashboards
+- feat(reporting,home,upload): audits 4, 5 and 6
+- chore(brand): rename to Compliance Intelligence Platform
+- feat(nav,sites): audit 1a and 3 — site infrastructure and nav by asset class
+
 ## [1.4.1] - 2026-07-21
 
 - fix(upload): asset dropdown lists sampled asset types, not instances
@@ -167,7 +174,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.2.0...v1.3.0
