@@ -1088,7 +1088,7 @@ def create_report_type(organization_id: str, name: str,
 # table stores (raw text, gate findings), so the payload is filtered rather than
 # splatted — an unexpected key would fail the whole insert.
 _LAB_SAMPLE_COLUMNS = {
-    "site_id", "asset_id", "laboratory", "report_no", "form_type", "report_type",
+    "site_id", "asset_id", "asset_type", "laboratory", "report_no", "form_type", "report_type",
     "sampling_point", "sample_location", "sample_identification",
     "source_of_sample", "sample_description", "sampled_at", "received_at",
     "reported_at", "analysis_start", "analysis_end", "sampling_time",

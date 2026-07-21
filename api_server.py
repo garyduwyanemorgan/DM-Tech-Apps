@@ -1768,7 +1768,8 @@ class SaveLabSampleRequest(BaseModel):
     results:     list[dict] = Field(default_factory=list, description="Confirmed parameter rows")
     site:        str | None = Field(None, description="Site name to attach the certificate to")
     report_type: str | None = Field(None, description="Type confirmed by the reviewer")
-    asset_id:    str | None = Field(None, description="Sampled asset the certificate is about")
+    asset_id:    str | None = Field(None, description="Specific sampled asset, when one is known")
+    asset_type:  str | None = Field(None, description="Sampled asset type the certificate is about")
 
 
 @app.post("/lab-samples", tags=["Upload"], status_code=201)
@@ -1791,9 +1792,9 @@ def save_lab_sample_endpoint(body: SaveLabSampleRequest,
     if not org_id:
         raise HTTPException(status_code=400, detail="No organization associated with this account.")
 
-    from core.assets import scope_of_asset
+    from core.assets import CLASS_SAMPLED, find_type, scope_of_asset
     from core.report_types import saves_to_readings
-    from db.queries import get_asset, get_or_create_site_id, save_lab_sample
+    from db.queries import get_asset, get_or_create_site_id, list_asset_types, save_lab_sample
 
     sample = dict(body.sample or {})
     if not sample.get("report_no"):
@@ -1813,7 +1814,23 @@ def save_lab_sample_endpoint(body: SaveLabSampleRequest,
     asset = get_asset(body.asset_id, org_id) if body.asset_id else None
     if body.asset_id and not asset:
         raise HTTPException(status_code=404, detail="Unknown asset for this organisation.")
+
     scope = scope_of_asset(asset)
+    if scope is None and body.asset_type:
+        # No specific instance: fall back to the asset TYPE chosen on upload. A
+        # type only yields a scope if it declares one — the built-in sampled types
+        # deliberately do not, because a water body can belong to either scope.
+        t = find_type(body.asset_type, list_asset_types(org_id))
+        if not t:
+            raise HTTPException(status_code=422, detail=f"Unknown asset type '{body.asset_type}'.")
+        if t["asset_class"] != CLASS_SAMPLED:
+            raise HTTPException(
+                status_code=422,
+                detail=f"'{t['label']}' is equipment — a laboratory certificate is never about it.",
+            )
+        scope = scope_of_asset({"asset_class": CLASS_SAMPLED,
+                                "asset_type": body.asset_type, "scope": t.get("scope")})
+        sample["asset_type"] = body.asset_type
 
     if saves_to_readings(chosen, scope):
         raise HTTPException(

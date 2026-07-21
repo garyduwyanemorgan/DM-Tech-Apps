@@ -720,9 +720,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   /** Step 2 rows. Empty until an extraction (or the lagoon manual fallback)
    *  populates it — the form has exactly as many fields as there are results. */
   const [rows, setRows] = useState<FormRow[]>([])
-  /** Sampled assets only — a certificate is never about a dosing pump. */
-  const [assets, setAssets] = useState<SampledAsset[]>([])
-  const [assetId, setAssetId] = useState<string>('')
+  const [assetType, setAssetType] = useState<string>('')
   /** The register: built-in types plus this organisation's own, so an asset
    *  created under a custom type still shows a human label here. */
   const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
@@ -741,10 +739,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   // fixed monthly `readings` table, so it is identified by its own report type.
   // Everything else is a certificate about an asset and goes to lab_samples.
   const isLagoon = selectedType === 'lagoon'
-  const selectedAsset = assets.find(a => a.id === assetId) ?? null
-  /** Human label for an asset type, from the register (built-in + org-defined). */
-  const typeLabel = (key?: string | null): string =>
-    assetTypes.find(t => t.key === key)?.label ?? (key ?? '').replace(/_/g, ' ')
+  const selectedAsset = assetTypes.find(t => t.key === assetType) ?? null
 
   // Load the dropdown. Built-ins always exist, so a failure here degrades to the
   // built-in list rather than blocking the upload.
@@ -753,18 +748,13 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     ;(async () => {
       try {
         const h = await authHeaders(false)
-        const [tRes, aRes, atRes] = await Promise.all([
+        const [tRes, atRes] = await Promise.all([
           fetch('/api/report-types', { headers: h }),
-          fetch('/api/assets?asset_class=sampled', { headers: h }),
           fetch('/api/asset-types?asset_class=sampled', { headers: h }),
         ])
         if (tRes.ok) {
           const data = await tRes.json()
           if (!cancelled && Array.isArray(data?.types)) setReportTypes(data.types)
-        }
-        if (aRes.ok) {
-          const data = await aRes.json()
-          if (!cancelled && Array.isArray(data?.assets)) setAssets(data.assets)
         }
         if (atRes.ok) {
           const data = await atRes.json()
@@ -937,7 +927,7 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       const res = await fetch('/api/lab-samples', {
         method: 'POST', headers,
         body: JSON.stringify({ sample, results: edited, site: activeSite,
-                               report_type: selectedType, asset_id: assetId || null }),
+                               report_type: selectedType, asset_type: assetType || null }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -981,17 +971,15 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
             what carries the specification scope. Always visible — hiding it for
             the default report type would hide the primary selection on load. */}
         <div style={{ marginBottom: '1.1rem' }}>
-          <label htmlFor="sampled-asset" style={labelStyle}>Asset this certificate is about</label>
+          <label htmlFor="sampled-asset-type" style={labelStyle}>Asset type this certificate is about</label>
           <select
-            id="sampled-asset" value={assetId}
-            onChange={e => setAssetId(e.target.value)}
+            id="sampled-asset-type" value={assetType}
+            onChange={e => setAssetType(e.target.value)}
             style={{ width: '100%', boxSizing: 'border-box' }}
           >
             <option value="">— not selected —</option>
-            {assets.map(a => (
-              <option key={a.id} value={a.id}>
-                {a.name}{a.asset_type ? ` (${typeLabel(a.asset_type)})` : ''}
-              </option>
+            {assetTypes.map(t => (
+              <option key={t.key} value={t.key}>{t.label}</option>
             ))}
           </select>
           {isLagoon ? (
@@ -999,11 +987,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
               Not used for a monthly lagoon reading — that path predates assets and is
               saved against the site.
             </span>
-          ) : assets.length === 0 ? (
+          ) : assetTypes.length === 0 ? (
             <span style={{ ...hintStyle, color: COLORS.amberFg }}>
-              No sampled assets exist yet. Add one under Assets &amp; Maintenance, using a
-              type from the Asset Register in Settings, or this certificate cannot be
-              judged against any specification.
+              No sampled asset types are available. Add one in Settings → Asset Register.
             </span>
           ) : selectedAsset ? (
             <span style={hintStyle}>
@@ -1011,12 +997,12 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
                 ? `Scope: ${selectedAsset.scope === 'lagoon'
                     ? 'lagoon — man-made / closed lagoon limits'
                     : 'facilities management — DM technical guidelines'}`
-                : 'This asset has no scope set, so results stay unassessed until it does.'}
+                : 'This type declares no specification scope, so results stay unassessed. Add a type with a scope in Settings → Asset Register.'}
             </span>
           ) : (
             <span style={{ ...hintStyle, color: COLORS.amberFg }}>
-              Without an asset the scope is unknown, so nothing can be judged against a
-              specification — results are recorded but stay unassessed.
+              Without an asset type the scope is unknown, so nothing can be judged against
+              a specification — results are recorded but stay unassessed.
             </span>
           )}
         </div>

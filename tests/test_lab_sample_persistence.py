@@ -26,9 +26,6 @@ from ingestion.router import ingest
 
 MIGRATIONS_DIR = Path(__file__).parent.parent / "db" / "migrations"
 MIGRATION = MIGRATIONS_DIR / "016_lab_samples.sql"
-# 018 adds the governing-standard columns by ALTER, so the column set is the
-# union of both files — reading 016 alone would understate the real schema.
-MIGRATION_018 = MIGRATIONS_DIR / "018_lab_samples_standard.sql"
 FIXTURE = Path(__file__).parent / "fixtures" / "wimpey" / "WD-R-260421-0222_microbiology.pdf"
 
 # Columns the database fills in itself — never sent by the writer.
@@ -73,10 +70,18 @@ def _columns(table: str) -> set[str]:
         sql, re.S,
     )
     assert block, f"could not find the CREATE TABLE block for {table}"
+    # Later migrations extend the table by ALTER (018 added the governing
+    # standard, 021 the asset type). Scan every migration rather than naming
+    # them: hardcoding a list is the drift this module exists to catch.
     extra: set[str] = set()
-    if table == "lab_samples" and MIGRATION_018.exists():
-        alter = MIGRATION_018.read_text(encoding="utf-8")
-        extra = set(re.findall(r"ADD COLUMN IF NOT EXISTS\s+([a-z_][a-z0-9_]*)", alter))
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        if path.name.endswith("_down.sql"):
+            continue
+        text = path.read_text(encoding="utf-8")
+        for alter in re.findall(
+            rf"ALTER TABLE public\.{table}(.*?);", text, re.S | re.I,
+        ):
+            extra |= set(re.findall(r"ADD COLUMN IF NOT EXISTS\s+([a-z_][a-z0-9_]*)", alter))
     cols: set[str] = set()
     depth = 0
     for line in block.group(1).splitlines():
