@@ -1047,14 +1047,14 @@ def request_access(body: AccessRequest):
     if "@" not in email:
         raise HTTPException(status_code=422, detail="Valid email required.")
     text = (
-        "New access request for Dubai Lagoons.\n\n"
+        "New access request for the Compliance Intelligence Platform.\n\n"
         f"Email:   {email}\n"
         f"Name:    {body.name.strip() or '-'}\n"
         f"Message: {body.message.strip()[:500] or '-'}\n\n"
         "To grant access: sign in as admin -> Settings -> User Management -> Invite User.\n"
         "A one-time password will be generated for you to send to them."
     )
-    _send_admin_email("Dubai Lagoons — access request", text)
+    _send_admin_email("Compliance Intelligence Platform — access request", text)
     return {"requested": True}
 
 
@@ -2459,7 +2459,7 @@ from fastapi.responses import FileResponse
 api_app = app  # Keep original app with all its registered routes under the name api_app
 
 app = FastAPI(
-    title="Dubai Lagoon Management Plan",
+    title="Compliance Intelligence Platform",
     description="Portal serving the React frontend and backing FastAPI endpoints.",
 )
 

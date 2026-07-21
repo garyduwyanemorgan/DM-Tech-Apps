@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create Stripe Products and Prices for Dubai Lagoons Dashboard SaaS.
+Create Stripe Products and Prices for the Compliance Intelligence Platform SaaS.
 Updates .streamlit/secrets.toml with the newly created Price IDs.
 """
 

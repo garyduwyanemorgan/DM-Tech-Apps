@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create Stripe Webhook Endpoint for Dubai Lagoons Dashboard SaaS.
+Create Stripe Webhook Endpoint for the Compliance Intelligence Platform SaaS.
 Updates .streamlit/secrets.toml with the newly created Webhook Secret.
 """
 
@@ -102,7 +102,7 @@ def main():
                 "customer.subscription.deleted",
                 "checkout.session.completed"
             ],
-            description="Dubai Lagoons Dashboard Live Webhook Endpoint"
+            description="Compliance Intelligence Platform Live Webhook Endpoint"
         )
         print(f"  [OK] Success! Webhook Endpoint ID: {webhook.id}")
         

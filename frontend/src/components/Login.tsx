@@ -142,7 +142,7 @@ export const Login: React.FC = () => {
           <Waves size={32} color="#ffffff" />
         </div>
         <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#1B3A5C', fontWeight: 700 }}>
-          Dubai Lagoons
+          Compliance Intelligence Platform
         </h1>
         <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem', textAlign: 'center', maxWidth: 280 }}>
           {invited ? 'Accept your invitation and set a password' : 'Water Quality Compliance & Management Platform'}

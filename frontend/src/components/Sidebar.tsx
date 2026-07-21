@@ -247,8 +247,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
             <Waves size={24} color="#60a5fa" />
             <div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.2 }}>Dubai Lagoons</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.55)' }}>Management Dashboard</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.2 }}>Compliance Intelligence</div>
+              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.55)' }}>Platform</div>
             </div>
           </div>
         )}

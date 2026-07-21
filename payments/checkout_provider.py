@@ -155,7 +155,7 @@ class CheckoutComProvider(PaymentProvider):
             "payment_type": "Recurring",
             "store_for_future_use": True,
             "reference": f"{org_id}:{plan_key}",
-            "description": f"Dubai Lagoons — {plan['name']} plan (monthly)",
+            "description": f"Compliance Intelligence Platform — {plan['name']} plan (monthly)",
             "customer": {"email": user_email},
             "metadata": {"organization_id": org_id, "plan": plan_key},
             "billing": {"address": {"country": self._billing_country()}},

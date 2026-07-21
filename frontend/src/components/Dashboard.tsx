@@ -75,7 +75,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
   if (!series) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <PageHeader title="Dubai Lagoon Management Plan" subtitle="Dubai Municipality / Client View" icon="🏝️" />
+        <PageHeader title="Compliance Intelligence Platform" subtitle="Dubai Municipality / Client View" icon="🏝️" />
         <NoData />
       </div>
     )
@@ -112,7 +112,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <PageHeader
-        title="Dubai Lagoon Management Plan"
+        title="Compliance Intelligence Platform"
         subtitle="Dubai Municipality / Client View"
         icon="🏝️"
       />

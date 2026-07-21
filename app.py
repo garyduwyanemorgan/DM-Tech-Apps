@@ -1,5 +1,5 @@
 """
-Dubai Lagoon Management Dashboard
+Compliance Intelligence Platform
 Entry point — Streamlit multi-page app.
 
 Architecture:
@@ -12,7 +12,7 @@ Run:  streamlit run dashboard/app.py
 import streamlit as st
 
 st.set_page_config(
-    page_title="Dubai Lagoon Management Plan",
+    page_title="Compliance Intelligence Platform",
     page_icon="🌊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -35,8 +35,8 @@ st.markdown("""
 # ── Sidebar navigation ──
 st.sidebar.markdown(
     """<div style="text-align: center; padding: 1rem 0;">
-    <h2 style="margin: 0;">🌊 Dubai Lagoons</h2>
-    <p style="font-size: 0.85rem; opacity: 0.8; margin: 0.3rem 0 0 0;">Management Dashboard</p>
+    <h2 style="margin: 0;">🌊 Compliance Intelligence Platform</h2>
+    <p style="font-size: 0.85rem; opacity: 0.8; margin: 0.3rem 0 0 0;">Compliance management for facilities groups</p>
     </div>""",
     unsafe_allow_html=True,
 )

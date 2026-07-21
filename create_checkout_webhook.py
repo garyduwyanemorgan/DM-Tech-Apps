@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Set up Checkout.com for Dubai Lagoons Dashboard SaaS.
+Set up Checkout.com for the Compliance Intelligence Platform SaaS.
 
 Mirrors the Stripe setup flow (create_stripe_products.py /
 create_stripe_webhook.py). Checkout.com needs no product/price objects —

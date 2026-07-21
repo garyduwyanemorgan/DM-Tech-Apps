@@ -413,7 +413,7 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
                 id="site-name"
                 type="text"
                 required
-                placeholder="e.g. Dubai Lagoon 1"
+                placeholder="e.g. Dubai Safari Park"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 maxLength={80}

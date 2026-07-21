@@ -1,4 +1,4 @@
-# Render Blueprint — deploys the Dubai Lagoon dashboard.
+# Render Blueprint — deploys the Compliance Intelligence Platform.
 # In Render: New + → Blueprint → connect this repo. Then fill in every
 # `sync: false` value in the dashboard, and add the custom domain
 # lagoons.gdm-enviro.com.
