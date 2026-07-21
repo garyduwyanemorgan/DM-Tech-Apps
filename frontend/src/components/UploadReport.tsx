@@ -78,6 +78,53 @@ export interface LabSample {
   overall_status?: OverallStatus | null
 }
 
+// ── Report types ─────────────────────────────────────────────────────────────
+/** Scope decides which specification set a result may be judged against. It is a
+ *  property of the ASSET a certificate is about, not of the analysis performed —
+ *  a Legionella count means one thing in a stored tank and another in an open
+ *  moat. Declared here because the upload flow displays it; owned by Assets. */
+export type ReportScope = 'lagoon' | 'facilities'
+
+export interface ReportTypeOption {
+  key: string
+  label: string
+  builtin?: boolean
+}
+
+/** Returned by /api/extract when the selected type and the certificate disagree.
+ *  Never auto-resolved — the user decides. */
+export interface TypeConflict {
+  selected: string
+  selected_label: string
+  detected: string
+  detected_label: string
+  message: string
+}
+
+/** One editable row in Step 2. Built from the extraction, not from a fixed list —
+ *  a certificate with 23 parameters gets 23 rows, one with 1 gets 1. */
+interface FormRow {
+  key: string
+  label: string
+  unit: string
+  /** Verbatim printed value, kept alongside the editable number so a reviewer can
+   *  always see what the certificate actually said. */
+  printed?: string
+  hint?: string
+  value: string
+}
+
+const ADD_NEW = '__add_new__'
+
+/** A sampled asset — the thing a certificate is about, and the thing that
+ *  carries the specification scope. */
+export interface SampledAsset {
+  id: string
+  name: string
+  asset_type?: string | null
+  scope?: ReportScope | null
+}
+
 /** Em-dash placeholder so empty cells read as "not on the certificate"
  *  rather than as a broken table. */
 const DASH = '—'
@@ -412,6 +459,117 @@ const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
   )
 }
 
+// ── Modals ────────────────────────────────────────────────────────────────────
+// Deliberately in-app rather than window.confirm(): a native dialog blocks the
+// page, cannot show the scope consequence, and only offers OK/Cancel where this
+// needs a three-way choice.
+
+const Modal: React.FC<{ title: string; onClose: () => void; children: React.ReactNode }> = ({ title, onClose, children }) => (
+  <div
+    role="dialog" aria-modal="true" aria-label={title}
+    onClick={onClose}
+    style={{
+      position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.45)', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
+    }}
+  >
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        background: '#fff', borderRadius: 10, padding: '1.5rem', maxWidth: 560, width: '100%',
+        maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(15,23,42,0.28)',
+      }}
+    >
+      <h3 className="section-heading" style={{ marginTop: 0 }}>{title}</h3>
+      {children}
+    </div>
+  </div>
+)
+
+/** Add an organisation-defined report type: a name and a scope, nothing else.
+ *  Fields come from whatever the extraction finds, so the certificate stays the
+ *  source of truth. */
+const AddReportTypeModal: React.FC<{
+  onCancel: () => void
+  onCreate: (name: string) => Promise<void>
+}> = ({ onCancel, onCreate }) => {
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const submit = async () => {
+    if (!name.trim()) { setErr('Give the report type a name.'); return }
+    setBusy(true); setErr(null)
+    try { await onCreate(name.trim()) }
+    catch (e: any) { setErr(e?.message || 'Could not create the report type.'); setBusy(false) }
+  }
+
+  return (
+    <Modal title="Add a new report type" onClose={onCancel}>
+      <label htmlFor="new-report-type" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1B3A5C', display: 'block', marginBottom: 4 }}>
+        Name
+      </label>
+      <input
+        id="new-report-type" autoFocus value={name}
+        onChange={e => setName(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') submit() }}
+        placeholder="e.g. Cooling Tower Water"
+        style={{ width: '100%', boxSizing: 'border-box', marginBottom: '1rem' }}
+      />
+
+      <p style={{ fontSize: '0.78rem', color: COLORS.slate, marginTop: 0, marginBottom: '1rem', lineHeight: 1.5 }}>
+        You do not list the parameters — they are read from each certificate you
+        upload, so the document stays the source of truth. Which limits apply is
+        decided by the asset a certificate is about, not by the type of analysis.
+      </p>
+
+      {err && <div role="alert" style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.6rem 0.9rem', borderRadius: 6, marginBottom: '0.9rem', fontSize: '0.85rem' }}>{err}</div>}
+
+      <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} disabled={busy} style={{ background: '#e2e8f0', color: '#1B3A5C' }}>Cancel</button>
+        <button type="button" onClick={submit} disabled={busy}>{busy ? 'Adding…' : 'Add report type'}</button>
+      </div>
+    </Modal>
+  )
+}
+
+/** The certificate disagrees with the chosen type. Offer the choice; resolve nothing. */
+const TypeConflictModal: React.FC<{
+  conflict: TypeConflict
+  onKeepDetected: () => void
+  onKeepSelected: () => void
+  onCancel: () => void
+}> = ({ conflict, onKeepDetected, onKeepSelected, onCancel }) => (
+  <Modal title="This certificate is a different report type" onClose={onCancel}>
+    <p style={{ fontSize: '0.9rem', color: '#1B3A5C', lineHeight: 1.55, marginTop: 0 }}>{conflict.message}</p>
+
+    <div role="alert" style={{
+      background: COLORS.amberBg, color: COLORS.amberFg, border: `1px solid ${COLORS.amberBorder}`,
+      borderRadius: 6, padding: '0.75rem 1rem', margin: '0.9rem 0', fontSize: '0.85rem', lineHeight: 1.55,
+    }}>
+      Filing a certificate under the wrong analysis misdescribes what the laboratory
+      actually did. It does not by itself change which limits apply — that follows
+      from the asset the sample came from — but the record would be wrong.
+    </div>
+
+    <p style={{ fontSize: '0.85rem', color: COLORS.slate, lineHeight: 1.55 }}>
+      The type read from the document is normally the reliable one — it comes from the
+      laboratory's own form code. Keep your selection only if you know the certificate is
+      mislabelled.
+    </p>
+
+    <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', justifyContent: 'flex-end', marginTop: '1.1rem' }}>
+      <button type="button" onClick={onCancel} style={{ background: '#e2e8f0', color: '#1B3A5C' }}>Cancel upload</button>
+      <button type="button" onClick={onKeepSelected} style={{ background: '#e2e8f0', color: '#1B3A5C' }}>
+        Keep “{conflict.selected_label}”
+      </button>
+      <button type="button" onClick={onKeepDetected}>
+        Use “{conflict.detected_label}” from the document
+      </button>
+    </div>
+  </Modal>
+)
+
 // ── Extraction progress ───────────────────────────────────────────────────────
 // Stages: compress (client-side) → upload (real %) → ai (indeterminate + timer)
 type ExtractStage = 'idle' | 'compress' | 'upload' | 'ai'
@@ -547,6 +705,85 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [reportTypes, setReportTypes] = useState<ReportTypeOption[]>([])
+  const [selectedType, setSelectedType] = useState<string>('lagoon')
+  const [showAddType, setShowAddType] = useState(false)
+  const [conflict, setConflict] = useState<TypeConflict | null>(null)
+  /** Step 2 rows. Empty until an extraction (or the lagoon manual fallback)
+   *  populates it — the form has exactly as many fields as there are results. */
+  const [rows, setRows] = useState<FormRow[]>([])
+  /** Sampled assets only — a certificate is never about a dosing pump. */
+  const [assets, setAssets] = useState<SampledAsset[]>([])
+  const [assetId, setAssetId] = useState<string>('')
+
+  const authHeaders = React.useCallback(async (json = true): Promise<HeadersInit> => {
+    const h: HeadersInit = {}
+    if (json) h['Content-Type'] = 'application/json'
+    if (organizationId) h['X-Organization-ID'] = organizationId
+    const t = await getToken()
+    if (t) h['Authorization'] = `Bearer ${t}`
+    if (email) h['X-User-Email'] = email
+    return h
+  }, [organizationId, getToken, email])
+
+  // Legacy routing: the lagoon product predates assets entirely and writes the
+  // fixed monthly `readings` table, so it is identified by its own report type.
+  // Everything else is a certificate about an asset and goes to lab_samples.
+  const isLagoon = selectedType === 'lagoon'
+  const selectedAsset = assets.find(a => a.id === assetId) ?? null
+
+  // Load the dropdown. Built-ins always exist, so a failure here degrades to the
+  // built-in list rather than blocking the upload.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const h = await authHeaders(false)
+        const [tRes, aRes] = await Promise.all([
+          fetch('/api/report-types', { headers: h }),
+          fetch('/api/assets?asset_class=sampled', { headers: h }),
+        ])
+        if (tRes.ok) {
+          const data = await tRes.json()
+          if (!cancelled && Array.isArray(data?.types)) setReportTypes(data.types)
+        }
+        if (aRes.ok) {
+          const data = await aRes.json()
+          if (!cancelled && Array.isArray(data?.assets)) setAssets(data.assets)
+        }
+      } catch { /* built-ins are unavailable only if the API is down entirely */ }
+    })()
+    return () => { cancelled = true }
+  }, [authHeaders])
+
+  /** Rebuild Step 2 from an extraction: one row per reported parameter. */
+  const rowsFromSample = (s: LabSample): FormRow[] =>
+    (s.results ?? []).map((r, i) => ({
+      key: `${r.parameter}-${i}`,
+      label: r.parameter,
+      unit: (r.unit ?? '').trim(),
+      printed: (r.value_raw ?? '').trim(),
+      hint: (r.specification ?? '').trim() ? `Specification: ${r.specification}` : undefined,
+      value: r.value_num === null || r.value_num === undefined ? '' : String(r.value_num),
+    }))
+
+  /** Manual-entry fallback for the lagoon scope, which has a known parameter set
+   *  even before anything is extracted. Still rendered through the same dynamic
+   *  form — there is no static panel any more. */
+  const lagoonRows = (): FormRow[] =>
+    FIELDS.map(f => ({
+      key: f.key, label: f.label, unit: f.unit,
+      hint: `Limit: ${f.hint}`, value: String(f.default),
+    }))
+
+  // Seed the lagoon rows when that type is chosen and nothing is extracted yet.
+  useEffect(() => {
+    if (!sample && isLagoon && rows.length === 0) setRows(lagoonRows())
+    if (!sample && !isLagoon) setRows([])
+  }, [selectedType, sample, isLagoon])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setRowValue = (key: string, value: string) =>
+    setRows(prev => prev.map(r => (r.key === key ? { ...r, value } : r)))
   const fileRef = useRef<HTMLInputElement>(null)
 
   const handleFile = (f: File) => {
@@ -590,6 +827,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       setStage('upload')
       const form = new FormData()
       form.append('file', compact)
+      // The chosen type is sent so the server can report a disagreement with the
+      // certificate's own form code. It never overrides what the document says.
+      form.append('report_type', selectedType)
       const headers: Record<string, string> = {}
       if (organizationId) headers['X-Organization-ID'] = organizationId
       const extractToken = await getToken()
@@ -602,11 +842,17 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       if (!res.ok) {
         throw new Error(res.json?.detail || 'Extraction failed')
       }
-      const extracted = res.json as LabSample
+      const extracted = res.json as LabSample & { type_conflict?: TypeConflict | null }
       setSample(extracted)
       if (extracted?.remarks) setExtractNotes(extracted.remarks)
       const found = extracted?.results?.length ?? 0
+
+      // Step 2 is now built from the document: one field per reported parameter.
+      setRows(rowsFromSample(extracted))
       const prefilled = prefillFromSample(extracted, setFields)
+
+      if (extracted.type_conflict) setConflict(extracted.type_conflict)
+
       setMessage(
         `Read ${found} test ${found === 1 ? 'result' : 'results'}` +
         (prefilled ? `, ${prefilled} prefilled below` : '') +
@@ -620,11 +866,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFields(prev => ({ ...prev, [name]: parseFloat(value) || 0 }))
-  }
-
+  // Step 2's parameter inputs are driven by `rows` (setRowValue) now that the
+  // form is built from the certificate; `fields` still carries the report date
+  // and the lagoon defaults that seed those rows.
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const [y, m, d] = e.target.value.split('-').map(Number)
     if (y && m && d) setFields(prev => ({ ...prev, year: y, month: m, day: d }))
@@ -637,25 +881,70 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     if (role === 'auditor') { setError('Your Auditor account is read-only.'); return }
     setSaving(true); setMessage(null); setError(null)
     try {
-      const headers: HeadersInit = { 'Content-Type': 'application/json' }
-      if (organizationId) headers['X-Organization-ID'] = organizationId
-      const logToken = await getToken()
-      if (logToken) headers['Authorization'] = `Bearer ${logToken}`
-      if (email) headers['X-User-Email'] = email
-      const payload = { site: activeSite, year: Number(fields.year), month: Number(fields.month), day: Number(fields.day ?? 1), overwrite: true, ...Object.fromEntries(FIELDS.map(f => [f.key, fields[f.key]])) }
-      const res = await fetch('/api/log', { method: 'POST', headers, body: JSON.stringify(payload) })
+      const headers = await authHeaders()
+
+      // Lagoon readings keep the fixed monthly path: `readings` has fourteen
+      // columns and one row per site per month, and the alert engine, dashboards
+      // and monthly reporting all read from it. Everything else is a certificate
+      // with an arbitrary parameter list and goes to lab_samples/lab_results.
+      if (isLagoon) {
+        const byKey = Object.fromEntries(rows.map(r => [r.key, Number(r.value) || 0]))
+        const payload = {
+          site: activeSite, year: Number(fields.year), month: Number(fields.month),
+          day: Number(fields.day ?? 1), overwrite: true,
+          ...Object.fromEntries(FIELDS.map(f => [f.key, byKey[f.key] ?? fields[f.key]])),
+        }
+        const res = await fetch('/api/log', { method: 'POST', headers, body: JSON.stringify(payload) })
+        const data = await res.json()
+        if (data.saved) {
+          setMessage(`Saved — ${activeSite}, ${MONTH_NAMES[Number(fields.month) - 1]} ${fields.day ?? 1}, ${fields.year}.`)
+          setFile(null); setPreview(null)
+        } else {
+          setError(data.message || 'Failed to save reading.')
+        }
+        return
+      }
+
+      if (!sample) { setError('Upload and extract a certificate before saving.'); return }
+
+      // Carry the reviewer's corrections back onto the parsed rows, keeping every
+      // field the certificate supplied (method, unit, specification, verdict).
+      const edited = (sample.results ?? []).map((r, i) => {
+        const row = rows.find(x => x.key === `${r.parameter}-${i}`)
+        const n = row && row.value.trim() !== '' ? Number(row.value) : null
+        return { ...r, value_num: n === null || Number.isNaN(n) ? r.value_num : n }
+      })
+
+      const res = await fetch('/api/lab-samples', {
+        method: 'POST', headers,
+        body: JSON.stringify({ sample, results: edited, site: activeSite,
+                               report_type: selectedType, asset_id: assetId || null }),
+      })
       const data = await res.json()
-      if (data.saved) {
-        setMessage(`Saved — ${activeSite}, ${MONTH_NAMES[Number(fields.month) - 1]} ${fields.day ?? 1}, ${fields.year}.`)
+      if (res.ok) {
+        setMessage(`Saved certificate ${data.report_no} — ${data.parameters} parameters recorded.`)
         setFile(null); setPreview(null)
       } else {
-        setError(data.message || 'Failed to save reading.')
+        setError(data.detail || 'Failed to save the certificate.')
       }
     } catch {
       setError('Network error — please try again.')
     } finally {
       setSaving(false)
     }
+  }
+
+  const createReportType = async (name: string) => {
+    const res = await fetch('/api/report-types', {
+      method: 'POST', headers: await authHeaders(),
+      body: JSON.stringify({ name }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.detail || 'Could not create the report type.')
+    setReportTypes(prev => [...prev, data])
+    setSelectedType(data.key)
+    setShowAddType(false)
+    setMessage(`Report type “${data.label}” added.`)
   }
 
   const labelStyle: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 600, color: '#1B3A5C', display: 'block', marginBottom: '4px' }
@@ -668,6 +957,71 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       {/* ── Step 1: Upload ── */}
       <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
         <h3 className="section-heading" style={{ marginTop: 0 }}>Step 1 — Upload the lab report</h3>
+
+        <div style={{ marginBottom: '1.1rem' }}>
+          <label htmlFor="report-type" style={labelStyle}>Report type</label>
+          <select
+            id="report-type"
+            value={selectedType}
+            onChange={e => {
+              const v = e.target.value
+              if (v === ADD_NEW) { setShowAddType(true); return }   // keep the current selection
+              setSelectedType(v)
+            }}
+            style={{ width: '100%', boxSizing: 'border-box' }}
+          >
+            {reportTypes.map(t => (
+              <option key={t.key} value={t.key}>{t.label}</option>
+            ))}
+            <option value={ADD_NEW}>+ Add new report type…</option>
+          </select>
+          <span style={hintStyle}>
+            {isLagoon
+              ? 'Monthly lagoon reading — saved to the compliance record.'
+              : 'Which limits apply is decided by the asset this certificate is about.'}
+          </span>
+        </div>
+
+        {/* The asset is what carries the specification scope, so a certificate
+            without one cannot be judged against any limits. */}
+        {!isLagoon && (
+          <div style={{ marginBottom: '1.1rem' }}>
+            <label htmlFor="sampled-asset" style={labelStyle}>Asset this certificate is about</label>
+            <select
+              id="sampled-asset" value={assetId}
+              onChange={e => setAssetId(e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box' }}
+            >
+              <option value="">— not selected —</option>
+              {assets.map(a => (
+                <option key={a.id} value={a.id}>
+                  {a.name}{a.asset_type ? ` (${a.asset_type.replace(/_/g, ' ')})` : ''}
+                </option>
+              ))}
+            </select>
+
+            {assets.length === 0 ? (
+              <span style={{ ...hintStyle, color: COLORS.amberFg }}>
+                No sampled assets exist yet. Add one on the Assets page — a water tank,
+                water body, fountain, washroom outlet or misting line — and give it a
+                scope, or this certificate cannot be judged against any specification.
+              </span>
+            ) : selectedAsset ? (
+              <span style={hintStyle}>
+                {selectedAsset.scope
+                  ? `Scope: ${selectedAsset.scope === 'lagoon'
+                      ? 'lagoon — man-made / closed lagoon limits'
+                      : 'facilities management — DM technical guidelines'}`
+                  : 'This asset has no scope set, so results stay unassessed until it does.'}
+              </span>
+            ) : (
+              <span style={{ ...hintStyle, color: COLORS.amberFg }}>
+                Without an asset the scope is unknown, so nothing can be judged against
+                a specification — results are recorded but stay unassessed.
+              </span>
+            )}
+          </div>
+        )}
 
         <div
           className={`upload-zone${dragOver ? ' drag-over' : ''}`}
@@ -773,22 +1127,70 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            {FIELDS.map(f => (
-              <div key={f.key}>
-                <label style={labelStyle}>{f.label}{f.unit ? ` (${f.unit})` : ''}</label>
-                <input type="number" name={f.key} step="0.01" value={fields[f.key]} onChange={handleChange} />
-                <span style={hintStyle}>Limit: {f.hint}</span>
+          {/* One field per reported parameter — the form is built from the
+              certificate, so a 23-parameter report gets 23 fields and a
+              single-parameter Legionella report gets one. */}
+          {rows.length === 0 ? (
+            <p style={{ fontSize: '0.875rem', color: COLORS.slate, marginBottom: '1.5rem' }}>
+              {isLagoon
+                ? 'No parameters yet.'
+                : 'Upload and extract a certificate above — the fields here are built from what it reports.'}
+            </p>
+          ) : (
+            <>
+              <p style={{ fontSize: '0.8rem', color: COLORS.slate, marginBottom: '0.75rem' }}>
+                {rows.length} {rows.length === 1 ? 'parameter' : 'parameters'}
+                {sample ? ' read from the certificate' : ''}.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                {rows.map(r => (
+                  <div key={r.key}>
+                    <label htmlFor={`row-${r.key}`} style={labelStyle}>
+                      {r.label}{r.unit ? ` (${r.unit})` : ''}
+                    </label>
+                    <input
+                      id={`row-${r.key}`} type="number" step="any"
+                      value={r.value}
+                      onChange={e => setRowValue(r.key, e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                    />
+                    {/* The printed value stays visible: '<1' and 'Not Detected'
+                        cannot be represented in a number input, and the reviewer
+                        needs to see what the certificate actually said. */}
+                    {r.printed && (
+                      <span style={hintStyle}>Printed: <strong>{r.printed}</strong></span>
+                    )}
+                    {r.hint && <span style={hintStyle}>{r.hint}</span>}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
-          <button type="submit" disabled={saving}>
+          <button type="submit" disabled={saving || rows.length === 0}>
             <Save size={16} />
-            {saving ? 'Saving…' : 'Save Compliance Record'}
+            {saving ? 'Saving…' : isLagoon ? 'Save Compliance Record' : 'Save Certificate'}
           </button>
         </form>
       </div>
+
+      {showAddType && (
+        <AddReportTypeModal onCancel={() => setShowAddType(false)} onCreate={createReportType} />
+      )}
+
+      {conflict && (
+        <TypeConflictModal
+          conflict={conflict}
+          onKeepDetected={() => { setSelectedType(conflict.detected); setConflict(null) }}
+          onKeepSelected={() => setConflict(null)}
+          onCancel={() => {
+            // Discard the extraction entirely — nothing filed under a type the
+            // reviewer is not willing to stand behind.
+            setConflict(null); setSample(null); setRows([]); setFile(null); setPreview(null)
+            setMessage(null); setError('Upload cancelled — the report type was not confirmed.')
+          }}
+        />
+      )}
     </div>
   )
 }

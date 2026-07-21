@@ -959,7 +959,13 @@ def create_asset(organization_id: str, fields: dict) -> dict | None:
         return None
 
 
-def list_assets(organization_id: str, site_id: str | None = None) -> list[dict]:
+def list_assets(organization_id: str, site_id: str | None = None,
+                asset_class: str | None = None) -> list[dict]:
+    """Assets for an organisation, optionally narrowed by site and/or class.
+
+    The upload flow asks for `asset_class='sampled'` — a laboratory certificate is
+    never about a dosing pump.
+    """
     client = get_client()
     if not client or not organization_id:
         return []
@@ -967,6 +973,8 @@ def list_assets(organization_id: str, site_id: str | None = None) -> list[dict]:
         q = client.table("assets").select("*").eq("organization_id", organization_id)
         if site_id:
             q = q.eq("site_id", site_id)
+        if asset_class:
+            q = q.eq("asset_class", asset_class)
         return q.order("name").execute().data or []
     except Exception:
         return []
@@ -1040,3 +1048,126 @@ def list_inventory_locations(organization_id: str) -> list[dict]:
                 .eq("organization_id", organization_id).order("name").execute().data) or []
     except Exception:
         return []
+
+
+# ── Report types (migration 017) ─────────────────────────────────────────────
+
+def list_custom_report_types(organization_id: str) -> list[dict]:
+    """Organisation-defined report types. Built-ins live in core/report_types.py."""
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("report_types").select("*")
+                .eq("organization_id", organization_id).order("name").execute().data) or []
+    except Exception:
+        # Table absent until 017 is applied — the built-in types still work.
+        return []
+
+
+def create_report_type(organization_id: str, name: str,
+                       created_by: str | None = None) -> dict | None:
+    """Insert a custom report type. Returns the row, or None on failure.
+
+    No scope: migration 019 removed it. A report type records what analysis was
+    performed; which limits apply is decided by the asset the certificate is about.
+    """
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    row = {"organization_id": organization_id, "name": name}
+    if created_by:
+        row["created_by"] = created_by
+    res = client.table("report_types").insert(row).execute()
+    return res.data[0] if res.data else None
+
+
+# ── Lab samples (migration 016) ──────────────────────────────────────────────
+
+# Columns lab_samples actually has. A parsed LabSample carries more than the
+# table stores (raw text, gate findings), so the payload is filtered rather than
+# splatted — an unexpected key would fail the whole insert.
+_LAB_SAMPLE_COLUMNS = {
+    "site_id", "asset_id", "laboratory", "report_no", "form_type", "report_type",
+    "sampling_point", "sample_location", "sample_identification",
+    "source_of_sample", "sample_description", "sampled_at", "received_at",
+    "reported_at", "analysis_start", "analysis_end", "sampling_time",
+    "sampled_by", "sampling_method", "sampling_apparatus", "sample_volume",
+    "temperature_c", "analyst", "reviewed_by", "remarks", "source_filename",
+    "source_sha256", "extraction_method", "extraction_confidence",
+    "reviewer_status", "anomalies", "raw_extraction",
+    # Governing standard + method disclosure (migration 018). Without these the
+    # citation a verdict rests on survives only inside raw_extraction — evidence,
+    # but not queryable, so nothing could report on which standard was applied.
+    "standard_code", "standard_title", "standard_year", "standard_authority",
+    "standard_citation", "additional_standards", "test_procedure",
+    "medium_used", "detection_limit", "filtered_volume", "overall_status",
+}
+_LAB_RESULT_COLUMNS = {
+    "parameter", "test_method", "unit", "value_raw", "value_num", "qualifier",
+    "loq", "mou", "specification", "status",
+}
+
+
+def save_lab_sample(organization_id: str, sample: dict, results: list[dict],
+                    site_id: str | None = None) -> str | None:
+    """Persist one certificate and its parameter rows. Returns the sample id.
+
+    The two inserts are not a transaction — PostgREST has no cross-request
+    transaction — so a failure part-way is cleaned up by deleting the parent,
+    which cascades. A sample with no results would look like a certificate that
+    reported nothing, which is worse than no record at all.
+    """
+    client = get_client()
+    if not client or not organization_id:
+        return None
+
+    row = {k: v for k, v in sample.items() if k in _LAB_SAMPLE_COLUMNS}
+    row["organization_id"] = organization_id
+    if site_id:
+        row["site_id"] = site_id
+    row.setdefault("reviewer_status", "pending")
+
+    res = client.table("lab_samples").insert(row).execute()
+    if not res.data:
+        return None
+    sample_id = res.data[0]["id"]
+
+    payload = [
+        {**{k: v for k, v in r.items() if k in _LAB_RESULT_COLUMNS}, "sample_id": sample_id}
+        for r in results
+    ]
+    if payload:
+        try:
+            client.table("lab_results").insert(payload).execute()
+        except Exception:
+            client.table("lab_samples").delete().eq("id", sample_id).execute()
+            raise
+    return sample_id
+
+
+def list_lab_samples(organization_id: str, limit: int = 50) -> list[dict]:
+    """Recent certificates for an organisation, newest sampling date first."""
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("lab_samples").select("*")
+                .eq("organization_id", organization_id)
+                .order("sampled_at", desc=True).limit(limit).execute().data) or []
+    except Exception:
+        return []
+
+
+def get_asset(asset_id: str, organization_id: str) -> dict | None:
+    """One asset, scoped to the organisation so an id from elsewhere cannot leak in."""
+    client = get_client()
+    if not client or not asset_id or not organization_id:
+        return None
+    try:
+        res = (client.table("assets").select("*")
+               .eq("id", asset_id).eq("organization_id", organization_id).execute())
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+

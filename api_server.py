@@ -30,7 +30,7 @@ from typing import Optional
 # Make core/, db/, data/ importable regardless of working directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, HTTPException, Security, Header, Depends, UploadFile, File, Request
+from fastapi import FastAPI, HTTPException, Security, Header, Depends, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -1610,6 +1610,7 @@ def science_simulate(body: SimulateRequest, _=Security(_check_key)):
 @app.post("/extract", tags=["Upload"])
 async def extract_lab_report_endpoint(
     file: UploadFile = File(...),
+    report_type: str = Form(""),
     profile: dict = Depends(get_current_user_profile),
 ):
     """Parse an uploaded lab report into a structured, gated LabSample.
@@ -1618,6 +1619,12 @@ async def extract_lab_report_endpoint(
     scanned reports fall back to Claude vision at low confidence. Either way the
     result comes back with `reviewer_status: pending` and is NOT persisted — a
     human approves it before it becomes data (assurance gateway, gate 6).
+
+    `report_type` is what the user selected in the upload dropdown. When the
+    certificate itself declares a different type, both are returned in
+    `type_conflict` and neither is applied — the user reconciles it. Silently
+    preferring either one would let a certificate be filed, and later judged,
+    against the wrong specification set.
     """
     # Gate before spending Anthropic credits. Require a real signed-in user
     # (the resolver now fails closed on no token, but keep the explicit check as
@@ -1648,8 +1655,204 @@ async def extract_lab_report_endpoint(
                target_type="lab_report", target_id=sample.report_no,
                report_type=sample.report_type, extraction_method=sample.extraction_method,
                parameters=len(sample.results), anomalies=len(sample.anomalies))
+
     # mode="json" so dates serialise to ISO strings and enums to their values.
-    return sample.model_dump(mode="json")
+    payload = sample.model_dump(mode="json")
+    payload["selected_report_type"] = (report_type or "").strip()
+    payload["type_conflict"] = _type_conflict(
+        selected=report_type, detected=sample.report_type,
+        organization_id=profile.get("organization_id"),
+    )
+    return payload
+
+
+def _type_conflict(selected: str, detected: str, organization_id: str | None) -> dict | None:
+    """Describe a disagreement between the chosen and the declared report type.
+
+    Returns None when they agree, when nothing was selected, or when the document
+    declared nothing to disagree with (a scan carries no form code). A conflict is
+    reported, never resolved here: the two may belong to different specification
+    scopes, and picking one silently would decide which limits later apply.
+    """
+    from core.report_types import get_builtin
+
+    chosen = (selected or "").strip()
+    if not chosen or not detected or detected == "scanned":
+        return None
+    if chosen.lower() == detected.lower():
+        return None
+
+    detected_label = (get_builtin(detected) or {}).get("label", detected)
+
+    return {
+        "selected": chosen,
+        "selected_label": (get_builtin(chosen) or {}).get("label", chosen),
+        "detected": detected,
+        "detected_label": detected_label,
+        # Scope is a property of the asset, not of the analysis, so a type
+        # mismatch alone cannot say whether specifications differ.
+        "message": (
+            f"You selected “{(get_builtin(chosen) or {}).get('label', chosen)}”, but this "
+            f"certificate declares itself as “{detected_label}”."
+        ),
+    }
+
+
+class CreateReportTypeRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=80, description="Report type name")
+
+
+@app.get("/report-types", tags=["Upload"])
+def list_report_types_endpoint(profile: dict = Depends(get_current_user_profile)):
+    """Report types offered in the upload dropdown: built-ins plus this org's own."""
+    from core.report_types import BUILTIN_REPORT_TYPES
+    from db.queries import list_custom_report_types
+
+    org_id = profile.get("organization_id")
+    custom = list_custom_report_types(org_id) if org_id else []
+    return {
+        "types": list(BUILTIN_REPORT_TYPES) + [
+            {"key": t["name"], "label": t["name"], "builtin": False}
+            for t in custom
+        ]
+    }
+
+
+@app.post("/report-types", tags=["Upload"], status_code=201)
+def create_report_type_endpoint(body: CreateReportTypeRequest,
+                                profile: dict = Depends(get_current_user_profile)):
+    """Add an organisation-defined report type.
+
+    A name and nothing else. Fields come from whatever the extraction finds, so
+    the certificate stays the source of truth. Scope is deliberately not asked for
+    here: it belongs to the asset a certificate is about, not to the analysis
+    performed on it (see core/assets.py).
+    """
+    _ensure_permission(profile, "readings.create",
+                       detail="Your role may not add report types.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+
+    from core.report_types import BUILTIN_REPORT_TYPES, normalise_name
+    from db.queries import create_report_type, list_custom_report_types
+
+    name = normalise_name(body.name)
+    if not name:
+        raise HTTPException(status_code=422, detail="Report type name cannot be blank.")
+
+    taken = {t["key"].lower() for t in BUILTIN_REPORT_TYPES}
+    taken |= {t["label"].lower() for t in BUILTIN_REPORT_TYPES}
+    taken |= {(t.get("name") or "").lower() for t in list_custom_report_types(org_id)}
+    if name.lower() in taken:
+        raise HTTPException(status_code=409, detail=f"Report type '{name}' already exists.")
+
+    try:
+        row = create_report_type(org_id, name, created_by=profile.get("user_id"))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Could not create report type: {exc}")
+    if not row:
+        raise HTTPException(
+            status_code=503,
+            detail="Report types are not available — migration 017 may not be applied.",
+        )
+
+    audit_emit("report_type.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="report_type", target_id=name)
+    return {"key": name, "label": name, "builtin": False}
+
+
+class SaveLabSampleRequest(BaseModel):
+    sample:      dict       = Field(..., description="The reviewed LabSample")
+    results:     list[dict] = Field(default_factory=list, description="Confirmed parameter rows")
+    site:        str | None = Field(None, description="Site name to attach the certificate to")
+    report_type: str | None = Field(None, description="Type confirmed by the reviewer")
+    asset_id:    str | None = Field(None, description="Sampled asset the certificate is about")
+
+
+@app.post("/lab-samples", tags=["Upload"], status_code=201)
+def save_lab_sample_endpoint(body: SaveLabSampleRequest,
+                             profile: dict = Depends(get_current_user_profile)):
+    """Persist a reviewed certificate to lab_samples/lab_results.
+
+    This is the facilities-management save path. The lagoon scope keeps using
+    /log and the fixed `readings` table, which the alert engine, dashboards and
+    monthly reporting all read; `readings` has fourteen fixed columns and one row
+    per site per month, so it cannot hold a certificate with an arbitrary
+    parameter list.
+
+    Saving is the human approval step — everything arrives here as `pending` and
+    is only recorded because a person confirmed it.
+    """
+    _ensure_permission(profile, "readings.create",
+                       detail="Your role may not save lab reports.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+
+    from core.assets import scope_of_asset
+    from core.report_types import saves_to_readings
+    from db.queries import get_asset, get_or_create_site_id, save_lab_sample
+
+    sample = dict(body.sample or {})
+    if not sample.get("report_no"):
+        raise HTTPException(status_code=422, detail="report_no is required.")
+    if not body.results:
+        raise HTTPException(
+            status_code=422,
+            detail="A certificate with no parameter rows would record that the laboratory "
+                   "reported nothing. Nothing was saved.",
+        )
+
+    chosen = (body.report_type or sample.get("report_type") or "").strip()
+
+    # Scope comes from the asset the certificate is about — a Legionella count
+    # means one thing in a stored tank and another in an open moat. The report
+    # type is only consulted for the legacy lagoon path, which predates assets.
+    asset = get_asset(body.asset_id, org_id) if body.asset_id else None
+    if body.asset_id and not asset:
+        raise HTTPException(status_code=404, detail="Unknown asset for this organisation.")
+    scope = scope_of_asset(asset)
+
+    if saves_to_readings(chosen, scope):
+        raise HTTPException(
+            status_code=400,
+            detail="Lagoon readings are saved through /api/log so they reach the alert "
+                   "engine and monthly reporting.",
+        )
+    if chosen:
+        sample["report_type"] = chosen
+    if asset:
+        sample["asset_id"] = asset["id"]
+
+    site_id = None
+    if body.site:
+        site_id = get_or_create_site_id(body.site, org_id, profile.get("token"))
+
+    try:
+        sample_id = save_lab_sample(org_id, sample, body.results, site_id=site_id)
+    except Exception as exc:
+        msg = str(exc)
+        if "duplicate key" in msg or "unique" in msg.lower():
+            raise HTTPException(
+                status_code=409,
+                detail=f"Report {sample.get('report_no')} has already been saved.",
+            )
+        raise HTTPException(status_code=500, detail=f"Could not save the certificate: {msg}")
+    if not sample_id:
+        raise HTTPException(
+            status_code=503,
+            detail="Lab sample storage is unavailable — migration 016 may not be applied.",
+        )
+
+    audit_emit("lab_report.save", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="lab_sample", target_id=str(sample_id),
+               report_no=sample.get("report_no"), report_type=sample.get("report_type"),
+               parameters=len(body.results))
+    return {"sample_id": sample_id, "report_no": sample.get("report_no"),
+            "parameters": len(body.results), "message": "Certificate saved."}
 
 
 @app.get("/report/{site}", tags=["Reporting"])
@@ -2010,12 +2213,18 @@ class MaintenanceScheduleCreate(BaseModel):
 
 
 @app.get("/assets", tags=["Assets"])
-def list_assets_endpoint(site_id: str | None = None, profile: dict = Depends(get_current_user_profile)):
+def list_assets_endpoint(site_id: str | None = None, asset_class: str | None = None,
+                         profile: dict = Depends(get_current_user_profile)):
     """View assets/equipment and their config. All roles with assets.read; General
-    Managers see configs read-only, Site Supervisors see what they execute."""
+    Managers see configs read-only, Site Supervisors see what they execute.
+
+    `asset_class=sampled` is what the upload flow asks for: only a sampled asset
+    can be the subject of a laboratory certificate.
+    """
     _ensure_permission(profile, "assets.read", detail="Your role cannot view assets.")
     from db.queries import list_assets
-    return {"assets": list_assets(profile["organization_id"], site_id=site_id)}
+    return {"assets": list_assets(profile["organization_id"], site_id=site_id,
+                                  asset_class=asset_class)}
 
 
 @app.post("/assets", tags=["Assets"], status_code=201)
