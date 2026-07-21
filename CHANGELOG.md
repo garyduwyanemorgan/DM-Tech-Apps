@@ -25,6 +25,10 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [1.3.0] - 2026-07-21
+
+- feat(assets): scope belongs to the asset, and the upload flow now resolves it
+
 ## [1.2.0] - 2026-07-21
 
 - feat(compliance): capture the governing standard and give a certificate verdict
@@ -154,7 +158,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.0.3...v1.0.4
