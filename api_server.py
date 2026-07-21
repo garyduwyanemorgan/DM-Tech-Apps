@@ -2202,7 +2202,9 @@ def inventory_valuation(profile: dict = Depends(get_current_user_profile)):
 class AssetCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     site_id: str | None = None
-    asset_type: str | None = Field(None, description="pump/filter/dosing/water_body")
+    asset_type: str | None = Field(None, description="pump/filter/dosing/aerator | water_body/water_tank/fountain/washroom_outlet/misting_line")
+    asset_class: str | None = Field(None, description="equipment (maintained) | sampled (a certificate is about it)")
+    scope: str | None = Field(None, description="lagoon | facilities — sampled assets only")
     config: dict | None = Field(None, description="checklist, required lab params, thresholds")
 
 
@@ -2232,8 +2234,40 @@ def create_asset_endpoint(body: AssetCreate, profile: dict = Depends(get_current
     """Configure an asset (type, checklist, required lab parameters). Managers/
     Executive only — Site Supervisors execute tasks but don't change templates."""
     _ensure_permission(profile, "assets.configure", detail="Your role cannot configure assets.")
+    from core.assets import ASSET_CLASSES, CLASS_SAMPLED, class_of, get_asset_type
+    from core.report_types import SCOPES
     from db.queries import create_asset
-    asset = create_asset(profile["organization_id"], body.model_dump())
+
+    fields = body.model_dump()
+
+    # Validate the class/type/scope triangle here rather than trusting the client.
+    # The database CHECK catches the worst case, but a 422 naming the problem is
+    # more use than a constraint violation surfacing as a 400 "could not create".
+    if fields.get("asset_class") and fields["asset_class"] not in ASSET_CLASSES:
+        raise HTTPException(status_code=422,
+                            detail=f"asset_class must be one of {', '.join(ASSET_CLASSES)}.")
+    if fields.get("asset_type"):
+        if not get_asset_type(fields["asset_type"]):
+            raise HTTPException(status_code=422, detail=f"Unknown asset_type '{fields['asset_type']}'.")
+        declared = fields.get("asset_class")
+        actual = class_of(fields["asset_type"])
+        if declared and declared != actual:
+            raise HTTPException(
+                status_code=422,
+                detail=f"'{fields['asset_type']}' is a {actual} type, not {declared}.",
+            )
+        fields["asset_class"] = actual          # derive it, so the two cannot disagree
+    if fields.get("scope"):
+        if fields["scope"] not in SCOPES:
+            raise HTTPException(status_code=422, detail=f"scope must be one of {', '.join(SCOPES)}.")
+        if fields.get("asset_class") != CLASS_SAMPLED:
+            raise HTTPException(
+                status_code=422,
+                detail="Only a sampled asset carries a specification scope — equipment is "
+                       "maintained, never judged against limits.",
+            )
+
+    asset = create_asset(profile["organization_id"], fields)
     if not asset:
         raise HTTPException(status_code=400, detail="Could not create asset (duplicate name for site?).")
     audit_emit("asset.configure", actor_user_id=profile.get("user_id"),

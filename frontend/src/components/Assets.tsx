@@ -206,9 +206,20 @@ export const Assets: React.FC = () => {
                       <td style={{ ...tableCellStyle, color: COLORS.slate, fontSize: '0.8rem' }}>{a.config ? Object.keys(a.config).join(', ') : '—'}</td>
                       {canConfigure && (
                         <td style={{ ...tableCellStyle }}>
-                          <Button variant="secondary" size="sm" onClick={() => setMaintFor(maintFor === a.id ? null : a.id)} style={{ padding: '3px 10px', fontSize: '0.78rem' }}>
-                            <Wrench size={12} /> Schedule
-                          </Button>
+                          {/* Maintenance follows from the class. Equipment is what
+                              you service; a sampled asset is evidenced by lab
+                              certificates, so a backwash schedule on a water body
+                              would be a category error. */}
+                          {a.asset_class === 'sampled' ? (
+                            <span style={{ color: COLORS.slateLight, fontSize: '0.78rem' }}
+                                  title="Sampled assets are evidenced by lab certificates, not maintenance schedules.">
+                              Certificates
+                            </span>
+                          ) : (
+                            <Button variant="secondary" size="sm" onClick={() => setMaintFor(maintFor === a.id ? null : a.id)} style={{ padding: '3px 10px', fontSize: '0.78rem' }}>
+                              <Wrench size={12} /> Schedule
+                            </Button>
+                          )}
                         </td>
                       )}
                     </tr>
