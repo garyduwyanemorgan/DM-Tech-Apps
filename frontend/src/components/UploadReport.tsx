@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { Save, Upload, Sparkles, FileText, AlertTriangle, Clock } from 'lucide-react'
+import { Save, Upload, Sparkles, FileText, AlertTriangle, Clock, CheckCircle2, XCircle, HelpCircle, ScrollText } from 'lucide-react'
 import { PageHeader } from './PageHeader'
 import { StatusBadge } from './ui'
 import { COLORS, tableHeaderStyle, tableCellStyle } from '../lib/ui'
@@ -8,6 +8,8 @@ import { COLORS, tableHeaderStyle, tableCellStyle } from '../lib/ui'
 // ── Lab sample (POST /api/extract response) ──────────────────────────────────
 export type LabResultStatus = 'PASS' | 'FAIL' | 'NOT_ASSESSED'
 export type ReviewerStatus = 'pending' | 'approved' | 'corrected' | 'rejected'
+/** Whole-certificate verdict against the cited standard. */
+export type OverallStatus = 'COMPLIANT' | 'NON_COMPLIANT' | 'INCOMPLETE'
 
 export interface LabResult {
   parameter: string
@@ -22,6 +24,8 @@ export interface LabResult {
   mou?: string | null
   specification?: string | null
   status?: LabResultStatus | null
+  /** One plain sentence explaining the status. Absent on scanned reports. */
+  status_reason?: string | null
 }
 
 export interface LabSample {
@@ -57,6 +61,21 @@ export interface LabSample {
   extraction_confidence?: number | null
   reviewer_status?: ReviewerStatus | null
   anomalies?: string[] | null
+
+  // ── Governing standard (absent on scanned reports and on certificates that
+  //    cite no compliance specification at all). ──
+  standard_code?: string | null
+  standard_title?: string | null
+  standard_year?: string | null
+  standard_authority?: string | null
+  /** Full verbatim citation — the audit trail a reviewer may quote back. */
+  standard_citation?: string | null
+  additional_standards?: string[] | null
+  test_procedure?: string | null
+  medium_used?: string | null
+  detection_limit?: string | null
+  filtered_volume?: string | null
+  overall_status?: OverallStatus | null
 }
 
 /** Em-dash placeholder so empty cells read as "not on the certificate"
@@ -68,11 +87,164 @@ const show = (v: unknown): string => {
   return s === '' ? DASH : s
 }
 
-const STATUS_TONE: Record<LabResultStatus, 'green' | 'red' | 'slate'> = {
-  PASS: 'green', FAIL: 'red', NOT_ASSESSED: 'slate',
+// NOT_ASSESSED is deliberately amber, not grey: "nobody checked this" is an
+// open item on a regulatory submission, not a neutral non-event.
+const STATUS_TONE: Record<LabResultStatus, 'green' | 'red' | 'amber'> = {
+  PASS: 'green', FAIL: 'red', NOT_ASSESSED: 'amber',
 }
 const STATUS_LABEL: Record<LabResultStatus, string> = {
   PASS: 'Pass', FAIL: 'Fail', NOT_ASSESSED: 'Not assessed',
+}
+
+// ── Whole-certificate verdict ─────────────────────────────────────────────────
+// INCOMPLETE must never read as a pass: amber/warning treatment, its own icon,
+// and wording that states outright that the assessment is unfinished.
+const OVERALL_COPY: Record<OverallStatus, {
+  tone: 'green' | 'red' | 'amber'
+  label: string
+  note: string
+  bg: string; fg: string; border: string
+  Icon: React.ComponentType<{ size?: number; style?: React.CSSProperties; 'aria-hidden'?: boolean | 'true' | 'false' }>
+}> = {
+  COMPLIANT: {
+    tone: 'green', label: 'Compliant', note: 'Met the cited specification',
+    bg: COLORS.greenBg, fg: COLORS.greenFg, border: COLORS.greenBorder, Icon: CheckCircle2,
+  },
+  NON_COMPLIANT: {
+    tone: 'red', label: 'Not compliant', note: 'One or more parameters exceeded the specification',
+    bg: COLORS.redBg, fg: COLORS.redFg, border: COLORS.redBorder, Icon: XCircle,
+  },
+  INCOMPLETE: {
+    tone: 'amber', label: 'Incomplete — not a pass', note: 'Not fully assessed — see unassessed parameters below',
+    bg: COLORS.amberBg, fg: COLORS.amberFg, border: COLORS.amberBorder, Icon: HelpCircle,
+  },
+}
+
+/** Top-of-panel verdict banner — the first thing a reviewer sees. */
+const OverallStatusBanner: React.FC<{ status: OverallStatus }> = ({ status }) => {
+  const c = OVERALL_COPY[status]
+  const { Icon } = c
+  return (
+    <div
+      role={status === 'COMPLIANT' ? undefined : 'alert'}
+      style={{
+        display: 'flex', gap: '0.75rem', alignItems: 'center',
+        background: c.bg, color: c.fg, border: `2px solid ${c.border}`,
+        borderRadius: 8, padding: '0.9rem 1.1rem', margin: '0.9rem 0 1.1rem',
+      }}
+    >
+      <Icon size={22} style={{ flexShrink: 0 }} aria-hidden="true" />
+      <div>
+        <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '0.01em' }}>{c.label}</div>
+        <div style={{ fontSize: '0.85rem', marginTop: 2 }}>{c.note}</div>
+      </div>
+    </div>
+  )
+}
+
+/** The governing standard this certificate was judged against. */
+const AssessedAgainst: React.FC<{ sample: LabSample }> = ({ sample }) => {
+  const [showCitation, setShowCitation] = useState(false)
+  const extras = (sample.additional_standards ?? []).filter(s => (s ?? '').trim() !== '')
+
+  const detail: { label: string; value: string }[] = [
+    { label: 'Test procedure', value: show(sample.test_procedure) },
+    { label: 'Medium used', value: show(sample.medium_used) },
+    { label: 'Detection limit', value: show(sample.detection_limit) },
+    { label: 'Filtered volume', value: show(sample.filtered_volume) },
+  ].filter(d => d.value !== DASH)
+
+  const heading = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: COLORS.slate, marginBottom: '0.55rem' }}>
+      <ScrollText size={14} aria-hidden="true" />
+      Assessed against
+    </div>
+  )
+
+  // No cited standard (e.g. the chemistry certificate) — say so outright rather
+  // than render an empty panel a reviewer might read as "checked, all fine".
+  if (!(sample.standard_code ?? '').trim() && !(sample.standard_title ?? '').trim()) {
+    return (
+      <div style={{ border: `1px dashed ${COLORS.border}`, borderRadius: 8, padding: '0.9rem 1.1rem', marginBottom: '1.25rem', background: COLORS.surface }}>
+        {heading}
+        <p style={{ margin: 0, fontSize: '0.875rem', color: '#1B3A5C', fontWeight: 600 }}>
+          This certificate cites no compliance standard.
+        </p>
+        <p style={{ margin: '0.35rem 0 0', fontSize: '0.82rem', color: COLORS.slate }}>
+          Results below are reported values only — they have not been judged against any specification.
+        </p>
+        {extras.length > 0 && (
+          <p style={{ margin: '0.5rem 0 0', fontSize: '0.82rem', color: COLORS.slate }}>
+            Other standards referenced: {extras.join(', ')}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: '0.9rem 1.1rem', marginBottom: '1.25rem', background: COLORS.surface }}>
+      {heading}
+
+      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#1B3A5C', wordBreak: 'break-word' }}>
+        {show(sample.standard_code)}
+        {(sample.standard_year ?? '').trim() && (
+          <span style={{ fontWeight: 600, color: COLORS.slate }}> ({sample.standard_year})</span>
+        )}
+      </div>
+      {(sample.standard_title ?? '').trim() && (
+        <div style={{ fontSize: '0.9rem', color: '#1B3A5C', marginTop: 2 }}>{sample.standard_title}</div>
+      )}
+      {(sample.standard_authority ?? '').trim() && (
+        <div style={{ fontSize: '0.82rem', color: COLORS.slate, marginTop: 4 }}>{sample.standard_authority}</div>
+      )}
+
+      {extras.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem' }}>
+          <span style={{ fontSize: '0.78rem', color: COLORS.slate }}>Also referenced:</span>
+          {extras.map(s => <StatusBadge key={s} tone="blue" variant="count">{s}</StatusBadge>)}
+        </div>
+      )}
+
+      {detail.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.6rem 1.25rem', marginTop: '0.85rem' }}>
+          {detail.map(d => (
+            <div key={d.label}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: COLORS.slate }}>{d.label}</div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1B3A5C', wordBreak: 'break-word' }}>{d.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Full citation kept verbatim but collapsed — it is long, and it is the
+          audit trail rather than something read on every visit. */}
+      {(sample.standard_citation ?? '').trim() && (
+        <div style={{ marginTop: '0.85rem' }}>
+          <button
+            type="button"
+            onClick={() => setShowCitation(v => !v)}
+            aria-expanded={showCitation}
+            style={{
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              font: 'inherit', fontSize: '0.8rem', fontWeight: 700, color: '#2E5D8A', textDecoration: 'underline',
+            }}
+          >
+            {showCitation ? 'Hide full citation' : 'Show full citation'}
+          </button>
+          {showCitation && (
+            <p style={{
+              margin: '0.5rem 0 0', fontSize: '0.8rem', lineHeight: 1.55, color: '#374151',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              borderLeft: `3px solid ${COLORS.border}`, paddingLeft: '0.75rem',
+            }}>
+              {sample.standard_citation}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 const REVIEW_COPY: Record<ReviewerStatus, { tone: 'amber' | 'green' | 'blue' | 'red'; label: string; note: string }> = {
@@ -91,6 +263,8 @@ const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
   const anomalies = sample.anomalies ?? []
   const review = REVIEW_COPY[sample.reviewer_status ?? 'pending'] ?? REVIEW_COPY.pending
   const scanned = (sample.report_type ?? '').toLowerCase() === 'scanned'
+  const overall = sample.overall_status && OVERALL_COPY[sample.overall_status] ? sample.overall_status : null
+  const notAssessed = results.filter(r => (r.status ?? 'NOT_ASSESSED') === 'NOT_ASSESSED').length
 
   const meta: { label: string; value: string }[] = [
     { label: 'Laboratory', value: show(sample.laboratory) },
@@ -111,6 +285,9 @@ const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
         <h3 className="section-heading" style={{ marginTop: 0, marginBottom: 0 }}>Extracted certificate</h3>
         <StatusBadge tone={review.tone}>{review.label}</StatusBadge>
       </div>
+
+      {/* Verdict against the cited standard — first thing a reviewer sees. */}
+      {overall && <OverallStatusBanner status={overall} />}
 
       {/* Not-yet-saved banner — the single most important message on this panel. */}
       <div style={{
@@ -148,6 +325,9 @@ const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
         </p>
       )}
 
+      {/* Governing standard */}
+      <AssessedAgainst sample={sample} />
+
       {/* Provenance */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '0.9rem 1.25rem', marginBottom: '1.5rem' }}>
         {meta.map(m => (
@@ -163,6 +343,25 @@ const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
         <p style={{ fontSize: '0.875rem', color: COLORS.slate }}>No individual test results were found in this report.</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
+          {/* Unassessed parameters are an open item, not a quiet default —
+              state the count so it cannot be skimmed past. */}
+          {notAssessed > 0 && (
+            <div
+              role="alert"
+              style={{
+                display: 'flex', gap: '0.6rem', alignItems: 'flex-start',
+                background: COLORS.amberBg, color: COLORS.amberFg, border: `1px solid ${COLORS.amberBorder}`,
+                borderRadius: 6, padding: '0.7rem 1rem', marginBottom: '0.9rem', fontSize: '0.85rem',
+              }}
+            >
+              <HelpCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+              <span>
+                <strong>{notAssessed} of {results.length} parameters were not assessed.</strong>{' '}
+                Nobody has checked {notAssessed === 1 ? 'it' : 'them'} against a specification — treat{' '}
+                {notAssessed === 1 ? 'it' : 'them'} as open before submitting to the regulator.
+              </span>
+            </div>
+          )}
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <caption style={{ captionSide: 'top', textAlign: 'left', fontSize: '0.8rem', color: COLORS.slate, paddingBottom: '0.5rem' }}>
               {results.length} test {results.length === 1 ? 'result' : 'results'} — shown exactly as printed on the certificate.
@@ -183,7 +382,17 @@ const ExtractedSample: React.FC<{ sample: LabSample }> = ({ sample }) => {
                 const tone = STATUS_TONE[status] ?? 'slate'
                 return (
                   <tr key={`${r.parameter}-${i}`}>
-                    <th scope="row" style={{ ...tableCellStyle, textAlign: 'left', fontWeight: 600, color: '#1B3A5C' }}>{show(r.parameter)}</th>
+                    <th scope="row" style={{ ...tableCellStyle, textAlign: 'left', fontWeight: 600, color: '#1B3A5C' }}>
+                      {show(r.parameter)}
+                      {(r.status_reason ?? '').trim() && (
+                        <div style={{
+                          fontWeight: 400, fontSize: '0.78rem', lineHeight: 1.45, marginTop: 3,
+                          color: status === 'NOT_ASSESSED' ? COLORS.amberFg : COLORS.slate,
+                        }}>
+                          {r.status_reason}
+                        </div>
+                      )}
+                    </th>
                     {/* value_raw verbatim: '<1' and 'Not Detected' are regulatorily meaningful. */}
                     <td style={{ ...tableCellStyle, fontWeight: 600, whiteSpace: 'nowrap' }}>{show(r.value_raw)}</td>
                     <td style={tableCellStyle}>{show(r.unit)}</td>

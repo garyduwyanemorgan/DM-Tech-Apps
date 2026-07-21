@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from ingestion import gates
-from ingestion.schema import ResultStatus
+from ingestion.schema import ComplianceStatus, LabResult, LabSample, ResultStatus
 from ingestion.wimpey import WimpeyParseError, detect_form_type, is_wimpey_report, parse
 
 FIXTURES = Path(__file__).parent / "fixtures" / "wimpey"
@@ -34,6 +34,15 @@ _TEXT_FIELDS = [
     "analyst", "reviewed_by",
 ]
 _DATE_FIELDS = ["sampled_at", "received_at", "reported_at", "analysis_start", "analysis_end"]
+
+# The governing standard cited in the certificate footer, plus the legionella
+# method disclosure. Compared verbatim: a citation quoted back to a regulator has
+# to match the certificate it came from.
+_STANDARD_FIELDS = [
+    "standard_code", "standard_title", "standard_year", "standard_authority",
+    "standard_citation", "test_procedure", "medium_used",
+    "detection_limit", "filtered_volume",
+]
 
 
 def _load(name: str):
@@ -134,6 +143,103 @@ def test_chemistry_has_no_specification_so_is_not_assessed():
     """The chemistry form prints LOQ but no limits — inventing a verdict would be wrong."""
     sample = gates.apply(_load("WD-R-260616-0203_chemistry.pdf"))
     assert all(r.status is ResultStatus.NOT_ASSESSED for r in sample.results)
+
+
+@pytest.mark.parametrize("name", REPORTS)
+def test_governing_standard_matches_ground_truth(name):
+    """The footer citation is the only record of which limits were applied."""
+    sample = _load(name)
+    expected = EXPECTED[name]
+    for field in _STANDARD_FIELDS:
+        assert getattr(sample, field) == expected[field], f"{name}: {field}"
+    assert sample.additional_standards == expected["additional_standards"], name
+
+
+def test_chemistry_invents_no_standard():
+    """The chemistry form cites nothing; a plausible-looking standard here would
+    be this system asserting a limit the laboratory never applied."""
+    sample = _load("WD-R-260616-0203_chemistry.pdf")
+    for field in _STANDARD_FIELDS:
+        assert getattr(sample, field) == "", field
+    assert sample.additional_standards == []
+
+
+def test_printed_case_of_the_standard_title_is_preserved():
+    """The two forms disagree — 'water System' vs 'Water System'. Both are quoted
+    as printed; tidying either would misquote a certificate."""
+    micro = _load("WD-R-260421-0222_microbiology.pdf")
+    legio = _load("WD-R-260421-0235_legionella.pdf")
+    assert micro.standard_title.endswith("in water System")
+    assert legio.standard_title.endswith("in Water System")
+    assert micro.standard_code == legio.standard_code == "DM-HSD-GU44-LCWS2"
+
+
+@pytest.mark.parametrize("name", REPORTS)
+def test_overall_status_matches_ground_truth(name):
+    sample = gates.apply(_load(name))
+    assert sample.overall_status.value == EXPECTED[name]["overall_status"], name
+
+
+def test_unassessed_report_is_never_compliant():
+    """The safety-critical rule: absence of a verdict must not read as a pass."""
+    chemistry = gates.apply(_load("WD-R-260616-0203_chemistry.pdf"))
+    assert any(r.status is ResultStatus.NOT_ASSESSED for r in chemistry.results)
+    assert chemistry.overall_status is ComplianceStatus.INCOMPLETE
+
+    passing = LabResult(parameter="Total Coliforms", value_raw="<1",
+                        status=ResultStatus.PASS)
+    unknown = LabResult(parameter="Turbidity", value_raw="8.9",
+                        status=ResultStatus.NOT_ASSESSED)
+    failing = LabResult(parameter="E. coli", value_raw="12",
+                        status=ResultStatus.FAIL)
+
+    assert gates.roll_up_status([passing]) is ComplianceStatus.COMPLIANT
+    # One unassessed parameter downgrades a certificate of otherwise clean rows.
+    assert gates.roll_up_status([passing, unknown]) is ComplianceStatus.INCOMPLETE
+    # A failure outranks an unknown: the worst known verdict wins.
+    assert gates.roll_up_status([passing, unknown, failing]) is \
+        ComplianceStatus.NON_COMPLIANT
+    # An empty results table is the trap `all(...)` would fall into.
+    assert gates.roll_up_status([]) is ComplianceStatus.INCOMPLETE
+
+
+def test_unparsed_sample_defaults_to_incomplete():
+    """A LabSample that never reached the gates must not claim compliance."""
+    sample = LabSample(laboratory="Wimpey Laboratories", report_no="X-1",
+                       form_type="WRF2-W-001", report_type="microbiology")
+    assert sample.overall_status is ComplianceStatus.INCOMPLETE
+
+
+@pytest.mark.parametrize("name", REPORTS)
+def test_every_result_explains_its_verdict(name):
+    """A verdict a reviewer cannot act on is not much better than no verdict."""
+    for result in gates.apply(_load(name)).results:
+        assert result.status_reason.strip(), f"{name}: {result.parameter}"
+
+
+def test_not_assessed_reasons_distinguish_cause_and_never_read_as_a_pass():
+    """Missing limit vs unreadable limit need different follow-up, and neither is
+    a pass — the wording has to say so out loud."""
+    no_spec = LabResult(parameter="Turbidity", value_raw="8.9", value_num=8.9)
+    status, reason = gates.evaluate_printed_spec(no_spec)
+    assert status is ResultStatus.NOT_ASSESSED
+    assert "No specification was printed" in reason
+    assert "not a pass" in reason
+
+    odd_spec = LabResult(parameter="Colour", value_raw="8.9", value_num=8.9,
+                         specification="As per DM guideline")
+    status, reason = gates.evaluate_printed_spec(odd_spec)
+    assert status is ResultStatus.NOT_ASSESSED
+    assert "not in a form this system can interpret" in reason
+    assert "not a pass" in reason
+
+    # "<5000" against a limit of 1000 bounds the result above the limit: it
+    # neither demonstrates compliance nor proves an exceedance.
+    loose = LabResult(parameter="Enumeration of legionella", value_raw="<5000",
+                      value_num=5000.0, qualifier="<", specification="<1000")
+    status, reason = gates.evaluate_printed_spec(loose)
+    assert status is ResultStatus.NOT_ASSESSED
+    assert "not a pass" in reason
 
 
 def test_detects_and_rejects_non_wimpey_input():

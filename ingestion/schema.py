@@ -25,6 +25,20 @@ class ResultStatus(str, Enum):
     NOT_ASSESSED = "NOT_ASSESSED"      # no specification printed on the report
 
 
+class ComplianceStatus(str, Enum):
+    """Certificate-level verdict rolled up from every parameter row.
+
+    INCOMPLETE is deliberately a third state rather than a flavour of pass. The
+    client asks one question of this app — "did we meet the guidelines?" — and the
+    only honest answers are yes, no, and "this certificate does not say". Folding
+    the third into the first is the failure mode that puts an unassessed report in
+    front of Dubai Municipality wearing a green tick.
+    """
+    COMPLIANT = "COMPLIANT"
+    NON_COMPLIANT = "NON_COMPLIANT"
+    INCOMPLETE = "INCOMPLETE"
+
+
 class ReviewerStatus(str, Enum):
     """Gate 6 — where a record sits in the human-review queue."""
     PENDING = "pending"
@@ -49,6 +63,10 @@ class LabResult(BaseModel):
     specification: str = ""             # e.g. "Zero", "<1000", "500*"
 
     status: ResultStatus = ResultStatus.NOT_ASSESSED
+    # Why that status, in one sentence aimed at a reviewer who is not a chemist.
+    # A bare NOT_ASSESSED tells nobody whether to chase the laboratory for a
+    # missing limit or to fix our parser, and the two need different phone calls.
+    status_reason: str = ""
 
     @field_validator("parameter")
     @classmethod
@@ -92,7 +110,31 @@ class LabSample(BaseModel):
     reviewed_by: str = ""
     remarks: str = ""
 
+    # ── against what (the governing standard cited in the certificate footer) ──
+    # A result is only meaningful next to the limit it was judged against. The
+    # certificates name that standard in a free-text footnote, so it is captured
+    # verbatim in `standard_citation` and merely *indexed* by the parsed parts —
+    # if the two ever disagree, the verbatim block is the one to trust.
+    standard_code: str = ""             # "DM-HSD-GU44-LCWS2"
+    standard_title: str = ""            # printed case preserved, incl. "water System"
+    standard_year: str = ""             # str, not int: it is a citation, not arithmetic
+    standard_authority: str = ""        # the issuing department, as printed
+    standard_citation: str = ""         # the whole footer block, whitespace-normalised
+    additional_standards: list[str] = Field(default_factory=list)   # e.g. ["GSO 149/2021"]
+
+    # ── legionella method disclosure ──
+    # Printed only on the legionella form. The detection limit is what makes
+    # "Not Detected" a quantitative statement rather than a shrug.
+    test_procedure: str = ""            # "7"
+    medium_used: str = ""               # "BCYE+Cys+GVPC"
+    detection_limit: str = ""           # "4 cfu/l" — verbatim, unit inseparable
+    filtered_volume: str = ""           # "250 ml"
+
     results: list[LabResult] = Field(default_factory=list)
+
+    # Rolled up by gates.apply(); INCOMPLETE until something computes it, so a
+    # sample that never passed through the gates cannot read as compliant.
+    overall_status: ComplianceStatus = ComplianceStatus.INCOMPLETE
 
     # ── provenance (Gate 5) + audit trail (Gate 7) ──
     source_filename: str = ""

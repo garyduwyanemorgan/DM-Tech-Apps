@@ -19,6 +19,8 @@ Layout notes that drive the implementation:
   wraps under "Sample Location" but follows "Sampled By :Adnan" in the text
   stream. Everything here is therefore positional: cells are cut at label
   x-positions and continuation lines are re-attached by x-range.
+* The governing standard is cited in free text under the results table, not in
+  any column, and only on the two microbiological forms. See `_parse_standard`.
 * The results table is genuinely ruled, so pdfplumber's `extract_tables()`
   recovers it cleanly. The first returned "table" is the header block (one merged
   cell) — the results table is the one whose first row starts with "Parameters".
@@ -254,6 +256,91 @@ def _parse_results(tables: list[list[list]]) -> list[LabResult]:
     return results
 
 
+# ── governing standard ───────────────────────────────────────────────────────
+#
+# Both microbiology and legionella forms cite the standard their limits come from,
+# in a free-text footnote under the results table. The two forms introduce it
+# differently ("Note : Specification Reference:" vs a bare "Specification:") and
+# punctuate it differently ("; 2024." vs ";2024"), so the anchors are alternatives
+# and the separators are tolerant. Nothing here is inferred: the chemistry form
+# prints no citation at all and must come back empty rather than inheriting a
+# plausible-looking standard from its siblings.
+#
+# The trailing anchor is the Remarks/Analyst block, which always follows.
+_CITATION_RE = re.compile(
+    r"(?m)^(?:Note\s*:\s*Specification\s+Reference|Specification)\s*:\s*$"
+    r"(.*?)"
+    r"(?=^\s*(?:Remarks\s*:|Analyst\s+Reviewed\s+By|Key\s+Words\s*:))",
+    re.S,
+)
+# "DM-HSD-GU44-LCWS2". Hyphen-joined uppercase/digit groups after the DM prefix.
+_STANDARD_CODE_RE = re.compile(r"\bDM(?:-[A-Z0-9]+)+\b")
+# "GSO 149/2021" and "GSO149/2021" are the same standard printed two ways.
+_GSO_RE = re.compile(r"\bGSO\s*(\d+\s*/\s*\d{4})\b")
+
+
+def _parse_standard(text: str) -> dict[str, object]:
+    """Pull the governing standard out of the certificate footer.
+
+    Returns only the fields actually printed; every caller-facing default is empty.
+    The laboratory delimits the citation with semicolons — authority; title; code;
+    year — so the parts are located *relative to the code* rather than by matching
+    the wording of any one title. That survives a retitled guideline, which a
+    literal title regex would silently drop.
+    """
+    found: dict[str, object] = {}
+    m = _CITATION_RE.search(text)
+    if not m:
+        return found
+
+    block = re.sub(r"\s+", " ", m.group(1)).strip()
+    if not block:
+        return found
+    found["standard_citation"] = block
+
+    segments = block.split(";")
+    code_at = next(
+        (i for i, s in enumerate(segments) if _STANDARD_CODE_RE.search(s)), None)
+    if code_at is not None:
+        found["standard_code"] = _STANDARD_CODE_RE.search(segments[code_at]).group(0)
+        if code_at >= 1:
+            # Printed case is evidence, not noise: the microbiology form says
+            # "water System" and the legionella form "Water System". Quoting a
+            # standard back to a regulator means quoting it as issued.
+            found["standard_title"] = segments[code_at - 1].strip()
+        if code_at == 0:
+            # The authority precedes the title, so with no room for both there is
+            # no authority to claim.
+            found["standard_authority"] = ""
+        else:
+            found["standard_authority"] = segments[0].strip().lstrip("*").strip()
+        if code_at + 1 < len(segments):
+            # Anchored at the start of the following segment so a year mentioned
+            # later in the prose ("GSO 149/2021") cannot be mistaken for it.
+            y = re.match(r"\s*(\d{4})", segments[code_at + 1])
+            if y:
+                found["standard_year"] = y.group(1)
+
+    extra: list[str] = []
+    for gso in _GSO_RE.findall(block):
+        label = "GSO " + re.sub(r"\s+", "", gso)
+        if label not in extra:      # printed twice on the microbiology form
+            extra.append(label)
+    if extra:
+        found["additional_standards"] = extra
+
+    for field, pattern in (
+        ("test_procedure", r"Test\s+Procedure\s*:\s*([^,;.]+)"),
+        ("medium_used", r"Medium\s+Used\s*:\s*([^\s,;]+)"),
+        ("filtered_volume", r"Sample\s+Volume\s+filtered\s+is\s+(\d+(?:\.\d+)?\s*[^\s,;&]+)"),
+        ("detection_limit", r"Detection\s+limit\s+is\s+(\d+(?:\.\d+)?\s*[^\s,;.]+)"),
+    ):
+        found_m = re.search(pattern, block, re.I)
+        if found_m:
+            found[field] = found_m.group(1).strip()
+    return found
+
+
 # ── public interface ─────────────────────────────────────────────────────────
 
 def detect_form_type(text: str) -> Optional[str]:
@@ -321,6 +408,7 @@ def parse(pdf_bytes: bytes, filename: str = "") -> LabSample:
         remarks = re.sub(r"\s+", " ", m.group(1)).strip()
 
     analyst, reviewed_by = _parse_signoff(full_text)
+    standard = _parse_standard(full_text)
 
     sample = LabSample(
         laboratory=LABORATORY,
@@ -339,6 +427,9 @@ def parse(pdf_bytes: bytes, filename: str = "") -> LabSample:
         raw_extraction={"form_type": form_type, "header": fields, "text": full_text},
         **{field: fields.get(label, "") for label, field in _FIELD_MAP.items()
            if label != "Report No."},
+        # Absent keys fall back to the schema defaults; a form that prints no
+        # citation (chemistry) must stay empty rather than borrow one.
+        **standard,
     )
     for label, field in _DATE_MAP.items():
         setattr(sample, field, _to_date(fields.get(label, "")))
