@@ -95,7 +95,7 @@ const NAV: NavEntry[] = [
   },
   {
     // Water-body / lagoon asset class only — see the note above the array.
-    icon: Waves, label: 'Water Bodies & Lagoons',
+    icon: Waves, label: 'Water Bodies & Lagoons', feature: 'lagoons',
     children: [
       { id: 'sludge',    label: 'Sludge & Sediment Mgmt' },
       { id: 'community', label: 'Algae & Bloom Forecast' },

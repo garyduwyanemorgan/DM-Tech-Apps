@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useFeatures, featureForTab } from '../context/FeaturesContext'
 
 interface HomeProps {
   activeSite: string
@@ -15,7 +14,6 @@ type CountState = 'loading' | 'ready' | 'unavailable'
 
 export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
   const { organizationId, token, showSampleData } = useAuth()
-  const { features } = useFeatures()
   const [assetCount, setAssetCount] = useState<number | null>(null)
   const [countState, setCountState] = useState<CountState>('loading')
 
@@ -171,81 +169,6 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
             Dubai Municipality (DM)
           </div>
           <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>Dubai Municipality norms</div>
-        </div>
-      </div>
-
-      {/* Start here */}
-      <div style={{ marginBottom: '1.75rem' }}>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1B3A5C', margin: '0 0 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          Start here
-          <span style={{ fontSize: '1rem' }}>↗</span>
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-          {[
-            {
-              icon: '📋',
-              title: 'File a certificate',
-              desc: 'Upload a lab certificate and confirm the readings against the asset it belongs to.',
-              btn: 'Upload Lab Report',
-              tab: 'upload',
-            },
-            {
-              icon: '⬆️',
-              title: 'Plan your sampling',
-              desc: 'See which assets are due for sampling before the next submission.',
-              btn: 'Digital Twin Simulator',
-              tab: 'simulation',
-            },
-            {
-              icon: '🔍',
-              title: 'Investigate a result',
-              desc: 'What is driving an out-of-specification asset, and what to do about it.',
-              btn: 'Environmental Drivers',
-              tab: 'drivers',
-            },
-            {
-              icon: '📄',
-              title: 'Produce a report',
-              desc: 'Submission-ready compliance PDF for the site.',
-              btn: 'Compliance Reporting',
-              tab: 'compliance',
-            },
-          ].filter(item => {
-            // Shortcuts into a feature switched off in Settings › Features are
-            // hidden along with the feature's sidebar section.
-            const owner = featureForTab(item.tab)
-            return !owner || features[owner]
-          }).map(item => (
-            <div
-              key={item.tab}
-              style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-            >
-              <div style={{ fontSize: '1.4rem' }}>{item.icon}</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1B3A5C' }}>{item.title}</div>
-              <div style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5, flex: 1 }}>{item.desc}</div>
-              <button
-                onClick={() => setActiveTab(item.tab)}
-                style={{
-                  marginTop: '0.5rem',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '6px',
-                  padding: '0.45rem 0.85rem',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  color: '#1B3A5C',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  textAlign: 'left',
-                  transition: 'background 0.15s',
-                }}
-                onMouseOver={e => (e.currentTarget.style.background = '#D6E4F0')}
-                onMouseOut={e => (e.currentTarget.style.background = '#f8fafc')}
-              >
-                {item.btn} →
-              </button>
-            </div>
-          ))}
         </div>
       </div>
 

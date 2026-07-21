@@ -9,7 +9,7 @@
 // the choice is per-browser. Everything defaults to ON.
 import React, { createContext, useContext, useState } from 'react'
 
-export type FeatureKey = 'intelligence' | 'reporting' | 'reference'
+export type FeatureKey = 'intelligence' | 'reporting' | 'reference' | 'lagoons'
 
 export interface FeatureMeta {
   key: FeatureKey
@@ -33,6 +33,14 @@ export const FEATURES: FeatureMeta[] = [
       'documents and portfolio performance metrics.',
   },
   {
+    key: 'lagoons',
+    label: 'Water Bodies & Lagoons',
+    description:
+      'Sludge & Sediment Management, Algae & Bloom Forecast and the Alert & ' +
+      'Response Protocol — specific to the water body / lagoon asset class, not ' +
+      'to facilities management generally.',
+  },
+  {
     key: 'reference',
     label: 'Reference',
     description:
@@ -47,6 +55,7 @@ export const FEATURE_TABS: Record<FeatureKey, readonly string[]> = {
   intelligence: ['drivers', 'chemistry', 'ecology', 'simulation'],
   reporting: ['compliance', 'kpi'],
   reference: ['calendar', 'technologies', 'species', 'mlsystem'],
+  lagoons: ['sludge', 'community', 'alerts'],
 }
 
 export const featureForTab = (tab: string): FeatureKey | null => {
@@ -58,7 +67,24 @@ export const featureForTab = (tab: string): FeatureKey | null => {
 
 export type FeatureFlags = Record<FeatureKey, boolean>
 
-const DEFAULT_FLAGS: FeatureFlags = { intelligence: true, reporting: true, reference: true }
+// Defaults describe the facilities-management product: Platform Overview,
+// Upload Lab Report, Monitoring, Operations and Reporting. The lagoon-specific
+// areas — and the analytical/reference libraries built around them — start OFF.
+//
+// They are parked, not removed. Every page still exists, the API still serves
+// it, and Settings › Features brings any of them back in one click. This is the
+// switch to flip after the client conversation about scope.
+//
+// NOTE: this choice persists in localStorage, so it is per-browser. The defaults
+// below are therefore what a client actually sees on a fresh machine — treat
+// them as the real control. Moving this to a per-organisation setting (as
+// migration 006 did for sample data) is the proper fix.
+const DEFAULT_FLAGS: FeatureFlags = {
+  intelligence: false,
+  reporting: true,
+  reference: false,
+  lagoons: false,
+}
 
 const STORAGE_KEY = 'featureToggles'
 
