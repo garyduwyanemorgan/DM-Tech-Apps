@@ -52,6 +52,19 @@ interface NavEntry {
   feature?: FeatureKey
 }
 
+// Nav order and grouping are deliberate — please read before rearranging.
+//
+// Monitoring holds only what applies to EVERY asset class the platform tracks
+// (water bodies, water tanks, fountains, washroom outlets, misting lines):
+// the executive dashboard and water-quality monitoring. Reporting sits directly
+// beneath it because compliance output is the primary deliverable.
+//
+// Sludge & Sediment, Algae & Bloom Forecast and the Alert & Response Protocol
+// are NOT general monitoring — they only ever apply to the water_body / lagoon
+// asset class, and are meaningless for a misting line or a washroom outlet.
+// They therefore live in their own "Water Bodies & Lagoons" group. Do not
+// "tidy" them back under Monitoring; that reintroduces the lagoon-only
+// assumption the product has outgrown.
 const NAV: NavEntry[] = [
   { icon: Home, label: 'Platform Overview', id: 'home' },
   { icon: FileUp, label: 'Upload Lab Report', id: 'upload', roles: ['super_admin', 'admin', 'operator'] },
@@ -60,9 +73,13 @@ const NAV: NavEntry[] = [
     children: [
       { id: 'dashboard',  label: 'Executive Dashboard' },
       { id: 'monitoring', label: 'Water Quality Monitoring' },
-      { id: 'sludge',     label: 'Sludge & Sediment Mgmt' },
-      { id: 'community',  label: 'Algae & Bloom Forecast' },
-      { id: 'alerts',     label: 'Alert & Response Protocol' },
+    ],
+  },
+  {
+    icon: FileText, label: 'Reporting', feature: 'reporting',
+    children: [
+      { id: 'compliance', label: 'Compliance Reporting' },
+      { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
     ],
   },
   {
@@ -74,10 +91,12 @@ const NAV: NavEntry[] = [
     ],
   },
   {
-    icon: FileText, label: 'Reporting', feature: 'reporting',
+    // Water-body / lagoon asset class only — see the note above the array.
+    icon: Waves, label: 'Water Bodies & Lagoons',
     children: [
-      { id: 'compliance', label: 'Compliance Reporting' },
-      { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
+      { id: 'sludge',    label: 'Sludge & Sediment Mgmt' },
+      { id: 'community', label: 'Algae & Bloom Forecast' },
+      { id: 'alerts',    label: 'Alert & Response Protocol' },
     ],
   },
   {

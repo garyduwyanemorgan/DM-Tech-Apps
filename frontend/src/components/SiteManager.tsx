@@ -1,12 +1,54 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
 import { useAuth } from '../context/AuthContext'
-import { Trash2, Plus, MapPin, AlertTriangle } from 'lucide-react'
+import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
+import { Button, StatusBadge } from './ui'
+import { Trash2, Plus, MapPin, AlertTriangle, Boxes } from 'lucide-react'
 
 interface SiteInfo {
+  id?: string
   name: string
   reading_count: number
   address?: string | null
+}
+
+// Mirrors core/assets.py. `equipment` is what you maintain (pumps, filters);
+// `sampled` is what a laboratory certificate is about (tanks, water bodies,
+// fountains) — and only those carry a specification scope.
+type AssetClass = 'equipment' | 'sampled'
+
+interface AssetType {
+  key: string
+  label: string
+  asset_class: AssetClass
+  scope?: string | null
+  builtin?: boolean
+}
+
+interface SiteAsset {
+  id: string
+  name: string
+  asset_type?: string | null
+  asset_class?: string | null
+  scope?: string | null
+}
+
+const SCOPE_LABEL: Record<string, string> = {
+  lagoon: 'Lagoon — man-made / closed lagoon limits',
+  facilities: 'Facilities management — DM technical guidelines',
+}
+const scopeShort = (key?: string | null) =>
+  key ? (SCOPE_LABEL[key]?.split(' — ')[0] ?? key) : null
+
+// FastAPI hands back either a plain string detail or a validation-error array.
+// Both must reach the user verbatim — the /api/assets 422 explains exactly which
+// corner of the type/class/scope triangle disagrees, and swallowing it would
+// leave the operator staring at a generic failure.
+const readDetail = (data: any, fallback: string): string => {
+  const d = data?.detail
+  if (typeof d === 'string' && d.trim()) return d
+  if (Array.isArray(d) && d.length) return d.map((e: any) => e?.msg || String(e)).join('; ')
+  return fallback
 }
 
 // Keyless Google Maps embed — the classic WordPress-contact-page map. The
@@ -94,13 +136,24 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Add form state
+  // Add form state. Volume and salinity are deliberately absent: they are
+  // lagoon-only attributes, meaningless for water tanks, fountains, washroom
+  // outlets and misting lines. POST /api/sites defaults both server-side.
   const [newName, setNewName]               = useState('')
-  const [newVolume, setNewVolume]           = useState('')
-  const [newSalinity, setNewSalinity]       = useState('45')
   const [newAddress, setNewAddress]         = useState('')
   const [adding, setAdding]                 = useState(false)
   const [showAddForm, setShowAddForm]       = useState(false)
+
+  // ── Site infrastructure (assets) ───────────────────────────────────────────
+  const [assetTypes, setAssetTypes]   = useState<AssetType[]>([])
+  const [openSite, setOpenSite]       = useState<string | null>(null)   // site id
+  const [siteAssets, setSiteAssets]   = useState<Record<string, SiteAsset[]>>({})
+  const [assetsLoading, setAssetsLoading] = useState(false)
+  const [aName, setAName]             = useState('')
+  const [aType, setAType]             = useState('')
+  const [aScope, setAScope]           = useState('')
+  const [scopeFromRegister, setScopeFromRegister] = useState(false)
+  const [savingAsset, setSavingAsset] = useState(false)
 
   // Debounced copy of the address being typed — drives the live pin preview
   // without reloading the map iframe on every keystroke.
@@ -160,8 +213,6 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
         headers: await makeHeaders(),
         body: JSON.stringify({
           name: newName.trim(),
-          volume_m3: parseFloat(newVolume) || 0,
-          salinity_baseline: parseFloat(newSalinity) || 45,
           address: newAddress.trim() || null,
         }),
       })
@@ -169,8 +220,8 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
       if (!res.ok) {
         setError(data.detail || `Server error ${res.status} — failed to create site.`)
       } else {
-        setSuccess(`Site "${newName.trim()}" created successfully.`)
-        setNewName(''); setNewVolume(''); setNewSalinity('45'); setNewAddress('')
+        setSuccess(`Site "${newName.trim()}" created. Open “Assets” on its row to add the infrastructure on it.`)
+        setNewName(''); setNewAddress('')
         setShowAddForm(false)
         await fetchSites()
         onSitesChanged?.()
@@ -179,6 +230,90 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
       setError('Network error — could not create site.')
     } finally {
       setAdding(false)
+    }
+  }
+
+  // The type vocabulary is NEVER hardcoded here: /api/asset-types merges the
+  // built-in taxonomy with the organisation's own types from Settings → Asset
+  // Register, which is what keeps this page and that register in step.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/asset-types', { headers: await makeHeaders() })
+        const data = await res.json()
+        if (!cancelled && res.ok && Array.isArray(data?.types)) setAssetTypes(data.types)
+      } catch { /* the panel says so when the list is empty */ }
+    })()
+    return () => { cancelled = true }
+  }, [makeHeaders])
+
+  const chosenType = assetTypes.find(t => t.key === aType) || null
+  const derivedClass: AssetClass | null = chosenType ? chosenType.asset_class : null
+
+  // Class is DERIVED from the type, never asked for, so the two cannot disagree.
+  // Scope follows the same rule: equipment gets none at all, and a sampled type
+  // that declares one in the register prefills it (copied by value — editing the
+  // type later must not re-judge certificates already filed).
+  const chooseType = (key: string) => {
+    setAType(key)
+    const t = assetTypes.find(x => x.key === key)
+    if (!t || t.asset_class !== 'sampled') { setAScope(''); setScopeFromRegister(false); return }
+    setAScope(t.scope || '')
+    setScopeFromRegister(!!t.scope)
+  }
+
+  const loadSiteAssets = useCallback(async (siteId: string) => {
+    setAssetsLoading(true)
+    try {
+      const res = await fetch(`/api/assets?site_id=${encodeURIComponent(siteId)}`, { headers: await makeHeaders() })
+      const data = await res.json()
+      if (!res.ok) { setError(readDetail(data, 'Failed to load assets for this site.')); return }
+      setSiteAssets(prev => ({ ...prev, [siteId]: data.assets || [] }))
+    } catch {
+      setError('Network error — could not load this site’s assets.')
+    } finally {
+      setAssetsLoading(false)
+    }
+  }, [makeHeaders])
+
+  const toggleSiteAssets = (site: SiteInfo) => {
+    setError(null); setSuccess(null)
+    if (!site.id) { setError(`Site "${site.name}" has no identifier yet — reload the page and try again.`); return }
+    if (openSite === site.id) { setOpenSite(null); return }
+    setOpenSite(site.id)
+    setAName(''); setAType(''); setAScope(''); setScopeFromRegister(false)
+    loadSiteAssets(site.id)
+  }
+
+  const handleAddAsset = async (siteId: string) => {
+    if (!aName.trim() || !aType) return
+    setSavingAsset(true); setError(null); setSuccess(null)
+    try {
+      const res = await fetch('/api/assets', {
+        method: 'POST',
+        headers: await makeHeaders(),
+        body: JSON.stringify({
+          name: aName.trim(),
+          site_id: siteId,
+          asset_type: aType,
+          asset_class: derivedClass,
+          scope: derivedClass === 'sampled' ? (aScope || null) : null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        // 422 names the exact type/class/scope disagreement — show it as written.
+        setError(readDetail(data, `Server error ${res.status} — failed to add the asset.`))
+        return
+      }
+      setSuccess(`Asset "${aName.trim()}" added to this site.`)
+      setAName(''); setAType(''); setAScope(''); setScopeFromRegister(false)
+      await loadSiteAssets(siteId)
+    } catch {
+      setError('Network error — could not add the asset.')
+    } finally {
+      setSavingAsset(false)
     }
   }
 
@@ -273,8 +408,9 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
         {showAddForm && isAdmin && (
           <form onSubmit={handleAdd} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '1rem', marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end' }}>
             <div style={{ flex: '2 1 180px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Site Name *</label>
+              <label htmlFor="site-name" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Site Name *</label>
               <input
+                id="site-name"
                 type="text"
                 required
                 placeholder="e.g. Dubai Lagoon 1"
@@ -284,32 +420,10 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
                 style={{ padding: '0.45rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: '0.875rem', fontFamily: 'inherit' }}
               />
             </div>
-            <div style={{ flex: '1 1 130px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Volume (m³)</label>
-              <input
-                type="number"
-                min={0}
-                placeholder="0"
-                value={newVolume}
-                onChange={e => setNewVolume(e.target.value)}
-                style={{ padding: '0.45rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: '0.875rem', fontFamily: 'inherit' }}
-              />
-            </div>
-            <div style={{ flex: '1 1 130px', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Salinity Baseline (PSU)</label>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                value={newSalinity}
-                onChange={e => setNewSalinity(e.target.value)}
-                style={{ padding: '0.45rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: '0.875rem', fontFamily: 'inherit' }}
-              />
-            </div>
             <div style={{ flex: '1 1 100%', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Address</label>
+              <label htmlFor="site-address" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Address</label>
               <input
+                id="site-address"
                 type="text"
                 placeholder="e.g. Mohammed Bin Rashid City, District One, Dubai"
                 value={newAddress}
@@ -345,14 +459,18 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
                   <th style={TH}>Address</th>
                   <th style={{ ...TH, textAlign: 'right' }}>Readings</th>
                   <th style={{ ...TH, textAlign: 'center' }}>Status</th>
+                  <th style={{ ...TH, textAlign: 'center' }}>Infrastructure</th>
                   {isAdmin && <th style={{ ...TH, textAlign: 'center' }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {sites.map(site => {
                   const isActive = site.name === activeSite
+                  const isOpen = !!site.id && openSite === site.id
+                  const rowAssets = site.id ? siteAssets[site.id] : undefined
                   return (
-                    <tr key={site.name}>
+                    <React.Fragment key={site.name}>
+                    <tr>
                       <td style={TD}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <MapPin size={14} color={isActive ? '#27ae60' : '#94a3b8'} />
@@ -390,6 +508,19 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
                           </button>
                         )}
                       </td>
+                      <td style={{ ...TD, textAlign: 'center' }}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => toggleSiteAssets(site)}
+                          aria-expanded={isOpen}
+                          style={{ fontSize: '0.78rem', padding: '3px 10px' }}
+                        >
+                          <Boxes size={13} />
+                          {isOpen ? 'Hide assets' : 'Assets'}
+                          {rowAssets ? ` (${rowAssets.length})` : ''}
+                        </Button>
+                      </td>
                       {isAdmin && (
                         <td style={{ ...TD, textAlign: 'center' }}>
                           <button
@@ -414,6 +545,147 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
                         </td>
                       )}
                     </tr>
+
+                    {isOpen && site.id && (
+                      <tr>
+                        <td colSpan={isAdmin ? 6 : 5} style={{ background: COLORS.surface, padding: '14px 18px', borderBottom: '1px solid #f1f5f9' }}>
+                          <h3 className="section-heading" style={{ margin: '0 0 0.5rem', fontSize: '0.92rem' }}>
+                            Site infrastructure — {site.name}
+                          </h3>
+                          <p style={{ fontSize: '0.8rem', color: COLORS.slate, lineHeight: 1.6, margin: '0 0 0.9rem', maxWidth: 720 }}>
+                            The assets on this site: tanks, water bodies, fountains, washroom outlets,
+                            misting lines, and the equipment that serves them. Types come from{' '}
+                            <strong>Settings → Asset Register</strong>, so anything added there is offered here.
+                          </p>
+
+                          {isAdmin && (
+                            <form
+                              onSubmit={e => { e.preventDefault(); handleAddAsset(site.id!) }}
+                              style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end', marginBottom: '1rem' }}
+                            >
+                              <div style={{ ...fieldStyle, flex: '2 1 240px' }}>
+                                <label htmlFor={`asset-name-${site.id}`} style={labelStyle}>Asset name *</label>
+                                <input
+                                  id={`asset-name-${site.id}`}
+                                  value={aName}
+                                  onChange={e => setAName(e.target.value)}
+                                  placeholder="e.g. Gate Number 2 - GRP Water Tank"
+                                  maxLength={200}
+                                  style={inputStyle}
+                                  required
+                                />
+                              </div>
+
+                              <div style={{ ...fieldStyle, flex: '1 1 220px' }}>
+                                <label htmlFor={`asset-type-${site.id}`} style={labelStyle}>Type *</label>
+                                <select
+                                  id={`asset-type-${site.id}`}
+                                  value={aType}
+                                  onChange={e => chooseType(e.target.value)}
+                                  style={inputStyle}
+                                  aria-describedby={`asset-class-${site.id}`}
+                                  required
+                                >
+                                  <option value="">Choose a type…</option>
+                                  <optgroup label="Sampled — a lab certificate is about it">
+                                    {assetTypes.filter(t => t.asset_class === 'sampled').map(t => (
+                                      <option key={t.key} value={t.key}>{t.label}</option>
+                                    ))}
+                                  </optgroup>
+                                  <optgroup label="Equipment — maintained, never sampled">
+                                    {assetTypes.filter(t => t.asset_class === 'equipment').map(t => (
+                                      <option key={t.key} value={t.key}>{t.label}</option>
+                                    ))}
+                                  </optgroup>
+                                </select>
+                                {/* Class is shown, never asked for — it is read off the
+                                    chosen type so the pair cannot disagree. */}
+                                <span id={`asset-class-${site.id}`} style={{ fontSize: '0.75rem', color: COLORS.slate }}>
+                                  {derivedClass
+                                    ? `Class: ${derivedClass === 'sampled' ? 'Sampled — a lab certificate is about it' : 'Equipment — maintained, never sampled'}`
+                                    : 'Class is set by the type you choose.'}
+                                </span>
+                              </div>
+
+                              {/* Scope decides which specification set a lab result is
+                                  judged against. Lagoon and facilities share parameter
+                                  names such as pH and turbidity, so a sampled asset with
+                                  no scope produces certificates nothing can judge — and a
+                                  wrong default would silently judge it against the other
+                                  set. Never defaulted; equipment is never offered it. */}
+                              {derivedClass === 'sampled' && (
+                                <div style={{ ...fieldStyle, flex: '1 1 100%' }}>
+                                  <label htmlFor={`asset-scope-${site.id}`} style={labelStyle}>Specification scope</label>
+                                  <select
+                                    id={`asset-scope-${site.id}`}
+                                    value={aScope}
+                                    onChange={e => { setAScope(e.target.value); setScopeFromRegister(false) }}
+                                    aria-describedby={`asset-scope-help-${site.id}`}
+                                    style={{ ...inputStyle, maxWidth: 440 }}
+                                  >
+                                    <option value="">Not set — results stay unassessed</option>
+                                    <option value="facilities">{SCOPE_LABEL.facilities}</option>
+                                    <option value="lagoon">{SCOPE_LABEL.lagoon}</option>
+                                  </select>
+                                  <div id={`asset-scope-help-${site.id}`} style={{ fontSize: '0.78rem', color: COLORS.slate, lineHeight: 1.55, maxWidth: 620 }}>
+                                    {scopeFromRegister && (
+                                      <strong style={{ color: COLORS.navy }}>
+                                        Prefilled from the Asset Register — “{chosenType?.label}” declares this scope. Change it if this asset differs.{' '}
+                                      </strong>
+                                    )}
+                                    Scope decides which specification a result is judged against. The lagoon and
+                                    facilities sets share parameter names — pH and turbidity appear in both — so a
+                                    sampled asset left without a scope produces certificates nothing can judge.
+                                  </div>
+                                </div>
+                              )}
+
+                              <Button type="submit" size="sm" disabled={savingAsset || !aName.trim() || !aType}>
+                                <Plus size={13} /> {savingAsset ? 'Adding…' : 'Add asset'}
+                              </Button>
+                            </form>
+                          )}
+
+                          {assetsLoading && !rowAssets ? (
+                            <div style={{ fontSize: '0.85rem', color: COLORS.slate }}>Loading assets…</div>
+                          ) : !rowAssets || rowAssets.length === 0 ? (
+                            <div style={{ fontSize: '0.85rem', color: COLORS.slateLight }}>
+                              No assets on this site yet.{isAdmin ? ' Add the first one above.' : ''}
+                            </div>
+                          ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+                                <thead><tr>{['Asset', 'Type', 'Class', 'Scope'].map(h => (
+                                  <th key={h} style={tableHeaderStyle}>{h}</th>))}</tr></thead>
+                                <tbody>
+                                  {rowAssets.map(a => (
+                                    <tr key={a.id}>
+                                      <th scope="row" style={{ ...tableCellStyle, textAlign: 'left', fontWeight: 600, color: COLORS.navy }}>{a.name}</th>
+                                      <td style={tableCellStyle}>
+                                        {assetTypes.find(t => t.key === a.asset_type)?.label || a.asset_type || '—'}
+                                      </td>
+                                      <td style={tableCellStyle}>
+                                        <StatusBadge tone={a.asset_class === 'sampled' ? 'blue' : 'slate'} variant="count">
+                                          {a.asset_class === 'sampled' ? 'Sampled' : 'Equipment'}
+                                        </StatusBadge>
+                                      </td>
+                                      <td style={{ ...tableCellStyle, color: a.scope ? '#374151' : COLORS.slateLight }}>
+                                        {a.asset_class === 'equipment'
+                                          ? <span title="Equipment is maintained, not judged against limits.">Not applicable</span>
+                                          : a.scope
+                                            ? scopeShort(a.scope)
+                                            : <span title="No scope — results for this asset stay unassessed.">Not set</span>}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   )
                 })}
               </tbody>
@@ -456,7 +728,11 @@ export const SiteManager: React.FC<SiteManagerProps> = ({ activeSite, setActiveS
 
       {/* Info box */}
       <div style={{ background: '#D6E4F0', border: '1px solid #93c5fd', borderRadius: 8, padding: '0.85rem 1rem', fontSize: '0.82rem', color: '#1B3A5C', lineHeight: 1.6 }}>
-        <strong>About sites:</strong> Each site represents a monitored lagoon or water body. Lab readings are stored per site per month. Only administrators can add or delete sites. Deleting a site permanently removes all associated readings and cannot be undone.
+        <strong>About sites:</strong> A site is a location you monitor; the things on it — water bodies, tanks,
+        fountains, washroom outlets, misting lines and the equipment serving them — are its assets, added from the
+        <strong> Infrastructure</strong> button on each row. Lab readings are stored per site per month. Only
+        administrators can add or delete sites and assets. Deleting a site permanently removes all associated
+        readings and cannot be undone.
       </div>
 
       {/* Delete confirmation modal */}

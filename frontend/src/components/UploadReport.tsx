@@ -721,6 +721,10 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
    *  populates it — the form has exactly as many fields as there are results. */
   const [rows, setRows] = useState<FormRow[]>([])
   const [assetType, setAssetType] = useState<string>('')
+  /** Sampled asset instances, grouped by type in the dropdown. The certificate is
+   *  about one of these; scope is read from the asset, which is where it lives. */
+  const [assets, setAssets] = useState<SampledAsset[]>([])
+  const [assetId, setAssetId] = useState<string>('')
   /** The register: built-in types plus this organisation's own, so an asset
    *  created under a custom type still shows a human label here. */
   const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
@@ -739,7 +743,14 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   // fixed monthly `readings` table, so it is identified by its own report type.
   // Everything else is a certificate about an asset and goes to lab_samples.
   const isLagoon = selectedType === 'lagoon'
-  const selectedAsset = assetTypes.find(t => t.key === assetType) ?? null
+  const selectedAsset = assets.find(a => a.id === assetId) ?? null
+  const typeLabel = (key?: string | null) =>
+    assetTypes.find(t => t.key === key)?.label ?? (key ?? '').replace(/_/g, ' ')
+  /** Assets grouped under their type, so the list stays readable at 29 assets. */
+  const assetsByType = assetTypes
+    .map(t => ({ type: t, items: assets.filter(a => a.asset_type === t.key) }))
+    .filter(g => g.items.length > 0)
+  const ungrouped = assets.filter(a => !assetTypes.some(t => t.key === a.asset_type))
 
   // Load the dropdown. Built-ins always exist, so a failure here degrades to the
   // built-in list rather than blocking the upload.
@@ -748,9 +759,10 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     ;(async () => {
       try {
         const h = await authHeaders(false)
-        const [tRes, atRes] = await Promise.all([
+        const [tRes, atRes, aRes] = await Promise.all([
           fetch('/api/report-types', { headers: h }),
           fetch('/api/asset-types?asset_class=sampled', { headers: h }),
+          fetch('/api/assets?asset_class=sampled', { headers: h }),
         ])
         if (tRes.ok) {
           const data = await tRes.json()
@@ -759,6 +771,10 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
         if (atRes.ok) {
           const data = await atRes.json()
           if (!cancelled && Array.isArray(data?.types)) setAssetTypes(data.types)
+        }
+        if (aRes.ok) {
+          const data = await aRes.json()
+          if (!cancelled && Array.isArray(data?.assets)) setAssets(data.assets)
         }
       } catch { /* built-ins are unavailable only if the API is down entirely */ }
     })()
@@ -927,7 +943,8 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       const res = await fetch('/api/lab-samples', {
         method: 'POST', headers,
         body: JSON.stringify({ sample, results: edited, site: activeSite,
-                               report_type: selectedType, asset_type: assetType || null }),
+                               report_type: selectedType,
+                               asset_id: assetId || null, asset_type: assetType || null }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -971,25 +988,39 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
             what carries the specification scope. Always visible — hiding it for
             the default report type would hide the primary selection on load. */}
         <div style={{ marginBottom: '1.1rem' }}>
-          <label htmlFor="sampled-asset-type" style={labelStyle}>Asset type this certificate is about</label>
+          <label htmlFor="sampled-asset" style={labelStyle}>Asset this certificate is about</label>
           <select
-            id="sampled-asset-type" value={assetType}
-            onChange={e => setAssetType(e.target.value)}
+            id="sampled-asset" value={assetId}
+            onChange={e => {
+              const id = e.target.value
+              setAssetId(id)
+              // Keep the type in step for display and as the save fallback.
+              setAssetType(assets.find(a => a.id === id)?.asset_type ?? '')
+            }}
             style={{ width: '100%', boxSizing: 'border-box' }}
           >
             <option value="">— not selected —</option>
-            {assetTypes.map(t => (
-              <option key={t.key} value={t.key}>{t.label}</option>
+            {assetsByType.map(g => (
+              <optgroup key={g.type.key} label={g.type.label}>
+                {g.items.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </optgroup>
             ))}
+            {ungrouped.length > 0 && (
+              <optgroup label="Other">
+                {ungrouped.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </optgroup>
+            )}
           </select>
           {isLagoon ? (
             <span style={hintStyle}>
               Not used for a monthly lagoon reading — that path predates assets and is
               saved against the site.
             </span>
-          ) : assetTypes.length === 0 ? (
+          ) : assets.length === 0 ? (
             <span style={{ ...hintStyle, color: COLORS.amberFg }}>
-              No sampled asset types are available. Add one in Settings → Asset Register.
+              No sampled assets exist yet. Add them to a site under Site Manager, choosing
+              a type from Settings → Asset Register — until then a certificate cannot be
+              judged against any specification.
             </span>
           ) : selectedAsset ? (
             <span style={hintStyle}>
@@ -997,12 +1028,12 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
                 ? `Scope: ${selectedAsset.scope === 'lagoon'
                     ? 'lagoon — man-made / closed lagoon limits'
                     : 'facilities management — DM technical guidelines'}`
-                : 'This type declares no specification scope, so results stay unassessed. Add a type with a scope in Settings → Asset Register.'}
+                : `${typeLabel(selectedAsset.asset_type)} — this asset has no specification scope, so results stay unassessed until one is set.`}
             </span>
           ) : (
             <span style={{ ...hintStyle, color: COLORS.amberFg }}>
-              Without an asset type the scope is unknown, so nothing can be judged against
-              a specification — results are recorded but stay unassessed.
+              Without an asset the scope is unknown, so nothing can be judged against a
+              specification — results are recorded but stay unassessed.
             </span>
           )}
         </div>
