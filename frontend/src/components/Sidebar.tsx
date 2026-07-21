@@ -54,10 +54,13 @@ interface NavEntry {
 
 // Nav order and grouping are deliberate — please read before rearranging.
 //
+// The order follows the client's operational flow: monitor -> operate -> report.
 // Monitoring holds only what applies to EVERY asset class the platform tracks
 // (water bodies, water tanks, fountains, washroom outlets, misting lines):
-// the executive dashboard and water-quality monitoring. Reporting sits directly
-// beneath it because compliance output is the primary deliverable.
+// the executive dashboard and water-quality monitoring. Operations comes next,
+// because that is where the day's work is actually handled. Reporting sits
+// AFTER Operations — a report is produced from work that has been done, not
+// before it — so it must not be moved back above the Operations group.
 //
 // Sludge & Sediment, Algae & Bloom Forecast and the Alert & Response Protocol
 // are NOT general monitoring — they only ever apply to the water_body / lagoon
@@ -76,18 +79,18 @@ const NAV: NavEntry[] = [
     ],
   },
   {
-    icon: FileText, label: 'Reporting', feature: 'reporting',
-    children: [
-      { id: 'compliance', label: 'Compliance Reporting' },
-      { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
-    ],
-  },
-  {
     icon: Wrench, label: 'Operations',
     children: [
       { id: 'actions',   label: 'Corrective Actions', permission: 'actions.read' },
       { id: 'inventory', label: 'Inventory & Chemicals', permission: 'inventory.read' },
       { id: 'assets',    label: 'Assets & Maintenance', permission: 'assets.read' },
+    ],
+  },
+  {
+    icon: FileText, label: 'Reporting', feature: 'reporting',
+    children: [
+      { id: 'compliance', label: 'Compliance Reporting' },
+      { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
     ],
   },
   {

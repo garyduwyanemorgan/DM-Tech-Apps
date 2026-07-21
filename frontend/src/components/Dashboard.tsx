@@ -6,6 +6,9 @@ import { LIGHT_STYLE, type TrafficLight } from '../lib/status'
 import { tableHeaderStyle as TH, tableCellStyle as TD } from '../lib/ui'
 import { MetricCard } from './ui'
 import { useMonthlySeries, NoData, SampleBanner, fmt, type ParamKey } from '../lib/sampleData'
+// One rendering path for certificates, shared with Water Quality Monitoring, so the
+// two pages can never disagree about a verdict or a review state.
+import { SiteCertificates } from './Monitoring'
 
 interface DashboardProps {
   activeSite: string
@@ -76,6 +79,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <PageHeader title="Compliance Intelligence Platform" subtitle="Dubai Municipality / Client View" icon="🏝️" />
+        {/* Certificates do not depend on the monthly series. */}
+        <SiteCertificates activeSite={activeSite} />
         <NoData />
       </div>
     )
@@ -184,6 +189,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
           />
         </div>
       </div>
+
+      {/* Laboratory certificates saved for this site (real uploaded lab reports) */}
+      <SiteCertificates activeSite={activeSite} />
 
       {/* Dubai Municipality Water Quality Compliance Status table */}
       <div className="glass-card">

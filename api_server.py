@@ -1466,10 +1466,59 @@ def dismiss_data_request_endpoint(site: str, request_id: str,
     return {"fulfilled": True, "message": msg}
 
 
+_SITE_CERTIFICATE_LIMIT = 50
+
+
+def _site_certificates(site: str, organization_id: str | None) -> list[dict]:
+    """Saved certificates for one site, newest sampling date first.
+
+    Resolution is select-only: a GET must never bring a site into existence as
+    a side effect, and an unrecognised name yields an empty list rather than
+    every site's certificates. Verdicts are passed through exactly as stored —
+    nothing is inferred from the parameter counts.
+    """
+    if not organization_id or not site:
+        return []
+    try:
+        from db.queries import count_lab_results_by_status, find_site_id, list_lab_samples
+        site_id = find_site_id(site, organization_id)
+        if not site_id:
+            return []
+        rows = list_lab_samples(organization_id, limit=_SITE_CERTIFICATE_LIMIT,
+                                site_id=site_id)
+        # One tally query for the whole page, not one per certificate.
+        counts = count_lab_results_by_status([r["id"] for r in rows if r.get("id")])
+        out = []
+        for r in rows:
+            c = counts.get(r.get("id"), {})
+            out.append({
+                "report_no": r.get("report_no"),
+                "sampled_at": r.get("sampled_at"),
+                "report_type": r.get("report_type"),
+                "asset_type": r.get("asset_type"),
+                "laboratory": r.get("laboratory"),
+                "standard_code": r.get("standard_code"),
+                "overall_status": r.get("overall_status"),
+                "reviewer_status": r.get("reviewer_status"),
+                "fail_count": c.get("fail", 0),
+                "total_parameters": c.get("total", 0),
+            })
+        return out
+    except Exception:
+        # The readings half of this response is what the Executive Dashboard
+        # depends on; a certificate lookup failure must not take it down.
+        return []
+
+
 @app.get("/status/{site}", tags=["Compliance"])
 def site_status(site: str, year: int = 2026, _=Security(_check_key), profile: dict = Depends(get_current_user_profile)):
     """Return all stored readings for a site in a given year, each with
-    its compliance status and alert level. Scopes lookup to the user's organization.
+    its compliance status and alert level, plus the laboratory certificates
+    saved for that site. Scopes lookup to the user's organization.
+
+    Certificates were previously invisible here: this endpoint knew only the
+    legacy monthly `readings` table, so an uploaded certificate never reached
+    the dashboard.
     """
     try:
         from db.queries import get_readings_for_site
@@ -1477,8 +1526,11 @@ def site_status(site: str, year: int = 2026, _=Security(_check_key), profile: di
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
+    certificates = _site_certificates(site, profile.get("organization_id"))
+
     if not readings:
         return {"site": site, "year": year, "readings": [],
+                "certificates": certificates,
                 "note": "No readings stored yet."}
 
     months = []
@@ -1493,7 +1545,8 @@ def site_status(site: str, year: int = 2026, _=Security(_check_key), profile: di
             "failing_params":  a["compliance"]["failing_params"],
         })
 
-    return {"site": site, "year": year, "readings": months}
+    return {"site": site, "year": year, "readings": months,
+            "certificates": certificates}
 
 
 @app.get("/tools", tags=["System"])

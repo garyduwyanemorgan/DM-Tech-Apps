@@ -1000,7 +1000,7 @@ def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
     """Org-scoped management aggregates from authorized source tables. Financial
     figures (inventory valuation) only included when include_financial is set."""
     client = get_client()
-    out = {"corrective_actions": {}, "inventory": {}}
+    out = {"corrective_actions": {}, "inventory": {}, "compliance": _empty_compliance_kpi()}
     if not client or not organization_id:
         return out
     try:
@@ -1036,6 +1036,68 @@ def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
             out["inventory"]["total_valuation"] = total_value
     except Exception:
         pass
+    try:
+        out["compliance"] = _compliance_kpi(client, organization_id)
+    except Exception:
+        # Degrade to zeros, never omit: the dashboard must be able to tell
+        # "no certificates" from "endpoint broken", and a missing key reads as
+        # the latter.
+        out["compliance"] = _empty_compliance_kpi()
+    return out
+
+
+def _empty_compliance_kpi() -> dict:
+    return {
+        "certificates": 0,
+        "compliant": 0,
+        "non_compliant": 0,
+        "incomplete": 0,
+        "no_verdict": 0,
+        "pending_review": 0,
+        "failing_parameters": 0,
+        "latest_sampled_at": None,
+    }
+
+
+# reviewer_status values that mean a human has finished with the certificate.
+# Anything else — including a missing value — is still awaiting review.
+_REVIEW_SETTLED = {"approved", "corrected"}
+
+
+def _compliance_kpi(client, organization_id: str) -> dict:
+    """Certificate verdict tallies for one organisation.
+
+    Two queries regardless of how many certificates exist: one for the samples,
+    one (via count_lab_results_by_status) for every parameter row behind them.
+
+    Verdicts are counted exactly as stored. A certificate with no
+    overall_status is `no_verdict`, never a pass, and INCOMPLETE is its own
+    bucket — folding either into `compliant` would put a compliance claim on a
+    management dashboard that no laboratory ever made.
+    """
+    out = _empty_compliance_kpi()
+    rows = (client.table("lab_samples")
+            .select("id,overall_status,reviewer_status,sampled_at")
+            .eq("organization_id", organization_id).execute().data) or []
+    if not rows:
+        return out
+
+    bucket = {"COMPLIANT": "compliant", "NON_COMPLIANT": "non_compliant",
+              "INCOMPLETE": "incomplete"}
+    latest = None
+    for r in rows:
+        status = (r.get("overall_status") or "").strip().upper()
+        out[bucket.get(status, "no_verdict")] += 1
+        if (r.get("reviewer_status") or "").strip().lower() not in _REVIEW_SETTLED:
+            out["pending_review"] += 1
+        sampled = r.get("sampled_at")
+        if sampled and (latest is None or str(sampled) > str(latest)):
+            latest = sampled
+
+    out["certificates"] = len(rows)
+    out["latest_sampled_at"] = str(latest) if latest else None
+    counts = count_lab_results_by_status([r["id"] for r in rows if r.get("id")])
+    out["failing_parameters"] = sum(c.get("fail", 0) for c in counts.values())
     return out
 
 
