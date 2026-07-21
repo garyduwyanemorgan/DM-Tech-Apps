@@ -793,19 +793,40 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     }))
 
   /** Manual-entry fallback for the lagoon scope, which has a known parameter set
-   *  even before anything is extracted. Still rendered through the same dynamic
-   *  form — there is no static panel any more. */
+   *  even before anything is extracted. Started only on request — see
+   *  startManualEntry. Still rendered through the same dynamic form — there is no
+   *  static panel any more. */
   const lagoonRows = (): FormRow[] =>
     FIELDS.map(f => ({
       key: f.key, label: f.label, unit: f.unit,
       hint: `Limit: ${f.hint}`, value: String(f.default),
     }))
 
-  // Seed the lagoon rows when that type is chosen and nothing is extracted yet.
+  /** True only after the user has deliberately asked to type a lagoon reading
+   *  by hand. Never true on load. */
+  const [manualEntry, setManualEntry] = useState(false)
+
+  // Nothing extracted → Step 2 holds no parameter fields at all.
+  //
+  // WHY THIS MATTERS: these rows start life at the FIELDS defaults (pH 7.5,
+  // DO 6.2, TSS 15 …), which are placeholders, not readings. Seeding them on
+  // load put a complete, plausible-looking compliance form in front of the user
+  // before a single certificate had been read — and a form that already looks
+  // filled in can be saved unchanged, at which point invented numbers become a
+  // record indistinguishable from measured data. The empty state is the safe
+  // default; the defaults appear only when someone explicitly asks for manual
+  // entry and can see that is what they are doing.
   useEffect(() => {
-    if (!sample && isLagoon && rows.length === 0) setRows(lagoonRows())
-    if (!sample && !isLagoon) setRows([])
-  }, [selectedType, sample, isLagoon])  // eslint-disable-line react-hooks/exhaustive-deps
+    if (sample) return
+    setManualEntry(false)
+    setRows([])
+  }, [selectedType, sample])
+
+  /** Deliberate opt-in to typing a monthly lagoon reading with no certificate. */
+  const startManualEntry = () => {
+    setManualEntry(true)
+    setRows(lagoonRows())
+  }
 
   const setRowValue = (key: string, value: string) =>
     setRows(prev => prev.map(r => (r.key === key ? { ...r, value } : r)))
@@ -1146,7 +1167,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
         <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1.25rem' }}>
           {sample
             ? 'Confirm the compliance values against the extracted certificate above. Nothing is stored until you save.'
-            : 'Enter or correct the compliance values for this reading before saving.'}
+            : manualEntry
+              ? 'Typed by hand — no certificate. Replace every starting value with the reading you actually took before saving.'
+              : 'The fields here are built from the certificate you upload, so nothing is shown until a report has been read.'}
         </p>
 
         {message && <div style={{ background: '#C6EFCE', color: '#006100', padding: '0.75rem 1rem', borderRadius: 6, marginBottom: '1rem', fontWeight: 500 }}>{message}</div>}
@@ -1170,17 +1193,72 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
               certificate, so a 23-parameter report gets 23 fields and a
               single-parameter Legionella report gets one. */}
           {rows.length === 0 ? (
-            <p style={{ fontSize: '0.875rem', color: COLORS.slate, marginBottom: '1.5rem' }}>
-              {isLagoon
-                ? 'No parameters yet.'
-                : 'Upload and extract a certificate above — the fields here are built from what it reports.'}
-            </p>
+            /* Empty state — no parameter inputs exist yet, by design. */
+            <div style={{
+              border: `1px dashed ${COLORS.border}`, borderRadius: 8,
+              padding: '1.1rem 1.25rem', marginBottom: '1.5rem', background: COLORS.surface,
+            }}>
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+                <FileText size={18} style={{ flexShrink: 0, marginTop: 2, color: COLORS.slate }} aria-hidden="true" />
+                <div>
+                  <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#1B3A5C' }}>
+                    Nothing to review yet
+                  </p>
+                  <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', lineHeight: 1.55, color: COLORS.slate }}>
+                    Upload a lab report in Step 1 and extract it. The fields here are built
+                    from what that certificate reports — one field per parameter — so no
+                    values are shown until a document has been read.
+                  </p>
+
+                  {isLagoon && (
+                    <div style={{ marginTop: '0.9rem' }}>
+                      <button type="button" onClick={startManualEntry} style={{ background: '#e2e8f0', color: '#1B3A5C' }}>
+                        Enter readings manually
+                      </button>
+                      <span style={{ ...hintStyle, display: 'block' }}>
+                        For a monthly lagoon reading taken on site with no laboratory
+                        certificate. Opens the fourteen lagoon parameters with typical
+                        starting values — these are not measurements, so overwrite each one.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           ) : (
             <>
               <p style={{ fontSize: '0.8rem', color: COLORS.slate, marginBottom: '0.75rem' }}>
                 {rows.length} {rows.length === 1 ? 'parameter' : 'parameters'}
                 {sample ? ' read from the certificate' : ''}.
               </p>
+              {/* Manual entry starts from placeholder defaults, so say so plainly
+                  and keep saying it while the form is on screen. */}
+              {!sample && manualEntry && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex', gap: '0.6rem', alignItems: 'flex-start',
+                    background: COLORS.amberBg, color: COLORS.amberFg, border: `1px solid ${COLORS.amberBorder}`,
+                    borderRadius: 6, padding: '0.7rem 1rem', marginBottom: '0.9rem', fontSize: '0.85rem', lineHeight: 1.5,
+                  }}
+                >
+                  <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+                  <span>
+                    <strong>Manual entry — the values below are placeholders, not readings.</strong>{' '}
+                    Every field you leave unchanged will be saved as if it were measured.{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setManualEntry(false); setRows([]) }}
+                      style={{
+                        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                        font: 'inherit', fontWeight: 700, color: 'inherit', textDecoration: 'underline',
+                      }}
+                    >
+                      Cancel manual entry
+                    </button>
+                  </span>
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 {rows.map(r => (
                   <div key={r.key}>

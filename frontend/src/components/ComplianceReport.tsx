@@ -1,11 +1,253 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PageHeader } from './PageHeader'
+import { StatusBadge } from './ui'
 import { useAuth } from '../context/AuthContext'
+import { COLORS, tableHeaderStyle, tableCellStyle } from '../lib/ui'
 import { MONTH_NAMES, COMPLIANCE_LIMITS } from '../constants'
 import {
   useMonthlySeries, NoData, SampleBanner, fmt, meanOf, maxOf, minOf,
   type Series, type ParamKey,
 } from '../lib/sampleData'
+
+/* ─── Laboratory certificates ─────────────────────────────────────────────────
+ * Saved certificates (lab_samples) reaching the compliance report. The verdict
+ * is rendered exactly as the API stored it — nothing here derives, upgrades or
+ * softens a status.
+ */
+interface LabCertificate {
+  id: string
+  report_no: string | null
+  report_type: string | null
+  laboratory: string | null
+  asset_type: string | null
+  sampled_at: string | null
+  sampling_point: string | null
+  standard_code: string | null
+  standard_title: string | null
+  overall_status: 'COMPLIANT' | 'NON_COMPLIANT' | 'INCOMPLETE' | null
+  reviewer_status: string | null
+  parameters: number
+  failing_parameters: number
+  not_assessed_parameters: number
+}
+
+/**
+ * Verdict presentation. INCOMPLETE is amber and says so in words: parameters
+ * were not assessed, which is not a pass. An absent status is not a pass either
+ * — it is reported as "no verdict recorded" rather than assumed compliant.
+ */
+const VERDICT: Record<string, { tone: 'green' | 'amber' | 'red' | 'slate'; label: string; note: string }> = {
+  COMPLIANT:     { tone: 'green', label: 'Compliant',              note: 'Met the cited specification' },
+  NON_COMPLIANT: { tone: 'red',   label: 'Not compliant',          note: 'One or more parameters exceeded the specification' },
+  INCOMPLETE:    { tone: 'amber', label: 'Incomplete — not a pass', note: 'Some parameters were not assessed against a specification' },
+}
+const NO_VERDICT = { tone: 'slate' as const, label: 'No verdict recorded', note: 'The certificate carries no overall status' }
+
+const verdictOf = (c: LabCertificate) => VERDICT[c.overall_status ?? ''] ?? NO_VERDICT
+
+/** Human review state. Only approved/corrected has been confirmed by a person. */
+const REVIEW: Record<string, { tone: 'green' | 'amber' | 'red' | 'slate'; label: string }> = {
+  approved:  { tone: 'green', label: 'Approved' },
+  corrected: { tone: 'green', label: 'Approved (corrected)' },
+  rejected:  { tone: 'red',   label: 'Rejected' },
+  pending:   { tone: 'amber', label: 'Pending review' },
+}
+const reviewOf = (c: LabCertificate) => REVIEW[c.reviewer_status ?? ''] ?? REVIEW.pending
+const isApproved = (c: LabCertificate) =>
+  c.reviewer_status === 'approved' || c.reviewer_status === 'corrected'
+
+const LabCertificates: React.FC<{ activeSite: string }> = ({ activeSite }) => {
+  const { token, organizationId } = useAuth()
+  const [certs, setCerts] = useState<LabCertificate[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setLoading(true); setError(null)
+      try {
+        const headers: HeadersInit = {}
+        if (token) headers['Authorization'] = `Bearer ${token}`
+        if (organizationId) headers['X-Organization-ID'] = organizationId
+        const qs = activeSite ? `?site=${encodeURIComponent(activeSite)}` : ''
+        const res = await fetch(`/api/lab-samples${qs}`, { headers })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.detail || `Server error ${res.status}`)
+        }
+        const data = await res.json()
+        if (!cancelled) setCerts(data.samples || [])
+      } catch (e: any) {
+        if (!cancelled) { setError(e.message || 'Could not load certificates'); setCerts([]) }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [activeSite, token, organizationId])
+
+  const rows = certs ?? []
+  const tally = {
+    compliant:    rows.filter(c => c.overall_status === 'COMPLIANT').length,
+    nonCompliant: rows.filter(c => c.overall_status === 'NON_COMPLIANT').length,
+    incomplete:   rows.filter(c => c.overall_status === 'INCOMPLETE').length,
+    unknown:      rows.filter(c => !c.overall_status).length,
+    pending:      rows.filter(c => !isApproved(c)).length,
+  }
+  const summary = [
+    `${tally.compliant} compliant`,
+    `${tally.nonCompliant} not compliant`,
+    `${tally.incomplete} incomplete`,
+    ...(tally.unknown ? [`${tally.unknown} with no verdict recorded`] : []),
+  ].join(', ')
+
+  return (
+    <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div>
+        <h2 className="section-heading" style={{ fontSize: '1.1rem', fontWeight: 700, color: COLORS.navy, marginBottom: '0.35rem' }}>
+          Laboratory Certificates
+        </h2>
+        <p style={{ fontSize: '0.9rem', color: COLORS.slate, margin: 0 }}>
+          Certificates saved from Upload Lab Report for {activeSite || 'the selected site'}, with the
+          verdict recorded against the standard each was judged by.
+        </p>
+      </div>
+
+      {error && (
+        <div style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.65rem 1rem', borderRadius: 6, fontSize: '0.875rem' }}>
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <p style={{ color: COLORS.slateLight, fontSize: '0.875rem' }}>Loading certificates…</p>
+      ) : rows.length === 0 ? (
+        <div style={{
+          padding: '1.5rem', textAlign: 'center', border: `1px dashed ${COLORS.border}`,
+          borderRadius: 8, background: COLORS.surface,
+        }}>
+          <p style={{ fontSize: '0.9rem', color: '#374151', fontWeight: 600, margin: 0 }}>
+            No laboratory certificates saved yet.
+          </p>
+          <p style={{ fontSize: '0.82rem', color: COLORS.slate, margin: '0.4rem 0 0' }}>
+            Certificates appear here once you save one from <strong>Upload Lab Report</strong> —
+            saving is the point at which you confirm the extracted result is correct.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
+              {rows.length} certificate{rows.length === 1 ? '' : 's'}: {summary}.
+            </span>
+            {tally.pending > 0 && (
+              <StatusBadge tone="amber" variant="count">
+                {tally.pending} awaiting human review
+              </StatusBadge>
+            )}
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '860px' }}>
+              <thead>
+                <tr>
+                  {['Report No', 'Date Sampled', 'Laboratory', 'Asset Type', 'Governing Standard', 'Parameters', 'Status', 'Review'].map(h => (
+                    <th key={h} style={tableHeaderStyle}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(c => {
+                  const v = verdictOf(c)
+                  const r = reviewOf(c)
+                  const approved = isApproved(c)
+                  return (
+                    <tr key={c.id} style={{
+                      // An unreviewed certificate must not read like a confirmed
+                      // compliance record: it is tinted and left-flagged amber.
+                      background: approved ? 'transparent' : COLORS.amberBg,
+                      borderLeft: `4px solid ${approved ? 'transparent' : COLORS.amberBorder}`,
+                    }}>
+                      <td style={{ ...tableCellStyle, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {c.report_no || '—'}
+                        {c.report_type && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: COLORS.slate, fontWeight: 400 }}>
+                            {c.report_type}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ ...tableCellStyle, whiteSpace: 'nowrap' }}>{c.sampled_at || '—'}</td>
+                      <td style={tableCellStyle}>{c.laboratory || '—'}</td>
+                      <td style={tableCellStyle}>
+                        {c.asset_type || '—'}
+                        {c.sampling_point && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: COLORS.slate }}>
+                            {c.sampling_point}
+                          </span>
+                        )}
+                      </td>
+                      <td style={tableCellStyle}>
+                        {c.standard_code
+                          ? <span style={{ fontWeight: 600, color: '#2E5D8A' }}>{c.standard_code}</span>
+                          : <span style={{ color: COLORS.slate, fontStyle: 'italic' }}>None cited</span>}
+                        {c.standard_title && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: COLORS.slate }}>
+                            {c.standard_title}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ ...tableCellStyle, whiteSpace: 'nowrap' }}>
+                        {c.parameters} tested
+                        <span style={{
+                          display: 'block', fontSize: '0.72rem',
+                          color: c.failing_parameters > 0 ? COLORS.redFg : COLORS.slate,
+                          fontWeight: c.failing_parameters > 0 ? 700 : 400,
+                        }}>
+                          {c.failing_parameters} failing
+                          {c.not_assessed_parameters > 0 && `, ${c.not_assessed_parameters} not assessed`}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <StatusBadge tone={v.tone}>{v.label}</StatusBadge>
+                        <span style={{ display: 'block', fontSize: '0.72rem', color: COLORS.slate, marginTop: '0.25rem' }}>
+                          {v.note}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <StatusBadge tone={r.tone} variant="count">{r.label}</StatusBadge>
+                        {!approved && (
+                          <span style={{ display: 'block', fontSize: '0.72rem', color: COLORS.amberFg, marginTop: '0.25rem', fontWeight: 600 }}>
+                            Not yet approved by a reviewer
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', paddingTop: '0.5rem', borderTop: `1px solid ${COLORS.border}` }}>
+            {[
+              { bg: COLORS.greenBg, fg: COLORS.greenFg, label: 'Compliant — met the cited specification' },
+              { bg: COLORS.redBg, fg: COLORS.redFg, label: 'Not compliant — a parameter exceeded it' },
+              { bg: COLORS.amberBg, fg: COLORS.amberFg, label: 'Incomplete — not a pass; parameters unassessed' },
+              { bg: '#f1f5f9', fg: COLORS.slate, label: 'No verdict recorded on the certificate' },
+            ].map(({ bg, fg, label }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <div style={{ width: 24, height: 16, borderRadius: 3, background: bg, border: `1px solid ${fg}` }} />
+                <span style={{ fontSize: '0.75rem', color: COLORS.slate }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 // Month abbreviations for heatmap columns
 const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -115,6 +357,9 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <PageHeader title="Regulatory Compliance Report" subtitle={`Reporting Period: 2026 — ${activeSite || 'All Sites'}`} />
+        {/* Saved certificates do not depend on the monthly `readings` series, so
+            they still render when there is no monthly data for this site. */}
+        <LabCertificates activeSite={activeSite} />
         <NoData icon="📄" />
       </div>
     )
@@ -187,6 +432,9 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
           lab readings logged.
         </div>
       )}
+
+      {/* ─── 1b. LABORATORY CERTIFICATES ────────────────────────────── */}
+      <LabCertificates activeSite={activeSite} />
 
       {/* ─── 2. PDF DOWNLOAD SECTION ────────────────────────────────── */}
       <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

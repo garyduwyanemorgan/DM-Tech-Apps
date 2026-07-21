@@ -1872,6 +1872,71 @@ def save_lab_sample_endpoint(body: SaveLabSampleRequest,
             "parameters": len(body.results), "message": "Certificate saved."}
 
 
+_LAB_SAMPLE_LIMIT_MAX = 200
+
+@app.get("/lab-samples", tags=["Reporting"])
+def list_lab_samples_endpoint(
+    site: str | None = None,
+    limit: int = 50,
+    profile: dict = Depends(get_current_user_profile),
+):
+    """Saved laboratory certificates for the caller's organisation.
+
+    The read side of the save path above. Until this existed, a certificate the
+    client had confirmed was invisible to Compliance Reporting, which only knew
+    about the legacy monthly `readings` table.
+
+    Each row carries the verdict AS STORED (COMPLIANT / NON_COMPLIANT /
+    INCOMPLETE) plus a count of failing parameters. Nothing is inferred here: a
+    certificate with no overall_status is reported as unknown, not as a pass.
+    """
+    _ensure_permission(profile, "readings.read",
+                       detail="Your role cannot view laboratory certificates.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+
+    from db.queries import count_lab_results_by_status, find_site_id, list_lab_samples
+
+    limit = max(1, min(limit, _LAB_SAMPLE_LIMIT_MAX))
+
+    site_id = None
+    if site:
+        # Resolved inside the caller's org; an unknown name yields no rows rather
+        # than silently falling back to "every site".
+        site_id = find_site_id(site, org_id)
+        if not site_id:
+            return {"samples": []}
+
+    rows = list_lab_samples(org_id, limit=limit, site_id=site_id)
+    counts = count_lab_results_by_status([r["id"] for r in rows if r.get("id")])
+
+    samples = []
+    for r in rows:
+        c = counts.get(r.get("id"), {})
+        samples.append({
+            "id": r.get("id"),
+            "report_no": r.get("report_no"),
+            "report_type": r.get("report_type"),
+            "laboratory": r.get("laboratory"),
+            "asset_type": r.get("asset_type"),
+            "sampled_at": r.get("sampled_at"),
+            "reported_at": r.get("reported_at"),
+            "sampling_point": r.get("sampling_point"),
+            "sample_location": r.get("sample_location"),
+            "standard_code": r.get("standard_code"),
+            "standard_title": r.get("standard_title"),
+            "standard_citation": r.get("standard_citation"),
+            "overall_status": r.get("overall_status"),
+            "reviewer_status": r.get("reviewer_status"),
+            "created_at": r.get("created_at"),
+            "parameters": c.get("total", 0),
+            "failing_parameters": c.get("fail", 0),
+            "not_assessed_parameters": c.get("not_assessed", 0),
+        })
+    return {"samples": samples}
+
+
 @app.get("/report/{site}", tags=["Reporting"])
 def download_compliance_report(
     site: str,

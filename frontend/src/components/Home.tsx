@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Waves } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useFeatures, featureForTab } from '../context/FeaturesContext'
 
@@ -8,26 +8,61 @@ interface HomeProps {
   setActiveTab: (tab: string) => void
 }
 
+// A count on a compliance dashboard is load-bearing: "0 assets configured" and
+// "we could not ask the server" mean very different things to the person reading
+// it, so the two states are tracked separately and never collapse into a 0.
+type CountState = 'loading' | 'ready' | 'unavailable'
+
 export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
   const { organizationId, token, showSampleData } = useAuth()
   const { features } = useFeatures()
-  const [siteCount, setSiteCount] = useState<number | null>(null)
+  const [assetCount, setAssetCount] = useState<number | null>(null)
+  const [countState, setCountState] = useState<CountState>('loading')
 
   useEffect(() => {
-    const fetchCount = async () => {
+    let cancelled = false
+
+    const fetchAssets = async () => {
+      setCountState('loading')
       try {
         const headers: HeadersInit = {}
         if (token) headers['Authorization'] = `Bearer ${token}`
         if (organizationId) headers['X-Organization-ID'] = organizationId
-        const res = await fetch('/api/sites', { headers })
+
+        // `activeSite` is the site NAME; /api/assets filters on the site id, so
+        // resolve one to the other first. If the site cannot be resolved we fall
+        // back to the whole organisation rather than reporting a wrong number.
+        let url = '/api/assets'
+        if (activeSite) {
+          const sitesRes = await fetch('/api/sites', { headers })
+          if (!sitesRes.ok) throw new Error(`sites ${sitesRes.status}`)
+          const sitesData = await sitesRes.json()
+          const match = (sitesData.sites || []).find(
+            (s: any) => (typeof s === 'string' ? s : s?.name) === activeSite
+          )
+          const siteId = match && typeof match !== 'string' ? match.id : undefined
+          if (siteId) url = `/api/assets?site_id=${encodeURIComponent(siteId)}`
+        }
+
+        const res = await fetch(url, { headers })
+        if (!res.ok) throw new Error(`assets ${res.status}`)
         const data = await res.json()
-        setSiteCount((data.sites || []).length)
+        if (!Array.isArray(data?.assets)) throw new Error('unexpected response')
+        if (cancelled) return
+        setAssetCount(data.assets.length)
+        setCountState('ready')
       } catch {
-        setSiteCount(null)
+        if (cancelled) return
+        setAssetCount(null)
+        setCountState('unavailable')
       }
     }
-    fetchCount()
-  }, [organizationId, token])
+
+    fetchAssets()
+    return () => { cancelled = true }
+  }, [organizationId, token, activeSite])
+
+  const scopeLabel = activeSite || 'your organisation'
 
   const isLive = !!activeSite
 
@@ -45,29 +80,69 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
         gap: '1.25rem',
       }}>
         <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '0.85rem', display: 'flex', flexShrink: 0 }}>
-          <Waves size={36} color="#ffffff" />
+          <ShieldCheck size={36} color="#ffffff" />
         </div>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.65rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-            DUBAI LAGOON MANAGEMENT PLATFORM
+            COMPLIANCE INTELLIGENCE PLATFORM
           </h1>
           <p style={{ margin: '0.4rem 0 0', color: 'rgba(255,255,255,0.72)', fontSize: '0.9rem' }}>
-            Predictive water-quality monitoring &amp; compliance — GDM Enviro Consultants
+            Laboratory certificates, asset compliance &amp; audit-ready reporting for facilities management — GDM Enviro Consultants
           </p>
         </div>
       </div>
 
       {/* Info cards row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.75rem' }}>
-        {/* Lagoons configured */}
+        {/* Assets configured — the configured setup for the selected site. Assets
+            are what laboratory certificates attach to, so this is the number that
+            tells you whether the site is ready to be reported on. */}
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1.1rem 1.25rem' }}>
           <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
-            LAGOONS CONFIGURED
+            ASSETS CONFIGURED
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#1B3A5C', lineHeight: 1 }}>
-            {siteCount !== null ? siteCount : '—'}
+          <div
+            style={{
+              fontSize: countState === 'ready' && assetCount ? '2rem' : '1.35rem',
+              fontWeight: 800,
+              color: countState === 'unavailable' ? '#94a3b8' : '#1B3A5C',
+              lineHeight: 1,
+            }}
+            aria-live="polite"
+          >
+            {countState === 'loading' && '—'}
+            {countState === 'unavailable' && 'Unavailable'}
+            {countState === 'ready' && (assetCount ? assetCount : 'None yet')}
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>Sites in your portfolio</div>
+          <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.3rem' }}>
+            {countState === 'loading' && `Checking the setup for ${scopeLabel}…`}
+            {countState === 'unavailable' && 'Count could not be read — no number is shown rather than a wrong one.'}
+            {countState === 'ready' && (assetCount
+              ? `Configured for ${scopeLabel}`
+              : `No assets are configured for ${scopeLabel} yet. Add them in Site Manager so certificates have something to attach to.`)}
+          </div>
+          {countState === 'ready' && !assetCount && (
+            <button
+              onClick={() => setActiveTab('sitemanager')}
+              style={{
+                marginTop: '0.6rem',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                padding: '0.35rem 0.7rem',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                color: '#1B3A5C',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 0.15s',
+              }}
+              onMouseOver={e => (e.currentTarget.style.background = '#D6E4F0')}
+              onMouseOut={e => (e.currentTarget.style.background = '#f8fafc')}
+            >
+              Open Site Manager →
+            </button>
+          )}
         </div>
 
         {/* Data source */}
@@ -109,29 +184,29 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
           {[
             {
               icon: '📋',
-              title: 'Record a reading',
-              desc: 'Drop a lab report — AI auto-fills the readings.',
+              title: 'File a certificate',
+              desc: 'Upload a lab certificate and confirm the readings against the asset it belongs to.',
               btn: 'Upload Lab Report',
               tab: 'upload',
             },
             {
               icon: '⬆️',
-              title: 'Optimise sampling',
-              desc: 'See which lagoons to sample and the savings.',
-              btn: 'Predictive Monitoring',
+              title: 'Plan your sampling',
+              desc: 'See which assets are due for sampling before the next submission.',
+              btn: 'Digital Twin Simulator',
               tab: 'simulation',
             },
             {
               icon: '🔍',
-              title: 'Diagnose a lagoon',
-              desc: 'Why is it at risk, and what to do.',
-              btn: 'Lagoon Intelligence',
+              title: 'Investigate a result',
+              desc: 'What is driving an out-of-specification asset, and what to do about it.',
+              btn: 'Environmental Drivers',
               tab: 'drivers',
             },
             {
               icon: '📄',
               title: 'Produce a report',
-              desc: 'Submission-ready compliance PDF.',
+              desc: 'Submission-ready compliance PDF for the site.',
               btn: 'Compliance Reporting',
               tab: 'compliance',
             },
@@ -179,11 +254,11 @@ export const Home: React.FC<HomeProps> = ({ activeSite, setActiveTab }) => {
         <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#1B3A5C', margin: '0 0 1rem' }}>How the platform works</h2>
         <ol style={{ margin: 0, padding: '0 0 0 1.2rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
           {[
-            { word: 'Record', rest: 'field readings (upload a lab report, or via the field app).' },
-            { word: 'Monitor', rest: 'current compliance and alert status across your lagoons.' },
-            { word: 'Analyse', rest: '— the intelligence engine forecasts blooms and recommends the cheapest effective intervention.' },
-            { word: 'Report', rest: '— generate the official compliance document.' },
-            { word: 'Reference', rest: '— treatment calendar, species, sludge and technology guidance.' },
+            { word: 'Configure', rest: 'each site and the assets on it — water bodies, tanks, fountains, outlets and equipment. Certificates attach to assets.' },
+            { word: 'Upload', rest: 'the laboratory certificate for an asset; the results are read from the PDF for you.' },
+            { word: 'Confirm', rest: 'the extracted results before they are filed — nothing enters the compliance record unreviewed.' },
+            { word: 'Report', rest: '— confirmed results feed the compliance status and the submission-ready document for the site.' },
+            { word: 'Oversee', rest: '— management KPIs roll the same record up across every site in the portfolio.' },
           ].map(({ word, rest }) => (
             <li key={word} style={{ fontSize: '0.875rem', color: '#374151', lineHeight: 1.6 }}>
               <strong style={{ color: '#1B3A5C' }}>{word}</strong> {rest}

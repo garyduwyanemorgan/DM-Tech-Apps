@@ -1146,17 +1146,76 @@ def save_lab_sample(organization_id: str, sample: dict, results: list[dict],
     return sample_id
 
 
-def list_lab_samples(organization_id: str, limit: int = 50) -> list[dict]:
-    """Recent certificates for an organisation, newest sampling date first."""
+def list_lab_samples(organization_id: str, limit: int = 50,
+                     site_id: str | None = None) -> list[dict]:
+    """Recent certificates for an organisation, newest sampling date first.
+
+    `site_id` is optional and, when given, must already have been resolved
+    inside the caller's organisation — this never widens the org filter.
+    """
     client = get_client()
     if not client or not organization_id:
         return []
     try:
-        return (client.table("lab_samples").select("*")
-                .eq("organization_id", organization_id)
-                .order("sampled_at", desc=True).limit(limit).execute().data) or []
+        q = (client.table("lab_samples").select("*")
+             .eq("organization_id", organization_id))
+        if site_id:
+            q = q.eq("site_id", site_id)
+        return (q.order("sampled_at", desc=True).limit(limit).execute().data) or []
     except Exception:
         return []
+
+
+def find_site_id(site_name: str, organization_id: str) -> str | None:
+    """Resolve a site name to its id WITHOUT creating it.
+
+    get_or_create_site_id() is the write path; a read filter must never bring a
+    site into existence as a side effect of someone typing a name in a query
+    string.
+    """
+    client = get_client()
+    if not client or not organization_id or not site_name:
+        return None
+    try:
+        res = (client.table("sites").select("id")
+               .eq("organization_id", organization_id)
+               .eq("name", site_name).execute())
+        return res.data[0]["id"] if res.data else None
+    except Exception:
+        return None
+
+
+def count_lab_results_by_status(sample_ids: list[str]) -> dict[str, dict[str, int]]:
+    """Per-sample parameter counts keyed by sample_id.
+
+    One query for the whole page of certificates, not one per certificate: the
+    certificate list is the compliance report's headline, and an N+1 over
+    lab_results would make it degrade with every report ever filed. Returns
+    {sample_id: {"fail": n, "pass": n, "not_assessed": n, "total": n}}.
+    Callers must scope `sample_ids` to their organisation first — lab_results
+    carries no organization_id of its own.
+    """
+    client = get_client()
+    if not client or not sample_ids:
+        return {}
+    counts: dict[str, dict[str, int]] = {
+        sid: {"fail": 0, "pass": 0, "not_assessed": 0, "total": 0} for sid in sample_ids
+    }
+    try:
+        rows = (client.table("lab_results").select("sample_id,status")
+                .in_("sample_id", sample_ids).execute().data) or []
+    except Exception:
+        return counts
+    key = {"FAIL": "fail", "PASS": "pass", "NOT_ASSESSED": "not_assessed"}
+    for r in rows:
+        bucket = counts.get(r.get("sample_id"))
+        if bucket is None:
+            continue
+        bucket["total"] += 1
+        k = key.get(r.get("status") or "")
+        if k:
+            bucket[k] += 1
+    return counts
 
 
 def get_asset(asset_id: str, organization_id: str) -> dict | None:
