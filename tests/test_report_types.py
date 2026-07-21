@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import api_server  # noqa: E402
 from core.assets import (  # noqa: E402
     ASSET_CLASSES, ASSET_TYPES, CLASS_EQUIPMENT, CLASS_SAMPLED,
-    class_of, get_asset_type, is_sampled, scope_of_asset,
+    class_of, find_type, get_asset_type, is_sampled, merge_types, scope_of_asset,
 )
 from core.report_types import (  # noqa: E402
     BUILTIN_REPORT_TYPES, LEGACY_LAGOON_TYPE, SCOPES, SCOPE_FACILITIES,
@@ -230,3 +230,56 @@ def test_unknown_selected_type_still_reports_a_conflict():
     c = _conflict("Cooling Tower Water", "legionella")
     assert c is not None
     assert c["selected_label"] == "Cooling Tower Water"
+
+
+# --------------------------------------------------------------------------
+# Organisation-defined asset types (migration 020)
+# --------------------------------------------------------------------------
+
+_CUSTOM = [
+    {"key": "grp_tank", "label": "GRP Tank", "asset_class": CLASS_SAMPLED, "scope": SCOPE_FACILITIES},
+    {"key": "water_tank", "label": "HIJACK", "asset_class": CLASS_EQUIPMENT, "scope": None},
+    {"key": "junk", "label": "Junk", "asset_class": "nonsense", "scope": None},
+]
+
+
+def test_register_merges_builtins_with_org_types():
+    from core.assets import merge_types
+    keys = {t["key"] for t in merge_types(_CUSTOM)}
+    assert "grp_tank" in keys
+    assert len(keys) == len(ASSET_TYPES) + 1      # only the one valid custom row
+
+
+def test_builtin_types_cannot_be_redefined_by_an_org():
+    """Existing assets and the upload flow reference built-in keys, so an
+    organisation must not be able to change what `water_tank` means underneath
+    records already filed against it."""
+    from core.assets import find_type
+    assert find_type("water_tank", _CUSTOM)["asset_class"] == CLASS_SAMPLED
+
+
+def test_a_custom_type_with_an_unusable_class_is_dropped_not_guessed():
+    from core.assets import find_type
+    assert find_type("junk", _CUSTOM) is None
+
+
+def test_custom_typed_assets_still_resolve_their_scope():
+    """Regression: scope_of_asset() once consulted the built-in taxonomy only, so
+    every asset created under an org-defined type silently lost its scope and its
+    certificates could never be judged."""
+    assert scope_of_asset({
+        "asset_type": "grp_tank", "asset_class": CLASS_SAMPLED, "scope": SCOPE_FACILITIES,
+    }) == SCOPE_FACILITIES
+
+
+def test_stored_class_beats_the_type_key_when_they_disagree():
+    """The asset's own class is authoritative — it was validated at creation and
+    the database CHECK backs it."""
+    assert scope_of_asset({
+        "asset_type": "water_tank", "asset_class": CLASS_EQUIPMENT, "scope": SCOPE_LAGOON,
+    }) is None
+
+
+def test_pre_019_rows_without_a_class_fall_back_to_the_builtin_taxonomy():
+    assert scope_of_asset({"asset_type": "water_tank", "scope": SCOPE_FACILITIES}) == SCOPE_FACILITIES
+    assert scope_of_asset({"asset_type": "pump", "scope": SCOPE_FACILITIES}) is None

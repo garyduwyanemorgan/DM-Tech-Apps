@@ -92,7 +92,65 @@ def scope_of_asset(asset: Optional[dict]) -> Optional[str]:
     """
     if not asset:
         return None
-    if not is_sampled(asset.get("asset_type") or ""):
+    # Trust the asset's own stored class. It was validated at creation and the
+    # database CHECK forbids a scope on anything but a sampled row. Re-deriving it
+    # from the type key would consult built-ins only, so every asset created under
+    # an organisation-defined type (migration 020) would silently lose its scope.
+    asset_class = asset.get("asset_class")
+    if asset_class:
+        if asset_class != CLASS_SAMPLED:
+            return None
+    elif not is_sampled(asset.get("asset_type") or ""):
+        # Pre-019 rows have no class; fall back to the built-in taxonomy.
         return None
     scope = asset.get("scope")
+    return scope if scope in SCOPES else None
+
+
+def merge_types(custom: Optional[list[dict]] = None) -> list[AssetTypeDef]:
+    """Built-in types plus an organisation's own (migration 020).
+
+    Built-ins win on a key collision: they are referenced by existing assets and
+    by the upload flow, so an organisation cannot redefine `water_tank` out from
+    under records already filed against it.
+    """
+    merged: list[AssetTypeDef] = list(ASSET_TYPES)
+    seen = {t["key"] for t in merged}
+    for row in custom or []:
+        key = (row.get("key") or "").strip().lower()
+        if not key or key in seen:
+            continue
+        cls = row.get("asset_class")
+        if cls not in ASSET_CLASSES:
+            continue                      # unusable row; never guess a class
+        merged.append({
+            "key": key,
+            "label": row.get("label") or key,
+            "asset_class": cls,
+            "scope": row.get("scope"),     # type: ignore[typeddict-unknown-key]
+        })
+        seen.add(key)
+    return merged
+
+
+def find_type(key: str, custom: Optional[list[dict]] = None) -> Optional[dict]:
+    """Resolve a type across built-ins and an organisation's own."""
+    wanted = (key or "").strip().lower()
+    for t in merge_types(custom):
+        if t["key"] == wanted:
+            return dict(t)
+    return None
+
+
+def default_scope_for_type(key: str, custom: Optional[list[dict]] = None) -> Optional[str]:
+    """The scope a new asset of this type should inherit.
+
+    Built-in sampled types carry no scope of their own — the two lagoon/facilities
+    sets both contain water bodies — so the caller must supply one. Custom types
+    declare it, which is what makes them useful.
+    """
+    t = find_type(key, custom)
+    if not t or t.get("asset_class") != CLASS_SAMPLED:
+        return None
+    scope = t.get("scope")
     return scope if scope in SCOPES else None

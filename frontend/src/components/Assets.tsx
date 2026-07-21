@@ -25,7 +25,10 @@ const ASSET_CLASSES: { key: AssetClass; label: string; hint: string }[] = [
   { key: 'sampled', label: 'Sampled', hint: 'A lab certificate is about it' },
 ]
 
-const ASSET_TYPES: { key: string; label: string; assetClass: AssetClass }[] = [
+// Fallback only. The authoritative list comes from /api/asset-types (Settings →
+// Asset Register), which merges these built-ins with the organisation's own. Kept
+// here so the form still works if that call fails.
+const FALLBACK_TYPES: { key: string; label: string; assetClass: AssetClass }[] = [
   { key: 'pump', label: 'Pump', assetClass: 'equipment' },
   { key: 'filter', label: 'Filter', assetClass: 'equipment' },
   { key: 'dosing', label: 'Dosing unit', assetClass: 'equipment' },
@@ -42,8 +45,9 @@ const SCOPES: { key: string; label: string }[] = [
   { key: 'facilities', label: 'Facilities management — DM technical guidelines' },
 ]
 
-const typeLabel = (key: string | null | undefined) =>
-  ASSET_TYPES.find(t => t.key === key)?.label || key || '—'
+const typeLabelFrom = (
+  list: { key: string; label: string }[], key: string | null | undefined,
+) => list.find(t => t.key === key)?.label || key || '—'
 const classLabel = (key: string | null | undefined) =>
   ASSET_CLASSES.find(c => c.key === key)?.label || key || '—'
 const scopeShortLabel = (key: string | null | undefined) =>
@@ -61,6 +65,7 @@ export const Assets: React.FC = () => {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState(''); const [type, setType] = useState('pump'); const [saving, setSaving] = useState(false)
   const [assetClass, setAssetClass] = useState<AssetClass>('equipment')
+  const [types, setTypes] = useState(FALLBACK_TYPES)
   const [scope, setScope] = useState('')
   const [maintFor, setMaintFor] = useState<string | null>(null)
   const [interval, setInterval] = useState(''); const [nextDue, setNextDue] = useState('')
@@ -75,21 +80,32 @@ export const Assets: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
-      const res = await fetch('/api/assets', { headers: makeHeaders() })
-      const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to load assets.'); return }
+      const [aRes, tRes] = await Promise.all([
+        fetch('/api/assets', { headers: makeHeaders() }),
+        fetch('/api/asset-types', { headers: makeHeaders() }),
+      ])
+      const data = await aRes.json()
+      if (!aRes.ok) { setError(data.detail || 'Failed to load assets.'); return }
       setAssets(data.assets || [])
+      if (tRes.ok) {
+        const t = await tRes.json()
+        if (Array.isArray(t?.types) && t.types.length) {
+          setTypes(t.types.map((x: any) => ({ key: x.key, label: x.label, assetClass: x.asset_class })))
+        }
+      }
     } catch { setError('Network error loading assets.') }
     finally { setLoading(false) }
   }, [makeHeaders])
 
   useEffect(() => { load() }, [load])
 
+  const typeLabel = (key: string | null | undefined) => typeLabelFrom(types, key)
+
   // Changing class re-points the type list, and clears scope on the way to
   // equipment: equipment has no specification scope at all.
   const changeClass = (next: AssetClass) => {
     setAssetClass(next)
-    const first = ASSET_TYPES.find(t => t.assetClass === next)
+    const first = types.find(t => t.assetClass === next)
     setType(first ? first.key : '')
     if (next === 'equipment') setScope('')
   }
@@ -157,7 +173,7 @@ export const Assets: React.FC = () => {
             <div style={{ ...fieldStyle, flex: '1 1 190px' }}>
               <label htmlFor="asset-type" style={labelStyle}>Type</label>
               <select id="asset-type" value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-                {ASSET_TYPES.filter(t => t.assetClass === assetClass).map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                {types.filter(t => t.assetClass === assetClass).map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
               </select>
             </div>
 

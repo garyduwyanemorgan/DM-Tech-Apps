@@ -118,6 +118,14 @@ const ADD_NEW = '__add_new__'
 
 /** A sampled asset — the thing a certificate is about, and the thing that
  *  carries the specification scope. */
+export interface AssetTypeOption {
+  key: string
+  label: string
+  asset_class?: string | null
+  scope?: ReportScope | null
+  builtin?: boolean
+}
+
 export interface SampledAsset {
   id: string
   name: string
@@ -715,6 +723,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   /** Sampled assets only — a certificate is never about a dosing pump. */
   const [assets, setAssets] = useState<SampledAsset[]>([])
   const [assetId, setAssetId] = useState<string>('')
+  /** The register: built-in types plus this organisation's own, so an asset
+   *  created under a custom type still shows a human label here. */
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
 
   const authHeaders = React.useCallback(async (json = true): Promise<HeadersInit> => {
     const h: HeadersInit = {}
@@ -731,6 +742,9 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
   // Everything else is a certificate about an asset and goes to lab_samples.
   const isLagoon = selectedType === 'lagoon'
   const selectedAsset = assets.find(a => a.id === assetId) ?? null
+  /** Human label for an asset type, from the register (built-in + org-defined). */
+  const typeLabel = (key?: string | null): string =>
+    assetTypes.find(t => t.key === key)?.label ?? (key ?? '').replace(/_/g, ' ')
 
   // Load the dropdown. Built-ins always exist, so a failure here degrades to the
   // built-in list rather than blocking the upload.
@@ -739,9 +753,10 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
     ;(async () => {
       try {
         const h = await authHeaders(false)
-        const [tRes, aRes] = await Promise.all([
+        const [tRes, aRes, atRes] = await Promise.all([
           fetch('/api/report-types', { headers: h }),
           fetch('/api/assets?asset_class=sampled', { headers: h }),
+          fetch('/api/asset-types?asset_class=sampled', { headers: h }),
         ])
         if (tRes.ok) {
           const data = await tRes.json()
@@ -750,6 +765,10 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
         if (aRes.ok) {
           const data = await aRes.json()
           if (!cancelled && Array.isArray(data?.assets)) setAssets(data.assets)
+        }
+        if (atRes.ok) {
+          const data = await atRes.json()
+          if (!cancelled && Array.isArray(data?.types)) setAssetTypes(data.types)
         }
       } catch { /* built-ins are unavailable only if the API is down entirely */ }
     })()
@@ -958,6 +977,50 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
       <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
         <h3 className="section-heading" style={{ marginTop: 0 }}>Step 1 — Upload the lab report</h3>
 
+        {/* Chosen first: the asset is the subject of the certificate, and it is
+            what carries the specification scope. Always visible — hiding it for
+            the default report type would hide the primary selection on load. */}
+        <div style={{ marginBottom: '1.1rem' }}>
+          <label htmlFor="sampled-asset" style={labelStyle}>Asset this certificate is about</label>
+          <select
+            id="sampled-asset" value={assetId}
+            onChange={e => setAssetId(e.target.value)}
+            style={{ width: '100%', boxSizing: 'border-box' }}
+          >
+            <option value="">— not selected —</option>
+            {assets.map(a => (
+              <option key={a.id} value={a.id}>
+                {a.name}{a.asset_type ? ` (${typeLabel(a.asset_type)})` : ''}
+              </option>
+            ))}
+          </select>
+          {isLagoon ? (
+            <span style={hintStyle}>
+              Not used for a monthly lagoon reading — that path predates assets and is
+              saved against the site.
+            </span>
+          ) : assets.length === 0 ? (
+            <span style={{ ...hintStyle, color: COLORS.amberFg }}>
+              No sampled assets exist yet. Add one under Assets &amp; Maintenance, using a
+              type from the Asset Register in Settings, or this certificate cannot be
+              judged against any specification.
+            </span>
+          ) : selectedAsset ? (
+            <span style={hintStyle}>
+              {selectedAsset.scope
+                ? `Scope: ${selectedAsset.scope === 'lagoon'
+                    ? 'lagoon — man-made / closed lagoon limits'
+                    : 'facilities management — DM technical guidelines'}`
+                : 'This asset has no scope set, so results stay unassessed until it does.'}
+            </span>
+          ) : (
+            <span style={{ ...hintStyle, color: COLORS.amberFg }}>
+              Without an asset the scope is unknown, so nothing can be judged against a
+              specification — results are recorded but stay unassessed.
+            </span>
+          )}
+        </div>
+
         <div style={{ marginBottom: '1.1rem' }}>
           <label htmlFor="report-type" style={labelStyle}>Report type</label>
           <select
@@ -981,47 +1044,6 @@ export const UploadReport: React.FC<{ activeSite: string }> = ({ activeSite }) =
               : 'Which limits apply is decided by the asset this certificate is about.'}
           </span>
         </div>
-
-        {/* The asset is what carries the specification scope, so a certificate
-            without one cannot be judged against any limits. */}
-        {!isLagoon && (
-          <div style={{ marginBottom: '1.1rem' }}>
-            <label htmlFor="sampled-asset" style={labelStyle}>Asset this certificate is about</label>
-            <select
-              id="sampled-asset" value={assetId}
-              onChange={e => setAssetId(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            >
-              <option value="">— not selected —</option>
-              {assets.map(a => (
-                <option key={a.id} value={a.id}>
-                  {a.name}{a.asset_type ? ` (${a.asset_type.replace(/_/g, ' ')})` : ''}
-                </option>
-              ))}
-            </select>
-
-            {assets.length === 0 ? (
-              <span style={{ ...hintStyle, color: COLORS.amberFg }}>
-                No sampled assets exist yet. Add one on the Assets page — a water tank,
-                water body, fountain, washroom outlet or misting line — and give it a
-                scope, or this certificate cannot be judged against any specification.
-              </span>
-            ) : selectedAsset ? (
-              <span style={hintStyle}>
-                {selectedAsset.scope
-                  ? `Scope: ${selectedAsset.scope === 'lagoon'
-                      ? 'lagoon — man-made / closed lagoon limits'
-                      : 'facilities management — DM technical guidelines'}`
-                  : 'This asset has no scope set, so results stay unassessed until it does.'}
-              </span>
-            ) : (
-              <span style={{ ...hintStyle, color: COLORS.amberFg }}>
-                Without an asset the scope is unknown, so nothing can be judged against
-                a specification — results are recorded but stay unassessed.
-              </span>
-            )}
-          </div>
-        )}
 
         <div
           className={`upload-zone${dragOver ? ' drag-over' : ''}`}

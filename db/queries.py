@@ -1171,3 +1171,46 @@ def get_asset(asset_id: str, organization_id: str) -> dict | None:
     except Exception:
         return None
 
+
+
+# ── Asset types (migration 020) ──────────────────────────────────────────────
+
+def list_asset_types(organization_id: str) -> list[dict]:
+    """Organisation-defined asset types. Built-ins live in core/assets.py."""
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        return (client.table("asset_types").select("*")
+                .eq("organization_id", organization_id).order("label").execute().data) or []
+    except Exception:
+        # Table absent until 020 is applied — built-in types still work.
+        return []
+
+
+def create_asset_type(organization_id: str, key: str, label: str, asset_class: str,
+                      scope: str | None = None, created_by: str | None = None) -> dict | None:
+    """Add an organisation-defined asset type. Returns the row, or None."""
+    client = get_client()
+    if not client or not organization_id:
+        return None
+    row = {"organization_id": organization_id, "key": key, "label": label,
+           "asset_class": asset_class, "scope": scope}
+    if created_by:
+        row["created_by"] = created_by
+    res = client.table("asset_types").insert(row).execute()
+    return res.data[0] if res.data else None
+
+
+def delete_asset_type(organization_id: str, key: str) -> bool:
+    """Remove a custom type. Assets already using it keep working — they store
+    asset_type/asset_class/scope by value, not by reference."""
+    client = get_client()
+    if not client or not organization_id:
+        return False
+    try:
+        client.table("asset_types").delete() \
+            .eq("organization_id", organization_id).eq("key", key).execute()
+        return True
+    except Exception:
+        return False

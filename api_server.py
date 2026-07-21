@@ -2234,10 +2234,11 @@ def create_asset_endpoint(body: AssetCreate, profile: dict = Depends(get_current
     """Configure an asset (type, checklist, required lab parameters). Managers/
     Executive only — Site Supervisors execute tasks but don't change templates."""
     _ensure_permission(profile, "assets.configure", detail="Your role cannot configure assets.")
-    from core.assets import ASSET_CLASSES, CLASS_SAMPLED, class_of, get_asset_type
+    from core.assets import ASSET_CLASSES, CLASS_SAMPLED, find_type
     from core.report_types import SCOPES
-    from db.queries import create_asset
+    from db.queries import create_asset, list_asset_types
 
+    custom_types = list_asset_types(profile["organization_id"])
     fields = body.model_dump()
 
     # Validate the class/type/scope triangle here rather than trusting the client.
@@ -2247,16 +2248,21 @@ def create_asset_endpoint(body: AssetCreate, profile: dict = Depends(get_current
         raise HTTPException(status_code=422,
                             detail=f"asset_class must be one of {', '.join(ASSET_CLASSES)}.")
     if fields.get("asset_type"):
-        if not get_asset_type(fields["asset_type"]):
+        t = find_type(fields["asset_type"], custom_types)
+        if not t:
             raise HTTPException(status_code=422, detail=f"Unknown asset_type '{fields['asset_type']}'.")
-        declared = fields.get("asset_class")
-        actual = class_of(fields["asset_type"])
+        declared, actual = fields.get("asset_class"), t["asset_class"]
         if declared and declared != actual:
             raise HTTPException(
                 status_code=422,
                 detail=f"'{fields['asset_type']}' is a {actual} type, not {declared}.",
             )
         fields["asset_class"] = actual          # derive it, so the two cannot disagree
+        # A custom type declares its scope; inherit it when the caller did not
+        # supply one. Copied by value so editing the type later never re-judges
+        # certificates already filed against assets created under it.
+        if not fields.get("scope") and t.get("scope"):
+            fields["scope"] = t["scope"]
     if fields.get("scope"):
         if fields["scope"] not in SCOPES:
             raise HTTPException(status_code=422, detail=f"scope must be one of {', '.join(SCOPES)}.")
@@ -2274,6 +2280,111 @@ def create_asset_endpoint(body: AssetCreate, profile: dict = Depends(get_current
                actor_role=profile.get("role"), organization_id=profile["organization_id"],
                target_type="asset", target_id=asset["id"])
     return {"asset": asset}
+
+
+class AssetTypeCreate(BaseModel):
+    label:       str = Field(..., min_length=1, max_length=80, description="Shown in dropdowns, e.g. 'GRP Tank'")
+    asset_class: str = Field(..., description="equipment | sampled")
+    scope: str | None = Field(None, description="lagoon | facilities — required for sampled, forbidden for equipment")
+
+
+@app.get("/asset-types", tags=["Assets"])
+def list_asset_types_endpoint(asset_class: str | None = None,
+                              profile: dict = Depends(get_current_user_profile)):
+    """The asset taxonomy: built-in types plus this organisation's own.
+
+    `asset_class=sampled` is what the upload flow and the certificate paths ask
+    for — only a sampled type can be the subject of a laboratory certificate.
+    """
+    _ensure_permission(profile, "assets.read", detail="Your role cannot view asset types.")
+    from core.assets import merge_types
+    from db.queries import list_asset_types
+
+    types = merge_types(list_asset_types(profile["organization_id"]))
+    if asset_class:
+        types = [t for t in types if t["asset_class"] == asset_class]
+    return {"types": types}
+
+
+@app.post("/asset-types", tags=["Assets"], status_code=201)
+def create_asset_type_endpoint(body: AssetTypeCreate,
+                               profile: dict = Depends(get_current_user_profile)):
+    """Add an organisation-defined asset type (Settings → Asset Register).
+
+    A sampled type must declare its scope. A type that cannot say which
+    specification set governs it would produce certificates nothing can judge,
+    so the requirement is enforced here and again by a database CHECK.
+    """
+    _ensure_permission(profile, "assets.configure", detail="Only admins can manage the asset register.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+
+    from core.assets import ASSET_CLASSES, CLASS_EQUIPMENT, CLASS_SAMPLED, merge_types
+    from core.report_types import SCOPES, normalise_name
+    from db.queries import create_asset_type, list_asset_types
+
+    label = normalise_name(body.label)
+    if not label:
+        raise HTTPException(status_code=422, detail="Asset type name cannot be blank.")
+    if body.asset_class not in ASSET_CLASSES:
+        raise HTTPException(status_code=422,
+                            detail=f"asset_class must be one of {', '.join(ASSET_CLASSES)}.")
+    if body.asset_class == CLASS_SAMPLED and body.scope not in SCOPES:
+        raise HTTPException(
+            status_code=422,
+            detail="A sampled asset type must declare a scope (lagoon or facilities) — "
+                   "without it, certificates against it cannot be judged.",
+        )
+    if body.asset_class == CLASS_EQUIPMENT and body.scope:
+        raise HTTPException(status_code=422,
+                            detail="Equipment is maintained, never judged against limits, so it carries no scope.")
+
+    import re
+    key = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+    if not key:
+        raise HTTPException(status_code=422, detail="Asset type name must contain letters or digits.")
+
+    existing = merge_types(list_asset_types(org_id))
+    if any(t["key"] == key for t in existing):
+        raise HTTPException(status_code=409, detail=f"Asset type '{label}' already exists.")
+
+    try:
+        row = create_asset_type(org_id, key, label, body.asset_class,
+                                scope=body.scope, created_by=profile.get("user_id"))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Could not create asset type: {exc}")
+    if not row:
+        raise HTTPException(status_code=503,
+                            detail="Asset types are unavailable — migration 020 may not be applied.")
+
+    audit_emit("asset_type.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="asset_type", target_id=key,
+               asset_class=body.asset_class, scope=body.scope)
+    return {"key": key, "label": label, "asset_class": body.asset_class,
+            "scope": body.scope, "builtin": False}
+
+
+@app.delete("/asset-types/{key}", tags=["Assets"])
+def delete_asset_type_endpoint(key: str, profile: dict = Depends(get_current_user_profile)):
+    """Remove a custom asset type. Built-ins cannot be removed.
+
+    Assets already created under it keep working: they store asset_type,
+    asset_class and scope by value, so nothing already filed is re-judged.
+    """
+    _ensure_permission(profile, "assets.configure", detail="Only admins can manage the asset register.")
+    from core.assets import get_asset_type
+    from db.queries import delete_asset_type
+
+    if get_asset_type(key):
+        raise HTTPException(status_code=400, detail="Built-in asset types cannot be removed.")
+    if not delete_asset_type(profile["organization_id"], key):
+        raise HTTPException(status_code=500, detail="Could not remove the asset type.")
+    audit_emit("asset_type.delete", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=profile["organization_id"],
+               target_type="asset_type", target_id=key)
+    return {"deleted": True, "key": key}
 
 
 @app.post("/assets/{asset_id}/maintenance", tags=["Assets"], status_code=201)

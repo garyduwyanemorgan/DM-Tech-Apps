@@ -9,6 +9,7 @@ import { Switch } from './ui/Toggle'
 import { FEATURES, useFeatures } from '../context/FeaturesContext'
 import { hasPermission } from '../lib/permissions'
 import { COLORS } from '../lib/tokens'
+import { AssetRegisterPanel } from './AssetRegisterPanel'
 
 interface SettingsProps {
   activeSite: string
@@ -481,6 +482,7 @@ export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite })
     { id: 'display', label: 'Data & Display' },
     { id: 'features', label: 'Features' },
     ...(isAdmin ? [
+      { id: 'assetregister', label: 'Asset Register' },
       { id: 'sites', label: 'Site Management' },
       { id: 'users', label: 'User Management' },
     ] : []),
@@ -542,6 +544,12 @@ export const Settings: React.FC<SettingsProps> = ({ activeSite, setActiveSite })
               </h3>
               <BillingPanel organizationId={organizationId} token={token} />
             </div>
+          </TabPanel>
+        )}
+
+        {isAdmin && (
+          <TabPanel id="assetregister" style={panelStyle}>
+            <AssetRegisterPanel organizationId={organizationId} token={token} />
           </TabPanel>
         )}
 
