@@ -67,6 +67,110 @@ const Card: React.FC<{ k: string; title: string; children: React.ReactNode }> = 
   </div>
 )
 
+/** Columns point at real sections of this page — no dead links to pages that
+ *  do not exist yet. */
+const FOOTER_COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+  {
+    title: 'Platform',
+    links: [
+      { label: 'The problem', href: '#problem' },
+      { label: 'What it catches', href: '#catches' },
+      { label: 'A certificate, checked', href: '#certificate' },
+      { label: 'How it works', href: '#how' },
+    ],
+  },
+  {
+    title: 'Assurance',
+    links: [
+      { label: 'Read from the certificate', href: '#certificate' },
+      { label: 'Checked against the guideline', href: '#catches' },
+      { label: 'Confirmed by a reviewer', href: '#how' },
+    ],
+  },
+]
+
+const SiteFooter: React.FC = () => {
+  // The build stamp comes from the app's own /api/version, so the footer always
+  // states what is actually deployed rather than a value baked in at build time.
+  const [build, setBuild] = useState<{ version?: string; commit?: string | null }>({})
+  React.useEffect(() => {
+    let cancelled = false
+    fetch('/api/version')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (!cancelled && d) setBuild({ version: d.version, commit: d.commit }) })
+      .catch(() => { /* the stamp is informational; its absence is not an error */ })
+    return () => { cancelled = true }
+  }, [])
+
+  const link: React.CSSProperties = { color: 'rgba(255,255,255,0.68)', textDecoration: 'none' }
+
+  return (
+    <footer style={{ background: INK, color: 'rgba(255,255,255,0.68)', fontSize: '0.85rem' }}>
+      <div style={{ ...wrap, display: 'grid', gap: '2rem', paddingTop: '3rem', paddingBottom: '3rem',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
+        {/* Brand — the mosaic keeps its own colours; the wordmark is typeset so
+            it stays crisp and needs no knocked-out background. */}
+        <div style={{ gridColumn: 'span 2', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+            <img src="/gdm-globe.png" alt="" aria-hidden="true"
+                 style={{ width: 30, height: 30, borderRadius: '50%',
+                          filter: 'drop-shadow(0 0 12px rgba(160,200,235,0.28))' }} />
+            <span style={{ color: '#fff', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              GDM Environmental
+            </span>
+          </div>
+          <p style={{ margin: '0.85rem 0 0', maxWidth: '34ch', lineHeight: 1.65 }}>
+            Environmental specialists for the UAE. We check laboratory certificates
+            against the guideline they cite, before they reach the regulator.
+          </p>
+        </div>
+
+        {FOOTER_COLUMNS.map(col => (
+          <div key={col.title}>
+            <h2 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{col.title}</h2>
+            <ul style={{ listStyle: 'none', margin: '0.8rem 0 0', padding: 0,
+                         display: 'grid', gap: '0.55rem' }}>
+              {col.links.map(l => (
+                <li key={l.label}>
+                  <a href={l.href} style={link}
+                     onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                     onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.68)')}>
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <div>
+          <h2 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>Contact</h2>
+          <p style={{ margin: '0.8rem 0 0' }}>
+            <a href="mailto:gary@gdm-enviro.com" style={link}
+               onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.68)')}>
+              gary@gdm-enviro.com
+            </a>
+          </p>
+          <p style={{ margin: '0.35rem 0 0' }}>Dubai · Abu Dhabi · GCC</p>
+        </div>
+      </div>
+
+      <div style={{ ...wrap, borderTop: '1px solid rgba(255,255,255,0.10)', paddingTop: '1rem',
+                    paddingBottom: '1rem', fontSize: '0.72rem', display: 'flex', flexWrap: 'wrap',
+                    gap: '0.35rem 1.25rem', justifyContent: 'space-between' }}>
+        <span>
+          © {new Date().getFullYear()} GDM Environmental. Compliance verdicts are read from the
+          certificate and confirmed by a reviewer before they are recorded.
+        </span>
+        <span style={{ fontFamily: MONO, color: 'rgba(255,255,255,0.40)', whiteSpace: 'nowrap' }}>
+          {build.version ? `v${build.version}` : ''}{build.commit ? ` · ${build.commit}` : ''}
+        </span>
+      </div>
+    </footer>
+  )
+}
+
 export const Landing: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false)
   if (showLogin) return <Login />
@@ -143,7 +247,7 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* ── The problem ── */}
-      <section style={{ padding: 'clamp(3.5rem, 8vw, 6rem) 0', background: '#fff' }}>
+      <section id="problem" style={{ padding: 'clamp(3.5rem, 8vw, 6rem) 0', background: '#fff' }}>
         <div style={wrap}>
           <p style={{ ...eyebrow, color: STEEL }}>The problem</p>
           <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', lineHeight: 1.12, fontWeight: 800,
@@ -171,7 +275,7 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* ── What it catches ── */}
-      <section style={{ padding: 'clamp(3.5rem, 8vw, 6rem) 0', background: NAVY, color: '#fff' }}>
+      <section id="catches" style={{ padding: 'clamp(3.5rem, 8vw, 6rem) 0', background: NAVY, color: '#fff' }}>
         <div style={wrap}>
           <p style={{ ...eyebrow, color: MIST }}>What it catches</p>
           <h2 style={{ fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', lineHeight: 1.12, fontWeight: 800,
@@ -219,7 +323,7 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* ── Specimen certificate ── */}
-      <section style={{ padding: 'clamp(3.5rem, 8vw, 6rem) 0', background: SURFACE }}>
+      <section id="certificate" style={{ padding: 'clamp(3.5rem, 8vw, 6rem) 0', background: SURFACE }}>
         <div style={{ ...wrap, display: 'grid', gap: 'clamp(2rem, 5vw, 3.5rem)',
                       gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'center' }}>
           <div>
@@ -347,29 +451,7 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      <footer style={{ background: INK, color: 'rgba(255,255,255,0.62)', padding: '2rem 0', fontSize: '0.82rem' }}>
-        <div style={{ ...wrap, display: 'flex', justifyContent: 'space-between',
-                      alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-          {/* The mosaic keeps its own colours; the wordmark is typeset rather
-              than bitmapped, so it stays crisp at any size and sits on the ink
-              ground without a knocked-out background. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <img src="/gdm-globe.png" alt="" aria-hidden="true"
-                 style={{ width: 46, height: 46, borderRadius: '50%',
-                          filter: 'drop-shadow(0 0 14px rgba(160,200,235,0.30))' }} />
-            <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-              <strong style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '0.04em' }}>
-                GDM
-              </strong>
-              <span style={{ color: MIST, fontSize: '0.6rem', letterSpacing: '0.34em',
-                             textTransform: 'uppercase', marginTop: 3 }}>
-                Environmental
-              </span>
-            </span>
-          </div>
-          <span>Compliance Intelligence Platform — Dubai, UAE</span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }
