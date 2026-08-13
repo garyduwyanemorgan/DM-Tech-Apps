@@ -10,9 +10,14 @@ Each `NNN_name.sql` has a matching `NNN_name_down.sql` that reverses it.
 
 Run every file in numeric order. They are not independent: 016 creates the
 tables that 018 and 021 alter, 019 alters the table 010 creates and drops a
-column 017 added, and 020 depends on 019. Skipping one does not fail loudly —
-`ADD COLUMN IF NOT EXISTS` and `CREATE TABLE IF NOT EXISTS` mean a partial apply
-succeeds quietly and leaves the schema subtly wrong.
+column 017 added, 020 depends on 019, and 022 mirrors the scope vocabulary 019
+established. Skipping one does not fail loudly — `ADD COLUMN IF NOT EXISTS` and
+`CREATE TABLE IF NOT EXISTS` mean a partial apply succeeds quietly and leaves the
+schema subtly wrong.
+
+022 creates structure only and seeds nothing: its content comes from a Python
+seeder that reads `core/standards.py` and `core/constants.py`, so those modules
+stay the single source of truth. Applying 022 alone changes no behaviour.
 
 | # | File | What it adds |
 |---|---|---|
@@ -39,6 +44,7 @@ succeeds quietly and leaves the schema subtly wrong.
 | 019 | `019_asset_class_scope.sql` | `assets.asset_class`/`scope`; drops `report_types.scope` |
 | 020 | `020_asset_types.sql` | Org-defined asset types |
 | 021 | `021_lab_samples_asset_type.sql` | `lab_samples.asset_type` |
+| 022 | `022_standards_specifications.sql` | `standards`, `specification_sets`, `spec_limits` |
 
 Two files share the `002` and `006` prefixes. They are independent of each
 other, so either order within the pair is fine.
