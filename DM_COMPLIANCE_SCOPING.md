@@ -281,6 +281,24 @@ Reimplement `core/calculations.py` on top of it. `COMPLIANCE_LIMITS` remains in
 `core/constants.py` as seed source and test fixture, but nothing outside the
 seeder reads it directly.
 
+> **Step 2 is larger than it looks.** A codebase audit found the verdict logic
+> is not one implementation but seven, and they already disagree:
+> `core/calculations.py:15-51` (the canonical one), a second inline copy of all
+> ten limits in `core/alert_engine.py:88-110`, a private limits dict in
+> `ui/monitoring.py:41-48`, a hand-copied TypeScript duplicate in
+> `frontend/src/constants.ts:10-21`, and three further TS verdict engines in
+> `Dashboard.tsx:21-49`, `ComplianceReport.tsx:263-322` and `Chemistry.tsx:242-256`.
+> Known live divergences: `Dashboard.tsx` uses inclusive bounds where Python uses
+> strict, so they differ at exactly the limit value; its risk bands are 20/50
+> against Python's 10/30; and `compliance_summary` emits `NON-COMPLIANT` where
+> the lab path and database use `NON_COMPLIANT`, papered over by a substring
+> check in `status.ts:53`. `ComplianceReport.tsx` reimplements the PDF's logic
+> and can disagree with the PDF a regulator actually receives.
+>
+> Step 2 is therefore a consolidation, not a swap. Sequence it as: land the
+> resolver, prove parity against `check_compliance` over a value grid for all ten
+> parameters, then retire the copies one at a time behind that parity test.
+
 **Step 3 — prove with a second scope.** Add the facilities Legionella set
 (GU44) — the gap in §3.3 — and judge the existing `lab_samples` rows against it.
 This is the first real test that the resolver generalises, and it uses data
@@ -423,10 +441,26 @@ rollback point (§8 decision 1). It receives no changes, so there is no porting
 burden — but it also means the live Safari Park deployment must eventually be
 served by this repo. Plan that cutover explicitly during Phase 1.
 
-**7.7 Pre-existing items unchanged by this proposal.** CORS is still
+**7.7 The vision extraction path fabricates magnitudes, and must be fixed
+before the resolver consumes it.** `extract.py:72` instructs the model: *"For
+values like '< 0.05' or 'ND', use the detection limit number and note it"*, and
+its schema is `Optional[float]`, so the qualifier cannot survive.
+`ingestion/router.py:77-81` then applies a bare `float(value)`, dropping
+qualifiers entirely. Both contradict `ingestion/wimpey.py:178-193`, which models
+`'<1'` as `(1.0, '<')` honestly, and both contradict migration 016's explicit
+rule that a below-LOQ non-detect must never be collapsed into a measured value.
+
+This is a pre-existing defect, not one this work introduces — but it becomes
+load-bearing the moment `qualifier_rule` starts judging these rows, because
+careful below-LOQ logic built on invented numbers is worse than no logic. Fix it
+in Phase 1, before step 3.
+
+**7.8 Pre-existing items unchanged by this proposal.** CORS is still
 `allow_origins=["*"]`; invite email is not wired to a transactional provider;
-billing has never processed a live payment. All three should close before the
-first paid module sale.
+billing has never processed a live payment. `python-multipart` is missing from
+`requirements.txt` despite `api_server` importing it, which stops two test
+modules collecting in a clean environment. All should close before the first
+paid module sale.
 
 ---
 
@@ -439,6 +473,7 @@ first paid module sale.
 | 3 | Guideline build order | **Universal modules first** — GU48, GU47, GU67 (Phase 2), then GU137 (Phase 3). GU44 completes inside Phase 1 as the registry's proof. |
 | 4 | Pricing shape | **Base platform fee + per-module add-on.** Replaces site-count tiers. |
 | 5 | Guideline currency | **Narrow verified catalogue.** Only personally verified modules go on sale; provenance recorded in the schema. Revisit once selling. |
+| 6 | Our limits vs the lab's printed specification | **Both verdicts; disagreement is a finding.** `ingestion/gates.py` keeps judging the laboratory's own printed spec; the resolver adds ours alongside. Where they differ, surface it — that usually means the lab judged against a superseded edition or the wrong limit for the asset, which is what `core/standards.py` already exists to catch. Never silently override an accredited laboratory's certified statement. |
 
 ### Still open
 
