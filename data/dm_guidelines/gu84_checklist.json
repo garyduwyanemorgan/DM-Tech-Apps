@@ -1,0 +1,3848 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU84-EE2",
+    "guideline_no": 84,
+    "title": "Technical Guidelines for Entertainment Establishments Compliance",
+    "version": "1.1",
+    "issued_on": "2020-12-10",
+    "superseded_issue_date": "2020-02",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2021/05/DM-HSD-GU84-EE2_Technical-Guidelines-for-Entertainment-Establishments-Compliance_v1.1.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": {
+    "module_kind_justification": "Same framework as GU83: a fixed requirement set in annexes, a risk class printed against each requirement, required actions per risk class, and an A-to-E grading formula. A report can state violation counts by class. Compliance module, with the same caveat as GU83 - the verdict is a GRADE, not a binary.",
+    "age": "Issued 10 December 2020, superseding a February 2020 edition. It is the OLDEST document in this group by more than four years, and the only one still carrying the pre-2023 Dubai Government / Dubai Municipality branding (GU83's version 2 change log records the logo swap that GU84 has not had). Contact addresses still point at esuggest.dubai.gov.ae and ecomplain.dubai.gov.ae, both superseded by the 04 Platform in GU83 and GU85. Treat GU84 as at risk of a silent re-issue and re-verify before sale.",
+    "version_source": "Version V 1.1 and issue date 10th December 2020 are taken from the page footer, which repeats them on all 25 pages. The cover page of GU84 carries NO version block at all - only the title and doc code - so unlike GU83 and GU85 there is no cover value to cross-check. The superseded issue date is printed as 'February 2020', a month with no day, so superseded_issue_date is stored as a partial date rather than invented as the 1st.",
+    "risk_scale_differs_from_gu83": "CRITICAL FOR THE DATA MODEL. GU84 and GU83 are the same framework with INCOMPATIBLE vocabularies on BOTH axes. GU84's risk-assessment outcomes are Low / Medium / High / Catastrophic; GU83's are Minor / Major / Critical / Catastrophic. GU84's severity axis is Negligible / Minor / Moderate / Major / Extreme; GU83's is Very Low / Low / Medium / High / Very High. GU84's probability axis starts at 'Rare/Remote'; GU83's starts at 'Very Unlikely'. The words overlap but mean different things across documents: 'Minor' is a risk OUTCOME in GU83 and a SEVERITY INPUT in GU84; 'Medium' is a severity input in GU83 and a risk outcome in GU84. A single shared severity enum across guideline modules will silently mis-map GU84 findings into GU83 semantics and vice versa. failure_severity below therefore carries GU84's OWN lowercase label, and source_risk_label carries it verbatim. Severity must be namespaced per standard, not global.",
+    "grading_differs_from_gu83": "GU84 grades A to E with E as the worst; GU83 grades A to F with F as the worst and no E. The thresholds also differ: GU84 grade A requires ZERO violations of every class, while GU83 grade A tolerates 1 to 2 Minor. 'Grade A' therefore does not mean the same thing in the two documents and must never be displayed as a cross-guideline score. Both grading tables share the same undecidable '&/or' combinator problem.",
+    "gu83_annex_pointers_came_from_here": "GU84's section 10 annex references are internally CORRECT: toys to Annex 5, low voltage to Annex 8, detergents to Annex 10, biocides to Annex 11, indoor air to Annex 2, non-drinking water to Annex 3, noise to Annex 4. GU83's section 10 cites exactly these same annex numbers, but GU83's Part E renumbers everything (toys are Annex 6 there, indoor air Annex 3, and so on). GU83's body text was evidently copied from GU84 and its annex pointers were never renumbered. This confirms the GU83 off-by-one is a copy-paste defect rather than a reading error on our side.",
+    "annex_numbering_gaps": "GU84's Part E contains Annexes 1, 2, 3, 4, 5, 8, 10 and 11. Annexes 6, 7 and 9 do not exist in this document. The numbering is inherited from a shared master annex library (where 6 = food contact materials, 7 = cosmetics, 9 = health supplements in GU83's scheme), and GU84 simply omits the ones entertainment establishments do not deal in. The gaps are not missing pages: page numbering is continuous and the document is complete at 25 of 25.",
+    "two_level_tables": "GU84's annex tables are TWO-LEVEL in a way GU83's are not. Many rows print a Requirement with the Risk cell EMPTY, and the rows beneath elaborate it with their own risk classes. Those header rows are marked is_group_heading and carry no severity. GU84 never states this structure in words - it is read off the layout - so the grouping is flagged as an inference. The section 4.6 model as sketched has no place for it: checklist_items would need a self-referential parent_item_id, or the headers get scored as failures they were never meant to be.",
+    "self_contradictions": [
+      "Annex 1 prints 'Availability of suitable cleaning materials.' twice, once as Medium and once as High. Same requirement, two risk classes, four rows apart. Both are retained; the second is set to failure_severity 'unknown' because preferring either would be a guess that changes a grade.",
+      "Annex 2 prints 'Presence of suitable ventilation mechanism in pump rooms.' as a group heading with no risk AND again as a Medium item eight rows later. Whether that is one requirement or two is not determinable from the document.",
+      "Annex 3 is titled 'Non drinking water system requirements' but three of its items are explicitly about DRINKING water tanks (opaque, closed and sealed, easily cleaned drinking water tanks). Section 10-E also scopes it to 'Non drinking water system compliance'. Serving these items under a non-drinking-water heading is the document's error, not ours.",
+      "Annex 1 item A1.114 is not a checkpoint at all: the Requirement cell reads ':TG14, TG15, TG16, TG17, TG18, 19, TG20, AND TG21' - a bare list of guideline references, with 'TG' missing from '19' - yet it carries a risk class of High and would therefore be scored. It is preserved verbatim and flagged; it cannot be inspected against as written.",
+      "Section 10-A and 10-B both point at Annex 1 for two different subject areas (public health and hygiene, and public and operational safety), so GU84 has no way to report the two separately even though its own contents page lists them as distinct compliance areas."
+    ],
+    "unit_conflict_with_gu83": "GU84 requires ashtrays 25 feet from entrances; GU83 requires 7.62 metres. These are the same distance expressed in different units - 25 ft = 7.62 m exactly - so there is no substantive conflict, but any cross-guideline comparison must normalise units before flagging a discrepancy, and a client reading both documents will see two different numbers.",
+    "numbering": "Annex requirements are printed as unnumbered table rows. All item_no values (A<annex>.<row>) are positional and assigned by this extraction. Item TEXT is verbatim, including the document's own errors.",
+    "response_type": "yes_no_na is this extraction's inference, as in GU83. The document prints only a requirement and a risk class."
+  },
+  "risk_module": {
+    "source_section": "8. Risk module",
+    "source_page": 9,
+    "matrix": {
+      "note": "Rows are 'Probability of repetition', columns are 'Severity of the potential risk'. The cell value is the RISK ASSESSMENT class used by section 9 grading. NOTE the vocabulary differs from GU83 on every axis - see notes.risk_scale_differs_from_gu83.",
+      "cells": [
+        {
+          "probability": "Almost certain",
+          "severity": "Negligible",
+          "risk": "Low"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Minor",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Moderate",
+          "risk": "High"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Major",
+          "risk": "Catastrophic"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Extreme",
+          "risk": "Catastrophic"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Negligible",
+          "risk": "Low"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Minor",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Moderate",
+          "risk": "High"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Major",
+          "risk": "High"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Extreme",
+          "risk": "Catastrophic"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Negligible",
+          "risk": "Low"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Minor",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Moderate",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Major",
+          "risk": "High"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Extreme",
+          "risk": "High"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Negligible",
+          "risk": "Low"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Minor",
+          "risk": "Low"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Moderate",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Major",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Extreme",
+          "risk": "Medium"
+        },
+        {
+          "probability": "Rare/Remote",
+          "severity": "Negligible",
+          "risk": "Low"
+        },
+        {
+          "probability": "Rare/Remote",
+          "severity": "Minor",
+          "risk": "Low"
+        },
+        {
+          "probability": "Rare/Remote",
+          "severity": "Moderate",
+          "risk": "Low"
+        },
+        {
+          "probability": "Rare/Remote",
+          "severity": "Major",
+          "risk": "Low"
+        },
+        {
+          "probability": "Rare/Remote",
+          "severity": "Extreme",
+          "risk": "Low"
+        }
+      ]
+    },
+    "probability_indicators": [
+      {
+        "level": "Rare/Remote",
+        "description": "Not occurred before"
+      },
+      {
+        "level": "Unlikely",
+        "description": "Occurred outside Dubai"
+      },
+      {
+        "level": "Possible",
+        "description": "Occurred at least once in similar scope operations"
+      },
+      {
+        "level": "Likely",
+        "description": "Known at least once within business scope"
+      },
+      {
+        "level": "Almost certain",
+        "description": "Repeated in similar operations within scope"
+      }
+    ],
+    "severity_indicators": [
+      {
+        "level": "Negligible",
+        "description": "No environmental health risk"
+      },
+      {
+        "level": "Minor",
+        "description": "Insignificant environmental health effect"
+      },
+      {
+        "level": "Moderate",
+        "description": "Acute limited or temporary environmental health effect"
+      },
+      {
+        "level": "Major",
+        "description": "Chronic or permanent environmental health effect"
+      },
+      {
+        "level": "Extreme",
+        "description": "Widespread environmental health effect"
+      }
+    ],
+    "required_action": [
+      {
+        "risk_assessment": "Low",
+        "action": "Operation, activity or mission could be ran/continued with current procedures."
+      },
+      {
+        "risk_assessment": "Medium",
+        "action": "Operation, activity or mission could be ran/ continued with current procedures, with providing recommended corrections/other way of procedures implementation."
+      },
+      {
+        "risk_assessment": "High",
+        "action": "Operation, activity or mission must be ran/ continued with current procedures , by providing mandatory corrections/other way of procedures implementation during proposed period of time and monitoring action. Must stopped in case of non-commitment within period."
+      },
+      {
+        "risk_assessment": "Catastrophic",
+        "action": "Operation, activity or mission must be stopped until corrections obtained, with re- assessment before re -launching operation or activity."
+      }
+    ],
+    "note": "Each requirement violation assessed to its risk based on business activity type, and upon final findings grade of establishment estimated."
+  },
+  "grading": {
+    "source_section": "9. Score and grading",
+    "source_page": 10,
+    "source_quote": "Establishment's violations to the environmental health requirements shall affect overall grade as per below formulas settled as per management decisions: Where highest level of compliance score A grade, in descending order to grade E.",
+    "evaluation_order": "E first, then D, C, B, A - the first grade whose condition is satisfied wins.",
+    "grades": [
+      {
+        "grade": "E",
+        "conditions": [
+          "1 Catastrophic or more",
+          "3 High or more",
+          "5 Medium or more",
+          "10 Low or more"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "D",
+        "conditions": [
+          "1 TO 2 High",
+          "3 TO 4 Medium",
+          "7 TO 9 Low"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "C",
+        "conditions": [
+          "0 High",
+          "1 TO 2 Medium",
+          "4 TO 6 Low"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "B",
+        "conditions": [
+          "0 High",
+          "0 Medium",
+          "1 TO 3 Low"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "A",
+        "conditions": [
+          "0 High",
+          "0 Medium",
+          "0 Low"
+        ],
+        "combinator": "and/or"
+      }
+    ],
+    "unresolved": [
+      "The combinator is printed as '&/or', which is not a decidable operator - the same defect as GU83.",
+      "Grade A is cleanly defined here (zero of everything) but no band mentions Catastrophic except E, so an establishment with 1 Catastrophic and nothing else lands in E, which is coherent; an establishment with 0 of everything lands in A, also coherent. GU84's table is more nearly self-consistent than GU83's - the A/B overlap does not occur here - but the '&/or' problem alone still blocks automatic scoring.",
+      "Do not implement automatic grading without written clarification from DM. Emit violation counts by class."
+    ]
+  },
+  "checklist_templates": [
+    {
+      "key": "gu84_annex_01",
+      "label": "Annex1: Public health and safety requirements",
+      "applies_to": "Public health and hygiene; public and operational safety",
+      "source_section": "Part E, Annex 1",
+      "items": [
+        {
+          "item_no": "A1.1",
+          "text": "Compliance of premise activity, using or practice as per license or related permit issued.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.2",
+          "text": "Proper preventive measures for the protection and control of disease spread and outbreaks.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 13,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.3",
+          "text": "Absence of workers have open wounds during the work.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.2"
+        },
+        {
+          "item_no": "A1.4",
+          "text": "Absence of workers have wounds, injuries or infected during the work, which may affect his/her health, or others health and safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.2"
+        },
+        {
+          "item_no": "A1.5",
+          "text": "Providing approved workflow in quarantine cases upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.2"
+        },
+        {
+          "item_no": "A1.6",
+          "text": "Maintain personal hygiene and cleanliness level.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.2"
+        },
+        {
+          "item_no": "A1.7",
+          "text": "Maintain premise general cleanliness and hygiene level inside all premise facilities.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 13,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.8",
+          "text": "Cleaned meshed windows to prevent entry of insects and rodents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.7"
+        },
+        {
+          "item_no": "A1.9",
+          "text": "Toilets & bathing facilities cleanliness.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.7"
+        },
+        {
+          "item_no": "A1.10",
+          "text": "Cleaned wash basins, Floors and walls",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.7"
+        },
+        {
+          "item_no": "A1.11",
+          "text": "Presence of an effective pest (e.g.: rodents and insects) control operations.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 13,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.12",
+          "text": "Presence of rodents and Insects or signs of the same.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.11"
+        },
+        {
+          "item_no": "A1.13",
+          "text": "Presence of valid pest (e.g.: rodents and insects) control operations contract.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.11"
+        },
+        {
+          "item_no": "A1.14",
+          "text": "Presence of cleaned drinking water supply and devices.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.11"
+        },
+        {
+          "item_no": "A1.15",
+          "text": "Presence of an effective disposal of bio-hazardous and general waste materials including consumer products and furniture.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.11"
+        },
+        {
+          "item_no": "A1.16",
+          "text": "Reuse of empty chemicals and detergents containers by any means is not allowed with safe proper way of disposal.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 13,
+          "confidence": "high",
+          "group_item_no": "A1.11"
+        },
+        {
+          "item_no": "A1.17",
+          "text": "Presence of valid disposal contract of bio-hazardous and general wastes including consumer products and furniture.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.11"
+        },
+        {
+          "item_no": "A1.18",
+          "text": "Presence of proper healthcare services, installation and utilities.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 14,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.19",
+          "text": "Availability of sufficient suitable hands and/or Hair washbasins.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.18"
+        },
+        {
+          "item_no": "A1.20",
+          "text": "Availability of sufficient suitable toilets & bathing facilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.18"
+        },
+        {
+          "item_no": "A1.21",
+          "text": "Availability of hot / cold-water source.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.18"
+        },
+        {
+          "item_no": "A1.22",
+          "text": "Presence of proper drainage system for activity waste.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 14,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.23",
+          "text": "The outlet from the machines shall be properly drained into gutter/ drain line.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.22"
+        },
+        {
+          "item_no": "A1.24",
+          "text": "Liquid waste must not be discharged to the soak-away systems. Waste can be collected and discharged under a trade waste agreement to the sewerage system, treated on-site and recycled or other means allowed by existing regulations and Permission must be obtained from the concerned authority for disposal of wastewater.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.22"
+        },
+        {
+          "item_no": "A1.25",
+          "text": "Proper disposal of waste oil and refrigerant disposed.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.22"
+        },
+        {
+          "item_no": "A1.26",
+          "text": "The drain line shall be covered at the same floor level without any difference in surface profile, elevation or made.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.22"
+        },
+        {
+          "item_no": "A1.27",
+          "text": "Availability of suitable, sufficient and periodically cleaned bio-hazardous and general wastes including consumer products and furniture containers.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 14,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.28",
+          "text": "Provision of Sufficient and suitable Waste bin with cover for waste collection (Preferable pedal operated waste bins)",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.27"
+        },
+        {
+          "item_no": "A1.29",
+          "text": "Availability of suitable sanitizing and disinfecting materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.27"
+        },
+        {
+          "item_no": "A1.30",
+          "text": "Availability of suitable cleaning materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.27"
+        },
+        {
+          "item_no": "A1.31",
+          "text": "Availability of suitable cleaning materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "low",
+          "group_item_no": "A1.27",
+          "duplicate_of": "A1.30",
+          "duplicate_note": "Verbatim duplicate of A1.30, but with a DIFFERENT risk class: Medium there, High here. The document contradicts itself on how badly this failure counts. Neither value may be preferred over the other without DM confirmation, and the item must not be auto-scored."
+        },
+        {
+          "item_no": "A1.32",
+          "text": "Providing valid environmental health related documents or No objection permits for premise and employees upon request.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 14,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.33",
+          "text": "Availability of updated all staff list upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.32"
+        },
+        {
+          "item_no": "A1.34",
+          "text": "Availability of allowed areas of indoor smoking permit.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.32"
+        },
+        {
+          "item_no": "A1.35",
+          "text": "Providing valid occupational health certificates for employees and labors upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.32"
+        },
+        {
+          "item_no": "A1.36",
+          "text": "Commitment and adherence to the Dubai Municipality environmental health practices, instructions, orders and circulars.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 14,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.37",
+          "text": "Healthy practices, use and treatment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.36"
+        },
+        {
+          "item_no": "A1.38",
+          "text": "Applications and declarations before certain types of work begins.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.36"
+        },
+        {
+          "item_no": "A1.39",
+          "text": "Premise notifications and reporting for incidences may affect Environmental health.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 14,
+          "confidence": "high",
+          "group_item_no": "A1.36"
+        },
+        {
+          "item_no": "A1.40",
+          "text": "Premise compliance with smoking regulation.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 14,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.41",
+          "text": "Place No-smoking sign in a prominent visible and suitable place inside premise, and not allow smoking.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.40"
+        },
+        {
+          "item_no": "A1.42",
+          "text": "Cigarettes ashtrays shall be placed at a distance of 25 feet away from the entrances or the exit of the building.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.40"
+        },
+        {
+          "item_no": "A1.43",
+          "text": "Removal of cigarettes ashtrays from all sites or areas where smoking is prohibited.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.40"
+        },
+        {
+          "item_no": "A1.44",
+          "text": "Commitment to not advertise or promote tobacco and its products, and/or displaying free samples.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.40"
+        },
+        {
+          "item_no": "A1.45",
+          "text": "Suitability of building/premise construction and design specifications, with intended activity, as per environmental health requirements.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 15,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.46",
+          "text": "Availability of proper disposing gas, fumes and heat facilities as per activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.45"
+        },
+        {
+          "item_no": "A1.47",
+          "text": "Laundry must be in ground floor.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.45"
+        },
+        {
+          "item_no": "A1.48",
+          "text": "Presence of suitable, sufficient special facilities as per activity layout requirement.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 15,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.49",
+          "text": "The activity Halls/ Places shall be available and suitable.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.48"
+        },
+        {
+          "item_no": "A1.50",
+          "text": "Dressing/ changing room shall be available and suitable.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.48"
+        },
+        {
+          "item_no": "A1.51",
+          "text": "Shower/ changing room shall be available and suitable near swimming pool.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.48"
+        },
+        {
+          "item_no": "A1.52",
+          "text": "Availability of suitable sufficient waiting rooms and/or areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.48"
+        },
+        {
+          "item_no": "A1.53",
+          "text": "Availability of sufficient and suitable special guest services rooms and/or areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.48"
+        },
+        {
+          "item_no": "A1.54",
+          "text": "Providing valid safety related documents or No Objection permits upon request.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 15,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.55",
+          "text": "Availability of sensors and devices calibration records.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.54"
+        },
+        {
+          "item_no": "A1.56",
+          "text": "Availability of valid sensors and devices accreditation certification.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.54"
+        },
+        {
+          "item_no": "A1.57",
+          "text": "Work permit in confined space is obtained.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.54"
+        },
+        {
+          "item_no": "A1.58",
+          "text": "Provide layout, tools and controlling, precautionary and preventive system in emergency and fire cases, maintained by certified body as per U.A.E fire code guideline.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 15,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.59",
+          "text": "Providing valid Fire extinguishers means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.60",
+          "text": "Additional stop bars/switches shall be provided for emergency stop.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.61",
+          "text": "Presence of proper first aid box and tools, according to Technical guideline no.: 25.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.62",
+          "text": "Availability of proper entrances/exits.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.63",
+          "text": "Providing fire-exit layout signs.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.64",
+          "text": "Rooms, corridors and outlets are equipped with Heat and/or Smoke detectors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.65",
+          "text": "Presence of fire alarm and main panel as per licensed activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.66",
+          "text": "Providing proper and adequate facilities for disposing gas, fumes and heat.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.67",
+          "text": "Presence of fire protection requirements completion certificate issued by Civil Defense Department.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 15,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.68",
+          "text": "Availability of applicable and well-known premise evacuation plan and safe assembly points.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.69",
+          "text": "Availability of adequate evacuation plan trials record as per licensed activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.70",
+          "text": "Assembly points used in emergency cases, not in parking areas, and found near to premise entrances for disabled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.71",
+          "text": "Free accessed staircases in emergency.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.58"
+        },
+        {
+          "item_no": "A1.72",
+          "text": "Illegal sale of consumer products /handling of the medicines are not allowed.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.73",
+          "text": "Dealing in consumer products intended for sale only in Emirate of Dubai and as per activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.72"
+        },
+        {
+          "item_no": "A1.74",
+          "text": "Using building facilities safely with related permissions.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.75",
+          "text": "Safety requirements in permitted Kitchens and Food Preparation Areas, according to Technical guideline no.: 38.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.74"
+        },
+        {
+          "item_no": "A1.76",
+          "text": "Suitable area size with number and size of machines and number of workers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.74"
+        },
+        {
+          "item_no": "A1.77",
+          "text": "Keeping windows and balcony doors closed as per premise-licensed activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.74"
+        },
+        {
+          "item_no": "A1.78",
+          "text": "Licensed constructions/Wooden partitions.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.74"
+        },
+        {
+          "item_no": "A1.79",
+          "text": "Non-slippery, impermeable, friction and rust resistant floors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.74"
+        },
+        {
+          "item_no": "A1.80",
+          "text": "Presence of sufficient work/activity area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.74"
+        },
+        {
+          "item_no": "A1.81",
+          "text": "Premise walls, floors and ceilings made shall be from approved materials.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.82",
+          "text": "Using proper tiles with facility operations.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.81"
+        },
+        {
+          "item_no": "A1.83",
+          "text": "All structural materials are fire resistant.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.81"
+        },
+        {
+          "item_no": "A1.84",
+          "text": "Proper securing (use and handling ) of liquefied petroleum gas cylinders and flammable materials",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.85",
+          "text": "Presence of adequate non-smoking and warning signs all around flammable materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.84"
+        },
+        {
+          "item_no": "A1.86",
+          "text": "The chemicals drum / containers shall be labeled properly.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.84"
+        },
+        {
+          "item_no": "A1.87",
+          "text": "Availability of product data sheets from the suppliers for all hazardous substances upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.84"
+        },
+        {
+          "item_no": "A1.88",
+          "text": "Not to deal in expired, spoiled or deteriorated consumer products.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.89",
+          "text": "Prohibit sale and Displaying tobacco and related products deteriorated, expired, or banned products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.88"
+        },
+        {
+          "item_no": "A1.90",
+          "text": "Availability of proper storage mechanism of consumer products, tools and materials.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.91",
+          "text": "Chemicals used in laundry services shall be stored properly in a separate room and as per material safety data sheet.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.92",
+          "text": "Lift room not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.93",
+          "text": "Electrical room not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.94",
+          "text": "Pumps room not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.95",
+          "text": "Firefighting equipment cabinet not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 16,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.96",
+          "text": "Sufficient number of separate steel shelves or rack ( elevated 20 cm above floor and 50 cm down ceiling )",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.97",
+          "text": "Presence of calibrated thermometers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.98",
+          "text": "Presence of temperature log file for refrigerators or freezers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.99",
+          "text": "Presence of suitable sufficient cabinets, drawers and shelves.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.100",
+          "text": "Presence of management representative or acting manager, for example: Person in charge, Safety engineer, Professional technician or health officer.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.101",
+          "text": "Allow and assist Dubai Municipality employee from performing duties.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.90"
+        },
+        {
+          "item_no": "A1.102",
+          "text": "Wearing proper uniform.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 17,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.103",
+          "text": "staff wearing suitable shoes during work",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.102"
+        },
+        {
+          "item_no": "A1.104",
+          "text": "Presence of proper maintenance level, which may affect built environmental health.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 17,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.105",
+          "text": "Maintenance of electrical equipment and devices including non-electrical manual equipment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.104"
+        },
+        {
+          "item_no": "A1.106",
+          "text": "Commitment and adherence to the Dubai Municipality environmental health practices, instructions, orders and circulars.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.104"
+        },
+        {
+          "item_no": "A1.107",
+          "text": "Presence of Safety instructions and work site risks awareness materials and procedures.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 17,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.108",
+          "text": "Availability of safety instructions, operational guidance signboards and tools adequately.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.107"
+        },
+        {
+          "item_no": "A1.109",
+          "text": "Workers occupational safety training.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.107"
+        },
+        {
+          "item_no": "A1.110",
+          "text": "Proper and approved advertisements inside built environment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.107"
+        },
+        {
+          "item_no": "A1.111",
+          "text": "Presence of premise sign board with commercial name and required details.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.107"
+        },
+        {
+          "item_no": "A1.112",
+          "text": "Proper and adequate lighting system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.107"
+        },
+        {
+          "item_no": "A1.113",
+          "text": "Providing accredited safety conformity/certificate for personal protective equipment according to technical guidelines.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 17,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.114",
+          "text": ":TG14, TG15, TG16, TG17, TG18, 19, TG20, AND TG21",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.113"
+        },
+        {
+          "item_no": "A1.115",
+          "text": "Providing accredited safety conformity/certificate for lifting system and equipment.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 17,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.116",
+          "text": "Moving parts of the lift gear for elevators are secured.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.115"
+        },
+        {
+          "item_no": "A1.117",
+          "text": "Providing accredited safety conformity/certificate for pressure system and equipment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.115"
+        },
+        {
+          "item_no": "A1.118",
+          "text": "Presence of proper premise public and operational safety means.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 17,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.119",
+          "text": "Presence of eyewash installations as per activity and in chemicals handling areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.118"
+        },
+        {
+          "item_no": "A1.120",
+          "text": "Presence of Suitable Furniture and in good conditions not affecting built environmental health.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.118"
+        },
+        {
+          "item_no": "A1.121",
+          "text": "Presence of safe tools and equipment in good and suitable operational conditions.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.118"
+        },
+        {
+          "item_no": "A1.122",
+          "text": "Following proper color-coding of water, steam, diesel or gas lines.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 17,
+          "confidence": "high",
+          "group_item_no": "A1.118"
+        },
+        {
+          "item_no": "A1.123",
+          "text": "Presence of safe machines and devices in good and suitable operational conditions.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.118"
+        },
+        {
+          "item_no": "A1.124",
+          "text": "Presence of equipment and procedures quality Control or/and Assurance upon request.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 18,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.125",
+          "text": "Submission of periodical test reports on Dubai Municipality - health and safety compliance portal.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.124"
+        },
+        {
+          "item_no": "A1.126",
+          "text": "Availability of self-compliance monitoring program Audits and records upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.124"
+        },
+        {
+          "item_no": "A1.127",
+          "text": "Presence of safe electrical circuits, wiring and approved electric system.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 18,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A1.128",
+          "text": "Presence of covered and plugged electrical ends.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.127"
+        },
+        {
+          "item_no": "A1.129",
+          "text": "Presence of electrical sockets and plugs in good condition and in suitable location.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.127"
+        },
+        {
+          "item_no": "A1.130",
+          "text": "Avoiding heavy load on socket outlets.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.127"
+        },
+        {
+          "item_no": "A1.131",
+          "text": "Proper electrical isolation switches for each machine shall be provided and easily accessible.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.127"
+        },
+        {
+          "item_no": "A1.132",
+          "text": "ELCB (Earth-Leakage Circuit Breaker) shall be provided in all electrical circuits.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A1.127"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_02",
+      "label": "Annex2: Indoor air quality requirements.",
+      "applies_to": "Indoor air system and quality indicators",
+      "source_section": "Part E, Annex 2",
+      "items": [
+        {
+          "item_no": "A2.1",
+          "text": "Measurements of Indoor air pollutants concentrations within acceptable limits inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "note": "Requires instrumented indoor-air measurement. GU84 states no limits; they live in GU119.",
+            "parameter": "indoor air pollutant concentrations"
+          }
+        },
+        {
+          "item_no": "A2.2",
+          "text": "Presence of exhaust system for air pollutants and heat release devices vented directly to outdoors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.3",
+          "text": "Presence of proper and effective ventilation system at premise car parking area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.4",
+          "text": "Presence of suitable ventilation mechanism in pump rooms.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 18,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A2.5",
+          "text": "Car parking area inside premise equipped with effective and proper mechanical ventilation system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.4"
+        },
+        {
+          "item_no": "A2.6",
+          "text": "Car parking area inside premise equipped with carbon monoxide gas release sensors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.4"
+        },
+        {
+          "item_no": "A2.7",
+          "text": "Presence of suitable ventilation mechanism in pump rooms.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.4"
+        },
+        {
+          "item_no": "A2.8",
+          "text": "Cooling water systems and towers including its water tanks shall be provided with effective, suitable and auto controlled water treatment systems.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.4"
+        },
+        {
+          "item_no": "A2.9",
+          "text": "Presence of suitable ventilation mechanism in confined space within premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.4"
+        },
+        {
+          "item_no": "A2.10",
+          "text": "Quality of indoor air parameters and thermal comfort inside premise during sensual and physical inspection.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 18,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A2.11",
+          "text": "Humidity comfort level.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.10",
+          "requires_measurement": true,
+          "measurement": {
+            "note": "'Humidity comfort level' is a measurement, but no range is stated in GU84.",
+            "parameter": "relative humidity"
+          }
+        },
+        {
+          "item_no": "A2.12",
+          "text": "Heat comfort recommended level inside all premise facilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.10",
+          "requires_measurement": true,
+          "measurement": {
+            "note": "'Heat comfort recommended level' is a measurement, but no range is stated in GU84.",
+            "parameter": "temperature / thermal comfort"
+          }
+        },
+        {
+          "item_no": "A2.13",
+          "text": "Odorless fresh air.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.10"
+        },
+        {
+          "item_no": "A2.14",
+          "text": "Absence of sensual air pollutants of smoke and dust.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.10"
+        },
+        {
+          "item_no": "A2.15",
+          "text": "Proper and adequate natural, mechanical or industrial ventilation system inside premise.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 18,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A2.16",
+          "text": "Premise equipped with effective heating , ventilation air conditioning system - HVAC -, and installed properly according to premise area and design.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 18,
+          "confidence": "high",
+          "group_item_no": "A2.15"
+        },
+        {
+          "item_no": "A2.17",
+          "text": "Premise equipped with effective mechanical ventilation air conditioning system - MVAC - , and installed properly according to premise area and design.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.15"
+        },
+        {
+          "item_no": "A2.18",
+          "text": "Absence of undesired smell or smoke or dust in indoor air, or sensual signs of the same.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.15"
+        },
+        {
+          "item_no": "A2.19",
+          "text": "Materials used in air conditioning systems comply with applied standards.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.15"
+        },
+        {
+          "item_no": "A2.20",
+          "text": "Occupancy limit shall be considered as per approved layouts and issued permits.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.15"
+        },
+        {
+          "item_no": "A2.21",
+          "text": "Good physical conditions and cleanliness of indoor air conditioning system components inside and outside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.15"
+        },
+        {
+          "item_no": "A2.22",
+          "text": "Effective periodical maintenance for indoor air conditioning system and its components, which handled by Dubai Municipality approved company.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 19,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A2.23",
+          "text": "Absence of blockage or obstruction of ventilation system outdoor air inlet.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.22"
+        },
+        {
+          "item_no": "A2.24",
+          "text": "Free indoor condensation, residues, or signs of the same inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.22"
+        },
+        {
+          "item_no": "A2.25",
+          "text": "Presence of valid indoor air conditioning system maintenance contract.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.22"
+        },
+        {
+          "item_no": "A2.26",
+          "text": "Presence of records or log for indoor air conditioning system periodical maintenance and inspection.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.22"
+        },
+        {
+          "item_no": "A2.27",
+          "text": "Premises shall provide well-designed effective mechanical ventilation air conditioning system - MVAC - , and fit premise nature and area.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 19,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A2.28",
+          "text": "Suitability of ventilation system outdoor air inlet location from sources of contamination.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.27"
+        },
+        {
+          "item_no": "A2.29",
+          "text": "Presence of suitable dust and particulate filter system installed in the outdoor air intake.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.27"
+        },
+        {
+          "item_no": "A2.30",
+          "text": "Premise equipped with sufficient permanently working suction fans, and installed properly according to premise area and design.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A2.27"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_03",
+      "label": "Annex3: Non drinking water system requirements.",
+      "applies_to": "Non-drinking water systems",
+      "source_section": "Part E, Annex 3",
+      "items": [
+        {
+          "item_no": "A3.1",
+          "text": "Providing accredited safety conformity/certificate for non-drinking water systems and tanks.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.2",
+          "text": "Water systems periodical maintenance shall be handled by Dubai Municipality approved company.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 19,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A3.3",
+          "text": "Presence of valid water system maintenance contract.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A3.2"
+        },
+        {
+          "item_no": "A3.4",
+          "text": "Presence of records or log for water system periodical maintenance and inspection.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A3.2"
+        },
+        {
+          "item_no": "A3.5",
+          "text": "Presence of person in charge for Legionella bacteria control program.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A3.2"
+        },
+        {
+          "item_no": "A3.6",
+          "text": "Availability of test kit for waters characteristics and records.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A3.2"
+        },
+        {
+          "item_no": "A3.7",
+          "text": "Water clarity and cleanliness in all premise water systems.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A3.2"
+        },
+        {
+          "item_no": "A3.8",
+          "text": "All fountains and other water supplied featured places or areas including its water tanks shall be provided with suitable water treatment systems.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 19,
+          "confidence": "high",
+          "group_item_no": "A3.2"
+        },
+        {
+          "item_no": "A3.9",
+          "text": "Water systems and accessories are in good condition during visual inspection.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 19,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A3.10",
+          "text": "Showerheads and taps are clean.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.9"
+        },
+        {
+          "item_no": "A3.11",
+          "text": "Compliance of samples tested for chemical and microbiological contamination.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.9",
+          "requires_measurement": true,
+          "measurement": {
+            "note": "Requires laboratory analysis of water samples. GU84 states no limits. Per scoping section 4.7 the analysis must come from a DM-accredited independent laboratory.",
+            "parameter": "chemical and microbiological contamination"
+          }
+        },
+        {
+          "item_no": "A3.12",
+          "text": "Water tanks compliance with applied specifications and requirements.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 20,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A3.13",
+          "text": "Opaque drinking water tanks and made, polished or painted from approved materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.12"
+        },
+        {
+          "item_no": "A3.14",
+          "text": "Closed and sealed drinking water tanks.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.12"
+        },
+        {
+          "item_no": "A3.15",
+          "text": "Easily cleaned drinking water tanks, periodically maintained and disinfected by licensed company.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.12"
+        },
+        {
+          "item_no": "A3.16",
+          "text": "Swimming pool systems compliance with applied specifications and requirements.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 20,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A3.17",
+          "text": "Proper swimming pool water inlets and outlets installation.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.18",
+          "text": "Non-operating swimming pool fencing, railing or any mean of isolating for kids safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.19",
+          "text": "Providing adequate depth marks around swimming pool.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.20",
+          "text": "Providing suitable lifeguard equipment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.21",
+          "text": "Swimming pool construction and design permitted by Dubai Municipality.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.22",
+          "text": "Presence of qualified lifeguard in swimming areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.23",
+          "text": "Availability of Instructions boards around swimming pool area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.24",
+          "text": "Availability of No-Diving sign where mandatory.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.25",
+          "text": "Availability of manual breathing apparatus.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        },
+        {
+          "item_no": "A3.26",
+          "text": "Cleanliness of swimming pool accessories.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A3.16"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_04",
+      "label": "Annex4: Operational noise control requirements.",
+      "applies_to": "Operational noise control",
+      "source_section": "Part E, Annex 4",
+      "items": [
+        {
+          "item_no": "A4.1",
+          "text": "Premise equipped with effective insulation system for operational noise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.2",
+          "text": "Providing sound system with control panel.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.3",
+          "text": "Proper sound workstations design and layout by certified company.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.4",
+          "text": "Noise source entertaining premise operating out from residential area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.5",
+          "text": "Public pre-announcement of popular events and celebrations noise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.6",
+          "text": "Acceptable noise level during all daytime outside noise source premise.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 20,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A4.7",
+          "text": "Stop noise source during approved sleeping time 10 PM to 6 AM in residential area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A4.6"
+        },
+        {
+          "item_no": "A4.8",
+          "text": "Control noise level below 55 dB from 7AM to 8 PM.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A4.6",
+          "requires_measurement": true,
+          "measurement": {
+            "note": "A hard dB limit printed inside a checklist item. This is a spec_limit, not a yes/no checkpoint, and GU83's corresponding noise annex omits the number entirely.",
+            "parameter": "noise level",
+            "operator": "<",
+            "value": 55,
+            "unit": "dB",
+            "period": "07:00-20:00"
+          }
+        },
+        {
+          "item_no": "A4.9",
+          "text": "Control noise level below 45 dB from 8PM to 7 AM.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A4.6",
+          "requires_measurement": true,
+          "measurement": {
+            "note": "A hard dB limit printed inside a checklist item.",
+            "parameter": "noise level",
+            "operator": "<",
+            "value": 45,
+            "unit": "dB",
+            "period": "20:00-07:00"
+          }
+        },
+        {
+          "item_no": "A4.10",
+          "text": "Availability of technical assistance plans in premise for incident operational noise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A4.6"
+        },
+        {
+          "item_no": "A4.11",
+          "text": "Providing noise level technical report from certified body in the field of Built environmental health",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 20,
+          "confidence": "high",
+          "group_item_no": "A4.6"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_05",
+      "label": "Annex 5: Toys requirements.",
+      "applies_to": "Toys",
+      "source_section": "Part E, Annex 5",
+      "items": [
+        {
+          "item_no": "A5.1",
+          "text": "Toy or its accessories physical compliance as per visual inspection.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 21,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A5.2",
+          "text": "Toy shall be strong enough to withstand the normal behavior of the child.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.3",
+          "text": "Not to deal in toys with small magnetic parts or strong magnets.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.4",
+          "text": "Not to deal in toys with non-functional not essential glass parts.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.5",
+          "text": "Not to deal in toys with removable/detachable small mouth sized parts.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.6",
+          "text": "Not to deal in Projectile toys with removable suction cups or small projectiles.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.7",
+          "text": "Not to deal in stretching or expandable toys that increase more than 50% of the original size.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.8",
+          "text": "Not to deal in Toy with non-functional sharp edges or points.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.9",
+          "text": "Not to deal in toys with fur or hair not firmly fixed.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.10",
+          "text": "Not to deal in laser toys or products higher than acceptable class.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.11",
+          "text": "Covering toy heat sources.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.12",
+          "text": "Not to deal in Toys posing choking hazard for children under 3 years of age.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.13",
+          "text": "Not to deal in stuffed cloth Toys with weak stitching or seam openings that expel matrix out.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.14",
+          "text": "Not to deal in toys with long flexible part posing constitute strangulation hazard.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.15",
+          "text": "Not to deal in toys with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.16",
+          "text": "Not to deal in a toy which may harm or transfer disease by direct contact, or hazardous to user and others safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.1"
+        },
+        {
+          "item_no": "A5.17",
+          "text": "Toy product's label shall comply with applied Emirates standards and specifications.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 21,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A5.18",
+          "text": "Presence of adequate toy label information, such as country of origin, minimum age of user, warning and safety instructions in Arabic and English languages.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.19",
+          "text": "Presence of - Gulf Specification Organization - GSO mark comply with specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.20",
+          "text": "Presence of - Not suitable for 3 years old - graphical warning symbol comply with specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.21",
+          "text": "Not to deal in misleading or improper details of toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.22",
+          "text": "Brand or product name shall be complied and declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.23",
+          "text": "Country of origin information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.24",
+          "text": "Manufacturer details shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.25",
+          "text": "Total weight, size or volume information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.26",
+          "text": "Instructions of use, daily dosages and warnings information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.27",
+          "text": "Storage conditions information shall be complied and declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.28",
+          "text": "Barcode shall be complied and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 21,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.29",
+          "text": "Batch/lot numbers information shall be complied and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.30",
+          "text": "Validity information, Production, expiry dates and Period after opening information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.31",
+          "text": "Medical claims and illustrations, pictures or language, which are inconsistent / not comply with the prevailing social customs and values for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.32",
+          "text": "Ingredients information not properly declared / not comply for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.33",
+          "text": "Not to deal in banned illegal sale and testing failed toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.34",
+          "text": "Not to deal in fireworks, firecrackers or explosives.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.35",
+          "text": "Providing compliance certificates of toys safety upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "low",
+          "source_risk_label": "Low",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.36",
+          "text": "Not to deal in toys manufactured like Tobacco or Tobacco related products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        },
+        {
+          "item_no": "A5.37",
+          "text": "Dealing in registered toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A5.17"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_08",
+      "label": "Annex8: Low Voltage electrical devices requirements.",
+      "applies_to": "Low voltage electrical devices",
+      "source_section": "Part E, Annex 8",
+      "items": [
+        {
+          "item_no": "A8.1",
+          "text": "Dealing in low voltage electrical device shall be marked to ensure safe usage.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 22,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A8.2",
+          "text": "Not to deal in misleading or improper details of electrical devices.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.3",
+          "text": "Not to deal in electrical devices which may harm or transfer disease by direct contact, or hazardous to user and others safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.4",
+          "text": "Brand or product name shall be complied and declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.5",
+          "text": "Country of origin information shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.6",
+          "text": "Manufacturer details shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.7",
+          "text": "Total weight, size or volume information shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.8",
+          "text": "Presence of manual of the Instructions of use in Arabic and English and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.9",
+          "text": "Storage conditions information shall be complied and declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.10",
+          "text": "Barcode shall be complied and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.11",
+          "text": "Batch/lot numbers information shall be complied and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.12",
+          "text": "Medical claims and illustrations, pictures or language, which are inconsistent / not comply with the prevailing social customs and values for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.13",
+          "text": "Not to deal in banned, illegal sale and testing failed electrical devices.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.14",
+          "text": "Not to deal in electric toys or devices not comply with applied specifications and standards.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.1"
+        },
+        {
+          "item_no": "A8.15",
+          "text": "Dealing in low voltage electrical device comply with U.A.E specifications.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 22,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A8.16",
+          "text": "Water Heater shall to comply with UAE.S / GSO/ IEC 60335-2-21: 2007 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 22,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.17",
+          "text": "Extension Cords and Adaptors shall to comply with UAE.S / GSO / IEC 60884-1: 2007.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.18",
+          "text": "Electric Irons shall to comply with UAE.S / IEC 60335-2-3: 2002 5th Ed specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.19",
+          "text": "Microwave Ovens shall to comply with UAE.S / GSO / IEC 60335-2-25: 2007 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.20",
+          "text": "Washing Machines and Clothes Dryers shall to comply with UAE.S / GSO / IEC 60335-2-4: 2007 + A1:2004 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.21",
+          "text": "Electric Stove shall to comply with UAE.S / IEC 60335-2-9:2004 Ed. 5.1 (for portable appliances) specifications. IEC 60335-2-6: 2002 5th Ed. (for stationary appliances) specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.22",
+          "text": "Refrigerators, Chillers and Freezers shall to comply with UAE S. / IEC 60335-2-24: 2002 6th Ed specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.23",
+          "text": "Room Air Conditioners shall to comply with UAE S. / IEC 60335-2-40:2005 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.24",
+          "text": "Household Cooking Appliances shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-9, and UAE.S 60335-2-13 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.25",
+          "text": "Electromechanical Kitchen Appliances shall to comply with UAE.S 60335-1, UAE.S 60335-2-14 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.26",
+          "text": "Vacuum Cleaners shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-2 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.27",
+          "text": "Fans & Fan Systems including Air-purifiers shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-80, and UAE.S 60335-2-65 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.28",
+          "text": "Appliances for Heating Liquids shall to comply with UAE.S IEC 60335-1 UAE.S 60335-2-15 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.29",
+          "text": "Grass Shears/Trimmers shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-91, and UAE.S 60335-2-94 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.30",
+          "text": "Gas Powered Ovens & Cooking Ranges shall to comply with UAE.S GSO 1050:2011; UAE.GSO 1049:2011 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.31",
+          "text": "Not to deal in banned, illegal sale and testing failed low voltage electrical devices",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        },
+        {
+          "item_no": "A8.32",
+          "text": "Not to deal in misleading or improper details of low voltage electrical device by any mean.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A8.15"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_10",
+      "label": "Annex10: Detergents requirements.",
+      "applies_to": "Household detergents",
+      "source_section": "Part E, Annex 10",
+      "items": [
+        {
+          "item_no": "A10.1",
+          "text": "Dealing in registered household detergents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.2",
+          "text": "Household detergent product's label shall comply with applied Emirates standards and specifications.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 23,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A10.3",
+          "text": "Not to deal in misleading or improper details of household detergents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.4",
+          "text": "Brand or product name shall be complied and declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.5",
+          "text": "Country of origin information shall be comply and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 23,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.6",
+          "text": "Manufacturer details shall be comply and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.7",
+          "text": "Total weight, size or volume information shall be comply and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.8",
+          "text": "Instructions of use, daily dosages and warnings information shall be comply and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.9",
+          "text": "Storage conditions information shall be complied and declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.10",
+          "text": "Barcode shall be comply and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.11",
+          "text": "Batch/lot numbers information shall be complied and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.12",
+          "text": "Validity information, Production, expiry dates and Period after opening information shall be comply and properly declared for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.13",
+          "text": "Medical claims and illustrations, pictures or language, which are inconsistent / not comply with the prevailing social customs and values for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.14",
+          "text": "Ingredients information not properly declared / not comply for household detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.15",
+          "text": "Not to deal in a household detergent with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.16",
+          "text": "Not to deal in banned illegal sale and testing failed household detergents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        },
+        {
+          "item_no": "A10.17",
+          "text": "Not to deal in misleading or improper details of household detergents by any display means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A10.2"
+        }
+      ]
+    },
+    {
+      "key": "gu84_annex_11",
+      "label": "Annex11: Biocides requirements.",
+      "applies_to": "Biocides",
+      "source_section": "Part E, Annex 11",
+      "items": [
+        {
+          "item_no": "A11.1",
+          "text": "Dealing in registered biocides.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.2",
+          "text": "Biocide product's label shall comply with applied Emirates standards and specifications.",
+          "is_group_heading": true,
+          "response_type": "free_text",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": null,
+          "source_page": 24,
+          "confidence": "high",
+          "note": "Printed in the Requirement column with the Risk column EMPTY. Read as a grouping header for the items that follow, not as a scorable checkpoint - it carries no risk class and so cannot enter the section 9 grading formula. This is an inference from layout, not a statement by the document: GU84 never says its annex tables are two-level."
+        },
+        {
+          "item_no": "A11.3",
+          "text": "Not to deal in misleading or improper details of biocides.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.4",
+          "text": "Brand or product name shall be complied and declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.5",
+          "text": "Country of origin information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.6",
+          "text": "Manufacturer details shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.7",
+          "text": "Total weight, size or volume information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.8",
+          "text": "Instructions of use, daily dosages and warnings information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.9",
+          "text": "Storage conditions information shall be complied and declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.10",
+          "text": "Barcode shall be complied and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.11",
+          "text": "Batch/lot numbers information shall be complied and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.12",
+          "text": "Validity information, Production, expiry dates and Period after opening information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.13",
+          "text": "Medical claims and illustrations, pictures or language, which are inconsistent / not comply with the prevailing social customs and values for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 24,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.14",
+          "text": "Ingredients information not properly declared / not comply for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 25,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.15",
+          "text": "Not to deal in a biocide with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 25,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.16",
+          "text": "Not to deal in banned illegal sale and testing failed biocides.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "high",
+          "source_risk_label": "High",
+          "source_page": 25,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        },
+        {
+          "item_no": "A11.17",
+          "text": "Not to deal in misleading or improper details of biocides by any display means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "medium",
+          "source_risk_label": "Medium",
+          "source_page": 25,
+          "confidence": "high",
+          "group_item_no": "A11.2"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Routine inspection frequency is driven by the premise grade; the grade-to-frequency mapping is not published.",
+      "trigger_event": null,
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Routine: scheduled visit based on premise grade."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "remarks detected upon previous findings risk",
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Follow-Up: scheduled visit according to remarks detected upon previous findings risk."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "incidence received / complaint",
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Complaint: Enforced unexpected visit scheduled upon incidences received."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "management decision, memo or case investigation",
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Management Order: Enforced expected visit scheduled upon management decisions, memos or during case investigation."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Unscheduled by design; no cadence.",
+      "trigger_event": "quality issues or field status changes",
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Random: Non-Forced unexpected inspection according to quality issues, or could be determined on the status and changes in the field."
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No sampling frequency stated.",
+      "trigger_event": "scheduled sampling visit",
+      "applies_to": "Consumer products, non-drinking water and indoor air",
+      "source_quote": "Sampling: Enforced expected visit scheduled specifically for consumer products and/or non-drinking water and/or indoor air sample site measurement and collection for the purpose of testing and determine environmental health conditions, however, it may processed in conjunction with previous types of visits."
+    },
+    {
+      "obligation_type": "self_inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Named as a monitoring mode; no frequency given.",
+      "trigger_event": null,
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Notification and case investigation with establishment remotely via self-inspection or during investigation visit."
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Periodical' with no period stated. Also an Annex 1 checklist item (Low).",
+      "trigger_event": null,
+      "applies_to": "Entertainment establishments",
+      "source_quote": "Submission of periodical test reports on Dubai Municipality - health and safety compliance portal."
+    },
+    {
+      "obligation_type": "noise_control",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "A daily time-window obligation, not a periodic one. 22:00-06:00 in residential areas.",
+      "trigger_event": null,
+      "applies_to": "Noise sources in residential areas",
+      "source_quote": "Stop noise source during approved sleeping time 10 PM to 6 AM in residential area."
+    },
+    {
+      "obligation_type": "appeal_window",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Grace period is declared in the issued report, not in the guideline.",
+      "trigger_event": "issue of an inspection report",
+      "applies_to": "Dubai Municipality customers",
+      "source_quote": "Disputing and review process has guaranteed for Dubai Municipality customer within declared grace period declared in report issued"
+    }
+  ],
+  "references": [
+    "Local Order No.11, 2003 for public health and safety of Dubai society, and executive order No.30, 2007.",
+    "Dubai Municipality Approved Consumer Product Guidelines (Toys, Detergents and Biocides).",
+    "Dubai Municipality guideline for legionella control.",
+    "Public swimming pools safety guidelines.",
+    "Public and operational safety guidelines.",
+    "Dubai Municipality Approved Circulars and memos."
+  ]
+}

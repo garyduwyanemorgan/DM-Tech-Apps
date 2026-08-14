@@ -1,0 +1,1738 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU85-LAC2",
+    "guideline_no": 85,
+    "title": "Technical Guidelines for Labour Accommodation Compliance",
+    "version": "5.0",
+    "issued_on": "2025-09-30",
+    "superseded_issue_date": "2025-01-03",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/10/DM-HSD-GU85-LAC2-_Technical-Guidelines-for-Labor-Accommodation-Compliance_V5.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": {
+    "module_kind_justification": "GU85 states mandatory, observable requirements in 'must' form, numbered by the document itself, and DM issues a compliance category (A to F) off the back of an inspection. Per-requirement a report can legitimately say 'requirement 6-1 not met'. That is a compliance module. BUT see grading_not_published: the OVERALL category cannot be computed from this document.",
+    "grading_not_published": "Section 4-2 says an inspection report carries a compliance level from Category A down to Category F, and section 3 defines 'Level of compliance' as determined by 'the extent to which the accommodation meets the items listed in the inspection checklist, which is linked to the risk matrix and electronically registered in the system designated for the inspection and monitoring of labor accommodations'. The document therefore tells you plainly that THE SCORED CHECKLIST AND THE RISK MATRIX ARE NOT IN THIS DOCUMENT - they live in DM's internal inspection system. GU85 publishes the REQUIREMENTS; DM keeps the CHECKLIST. No overall Category may be computed or displayed by this product. Doing so would fabricate a regulator's grade.",
+    "no_severities": "Unlike GU83, GU85 assigns no risk class to any requirement. Every failure_severity is 'unknown'. Section 4-1 refers to corrective action timeframes 'according to the severity of the violations committed' and section 3 says the inspection report records 'the nature and severity of the risk' - so severities exist, but they exist in DM's system, not here. They must not be inferred, and corrective-action due dates cannot be derived.",
+    "verdict_shape": "The most a report may claim is: which numbered requirements were met, not met, or not applicable, with the document's own numbering as the citation. No grade, no score, no percentage.",
+    "numbering": "Section numbering and item numbering come from the document except in 7-1 and 5-3's sub-bullets, which are printed as unnumbered bullets; those item_no values are positional and assigned by this extraction. Sub-numbering (e.g. 5-1.7.1) is also this extraction's, applied where the document nests bullets under a numbered item.",
+    "delegation": "GU85 is heavily delegating at the edges. Air conditioning goes to GU119, water quality to GU133 / GU44 / GU17, swimming pools to GU81, the H&S officer to GU131, kitchens implicitly to GU46, food to the Dubai Food Code, and the building envelope to the Dubai Building Code. Commercially this is the strongest evidence for modular pricing: a labour-accommodation client buying GU85 alone gets a shell that cannot be evaluated - GU85 pulls in at least five other SKUs to be usable. Sell it as a bundle or the module under-delivers.",
+    "measurements": "GU85 is a genuine hybrid. At least 20 items carry a numeric threshold that must be measured or counted - 3 m2 per person, bed height >= 30 cm, bunk clearances 100 cm and 70 cm, wardrobe 2 m, one toilet/shower/basin per 8 persons, one urinal per 25, dining capacity >= one third of headcount, hot holding > 65 degC, cold storage 1-4 degC, chimney >= 2 m, >= 3 cooling units, tiling >= 2 m, storage clearances 20/50/30 cm, cleaning >= twice daily, deep clean <= every 3 months. These are spec_limits in checklist clothing: they belong in the spec_limits model of section 4.2, referenced BY a checklist item, not embedded as free text inside it.",
+    "defects_found": [
+      "7-1 bullet 7 is truncated mid-sentence in the published PDF: 'A dishwashing sink with both hot and cold'. No verb, no object. Recorded verbatim; not completed by inference.",
+      "6.3 states a maximum as a range - 'no more than 8 to 10 workers'. A maximum cannot be two numbers. Left unresolved.",
+      "5-3.3 names the occupational health certificate issuer as 'Dubai Health'; 7-2.6 names it 'the Dubai Health Authority'. Same requirement, two issuer names.",
+      "7-3.5, 7-3.6 and 7-3.7 restate 7-2.9, 7-2.12/13/14 and 7-2.15 with different fitting specifications, so a common kitchen can satisfy 7-2 and fail 7-3 on the same equipment.",
+      "The Table of Content lists section 12 as 'Public Health Requirements' with 12-1 Waste Disposal and 12-2 Public Health Pests, which matches the body; but the ToC also lists a section 4-3 'Compliance Standards in Labor Accommodations' whose body text is a single sentence about fines, not standards.",
+      "12-2.3 explicitly refuses to state the pest control visit frequency ('must comply with the requirements set by Dubai Municipality in this regard'), leaving a mandatory obligation with no encodable cadence."
+    ]
+  },
+  "classification": {
+    "source_section": "4-2 Achieved Results and Classification",
+    "source_page": 7,
+    "source_quote": "The committed violations affect the assessment of the labor accommodation's compliance with health and safety regulations. Following the final evaluation, an inspection report is issued that includes a compliance level record, starting with Category A, followed by Category B, then Category C. The non-compliance levels are ranked in descending order, with Category D, down to the lowest compliance level, Category F.",
+    "categories": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "F"
+    ],
+    "compliant_categories": [
+      "A",
+      "B",
+      "C"
+    ],
+    "non_compliant_categories": [
+      "D",
+      "F"
+    ],
+    "note": "There is no Category E, exactly as in GU83. Unlike GU83, NO thresholds are published - there is no formula mapping violation counts to a category. This product must not compute a category.",
+    "confidence": "high"
+  },
+  "checklist_templates": [
+    {
+      "key": "gu85_s5_1_building_regulations",
+      "label": "5-1 Building Regulations",
+      "applies_to": "All permanent labor accommodations located within the geographical areas of the Emirate of Dubai",
+      "source_section": "5-1",
+      "items": [
+        {
+          "item_no": "5-1.1",
+          "text": "The building must be licensed by the competent building licensing authorities.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 7,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.2",
+          "text": "The use of any materials containing asbestos or any substances harmful to the environment or public health is strictly prohibited.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 7,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.3",
+          "text": "Flooring must be made of waterproof, smooth, non-absorbent materials that are easy to clean and wash, non-slip, resistant to industrial detergents and cleaning acids, and must have a flat, crack- and hole-free surface.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.4",
+          "text": "All conditions and requirements applicable to residential buildings shall also apply to labor accommodation rooms, including ventilation, natural and artificial lighting, thermal insulation, electrical installations, health and environmental requirements, as well as all technical specifications related to residential rooms such as heights, areas, and dimensions.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "note": "Delegating item: the actual conditions live in the residential building regulations, which GU85 does not reproduce."
+        },
+        {
+          "item_no": "5-1.5",
+          "text": "A detailed signboard must be installed on the exterior of the labor accommodation building, clearly displaying the name and details of the company responsible, in an appropriate size.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.6",
+          "text": "Regular maintenance of all accommodation facilities must be carried out considering the designated rest times for workers.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "note": "'Regular' with no stated interval."
+        },
+        {
+          "item_no": "5-1.7",
+          "text": "The accommodation must include central services appropriate to the number of workers authorized to occupy the building, with adherence to the following:",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.7.1",
+          "text": "Compliance with the designated use of facilities within the labor accommodation, and no changes shall be made without obtaining a permit from the competent building licensing authorities.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.7.2",
+          "text": "Ensuring that food preparation areas (kitchens and dining areas) always remain accessible to workers.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-1.7.3",
+          "text": "Full compliance with the Dubai Building Code issued by Dubai Municipality, or any guidelines issued by the competent building licensing authorities in the Emirate.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "note": "Delegating item - Dubai Building Code."
+        },
+        {
+          "item_no": "5-1.8",
+          "text": "All residential rooms, kitchens, dining areas, and halls must be equipped with an air-conditioning system in accordance with the specifications outlined in the Technical Guidelines for Indoor Air Quality for a Healthy Life (DM-HSD-GU119-IAQ).",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "note": "Delegating item - the specification is GU119, already extracted as gu119_limits.json."
+        }
+      ]
+    },
+    {
+      "key": "gu85_s5_2_administration",
+      "label": "5-2 Administration of Labor Accommodation",
+      "applies_to": "All permanent labor accommodations",
+      "source_section": "5-2",
+      "items": [
+        {
+          "item_no": "5-2.1",
+          "text": "A qualified and certified Health and Safety Officer must be provided within the labor accommodation, in accordance with the requirements outlined in the Certification Scheme for Health and Safety Officer in Laborer Accommodations (DM-HSD-GU131-CSLA2).",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "note": "Delegating item - GU131, a Phase 5 competency/expiry subject rather than a checklist item."
+        }
+      ]
+    },
+    {
+      "key": "gu85_s5_3_documents_and_records",
+      "label": "5-3 Documents and Records",
+      "applies_to": "All permanent labor accommodations",
+      "source_section": "5-3",
+      "items": [
+        {
+          "item_no": "5-3.1",
+          "text": "A valid copy of the following contracts and documents must be provided:",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.1",
+          "text": "Lease contract notarized with the relevant government authorities",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.2",
+          "text": "Water tank cleaning contract with a company approved by Dubai Municipality, along with periodic cleaning reports.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.3",
+          "text": "Pest control contract with a company approved by Dubai Municipality, along with periodic pest control reports.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.4",
+          "text": "Air conditioning units cleaning contract and periodic maintenance reports.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.5",
+          "text": "Elevator maintenance contract (if applicable), along with certified safety and inspection certificates.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.6",
+          "text": "Firefighting systems and equipment maintenance contract and periodic maintenance reports.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.7",
+          "text": "Grease trap cleaning contract and periodic reports.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.8",
+          "text": "Common kitchen/catering services permit (if available), issued by the Food Safety Department of Dubai Municipality.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.1.9",
+          "text": "Any other maintenance or service contracts.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.2",
+          "text": "An updated list of all authorized staff working in the common kitchen/catering services.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.3",
+          "text": "Valid occupational health certificates for all staff of common kitchen/catering services, Issued by Dubai Health.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.4",
+          "text": "A certified lifeguard certificate if swimming pool is available within the labor accommodation.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5-3.5",
+          "text": "Health and Safety Officer Accreditation certificate for the concerned personnel, in accordance with the requirements of for Certification Scheme for Health and Safety Officer in Labor Accommodations.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s6_sleeping_rooms",
+      "label": "6- Sleeping Rooms",
+      "applies_to": "Sleeping rooms in labor accommodations",
+      "source_section": "6",
+      "items": [
+        {
+          "item_no": "6.1",
+          "text": "A minimum of 3 square meters of space must be provided for each person inside the sleeping room.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "floor area per person",
+            "operator": ">=",
+            "value": 3,
+            "unit": "m2"
+          }
+        },
+        {
+          "item_no": "6.2",
+          "text": "The total number of workers is calculated based on the exact number of individuals per room.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 9,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.3",
+          "text": "Each room must accommodate no more than 8 to 10 workers, while strictly adhering to the required space per person.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "low",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "workers per room",
+            "operator": "<=",
+            "value": null,
+            "unit": "persons",
+            "ambiguity": "The limit is printed as a RANGE, 'no more than 8 to 10 workers'. A maximum cannot be two numbers. It is left unresolved rather than assumed to be 10 - snapping it to either end would authorise or forbid a real occupancy on a guess. Verify with DM before enforcing."
+          }
+        },
+        {
+          "item_no": "6.4",
+          "text": "Each worker must be provided with an individual sleeping space, even in the case of rotating shifts. Sharing of a sleeping space between workers is not permitted.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.5",
+          "text": "Each worker must be provided with a bed equipped with a comfortable mattress, pillow, blanket, and clean bedding.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.6",
+          "text": "A 2-meter-high personal wardrobe with a lock must be provided for each worker.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "wardrobe height",
+            "operator": "=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "6.7",
+          "text": "The height of the bed must be no less than 30 cm above the floor.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "bed height above floor",
+            "operator": ">=",
+            "value": 30,
+            "unit": "cm"
+          }
+        },
+        {
+          "item_no": "6.8",
+          "text": "The use of bunk beds is not preferred, but if used, there must be a minimum distance of 100 cm between beds on both sides, and at least 70 cm. between the upper and lower bunks.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "bunk bed clearances",
+            "constraints": [
+              {
+                "what": "distance between beds on both sides",
+                "operator": ">=",
+                "value": 100,
+                "unit": "cm"
+              },
+              {
+                "what": "distance between upper and lower bunks",
+                "operator": ">=",
+                "value": 70,
+                "unit": "cm"
+              }
+            ],
+            "note": "Conditional - applies only where bunk beds are used."
+          }
+        },
+        {
+          "item_no": "6.9",
+          "text": "Safety barriers on upper bunks (for bunk beds) shall not be removed.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.10",
+          "text": "Triple bunk beds are strictly prohibited.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.11",
+          "text": "Sufficient shoe racks (preferably metal, wall-mounted, and raised above the floor) must be provided at the entrance of each room so that workers can remove their shoes before entering the sleeping area.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.12",
+          "text": "Adequate ventilation, cooling, and lighting systems must be provided inside sleeping rooms.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s7_1_individual_kitchens",
+      "label": "7-1 Individual Cooking Kitchens",
+      "applies_to": "Residential units with individual cooking kitchens",
+      "source_section": "7-1",
+      "template_note": "The document prints these as unnumbered bullets; item numbers are positional and assigned by this extraction.",
+      "items": [
+        {
+          "item_no": "7-1.1",
+          "text": "Each residential unit shall be equipped with one or more kitchens",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.2",
+          "text": "Cooking stations, food preparation surfaces, sinks, and floors must be cleaned at least twice a day.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "cleaning frequency",
+            "operator": ">=",
+            "value": 2,
+            "unit": "times per day"
+          }
+        },
+        {
+          "item_no": "7-1.3",
+          "text": "A deep cleaning of individual cooking kitchen facilities must be carried out at least once every three months.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "deep cleaning interval",
+            "operator": "<=",
+            "value": 3,
+            "unit": "months"
+          }
+        },
+        {
+          "item_no": "7-1.4",
+          "text": "Adequate storage must be provided for dry and refrigerated food items.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.5",
+          "text": "Separate areas must be designated within the kitchen for raw meat and other food items, with each area equipped with a stainless-steel sink and preparation table to ensure food safety and prevent cross-contamination between different types of food.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.6",
+          "text": "Handwashing sinks must be provided, equipped with both hot and cold water, liquid soap, and hand-drying facilities, according to the number of workers.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.7",
+          "text": "A dishwashing sink with both hot and cold",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "low",
+          "note": "TRUNCATED IN THE SOURCE. The bullet ends mid-sentence at 'hot and cold' on page 10 of the published PDF - no verb, no object. Reproduced exactly as printed. It must NOT be completed to 'hot and cold water' by inference: an inspector cannot attest to a requirement that was never fully stated, and this is a defect to raise with DM."
+        },
+        {
+          "item_no": "7-1.8",
+          "text": "The kitchen shall be equipped with an appropriate drainage system and a ventilation outlet.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.9",
+          "text": "Kitchen floors, ceilings, and walls shall be constructed of materials that are easy to clean.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.10",
+          "text": "The kitchen and cooking facilities shall be maintained in a continuously clean condition.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-1.11",
+          "text": "The kitchen shall be provided with effective pest control measures.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s7_2_catering_common_kitchen",
+      "label": "7-2 Catering Services / Common Kitchen",
+      "applies_to": "Labor accommodations operating a catering service / central kitchen",
+      "source_section": "7-2",
+      "preamble": "An annual permit must be obtained from the relevant Dubai Municipality department to operate a catering service/central kitchen within the labor accommodation, and the following health requirements must be adhered to:",
+      "items": [
+        {
+          "item_no": "7-2.1",
+          "text": "A register for kitchen staff must be maintained.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.2",
+          "text": "The kitchen must not open to the public street or sell materials.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.3",
+          "text": "No signage or boards for the shop are allowed.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.4",
+          "text": "The flooring must be ceramic, and the corner where the floor meets the walls should be at a right angle or rounded for easier cleaning.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.5",
+          "text": "Proper ventilation and lighting must be provided for all stages of work.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.6",
+          "text": "All staff must have valid health cards issued by the Dubai Health Authority.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Conflicts with 5-3.3, which names the issuer as 'Dubai Health'. Same requirement, two different issuer names in one document."
+        },
+        {
+          "item_no": "7-2.7",
+          "text": "Staff must wear appropriate uniforms and maintain cleanliness while working.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.8",
+          "text": "Kitchen staff must adhere to personal hygiene standards.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.9",
+          "text": "A storage room must be provided for dry, refrigerated, and frozen materials, according to the size of the kitchen operation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.10",
+          "text": "A small utensil washing area must be equipped with a triple or double stainless-steel sink, with hot and cold water, and should be located close to the preparation area.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.11",
+          "text": "A large and deep sink for washing large utensils, with both hot and cold water, must be provided.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.12",
+          "text": "A vegetable preparation area must be provided, with a separate washing sink, a stainless-steel preparation table for washing vegetables, tools, and a separate fridge.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.13",
+          "text": "A meat preparation area must be provided, with a separate washing sink, a stainless-steel preparation table for meat, tools, and a separate fridge.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.14",
+          "text": "A fish preparation area must be provided, with a separate washing sink and a stainless-steel preparation table for fish, along with dedicated tools.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.15",
+          "text": "A hand-washing sink made of stainless steel must be provided in each preparation area, according to the number of workers, equipped with hot and cold water, liquid soap, and hand towels.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.16",
+          "text": "One stainless-steel table must be available for food preparation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.17",
+          "text": "Electrical food heaters must be provided to keep food hot (above 65°C), and a separate unit for cold food storage (from 1°C to 4°C).",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "food holding temperature",
+            "constraints": [
+              {
+                "what": "hot holding",
+                "operator": ">",
+                "value": 65,
+                "unit": "degC"
+              },
+              {
+                "what": "cold storage",
+                "operator": "between",
+                "value": [
+                  1,
+                  4
+                ],
+                "unit": "degC"
+              }
+            ]
+          }
+        },
+        {
+          "item_no": "7-2.18",
+          "text": "Stainless steel or non-corrosive material shelves must be provided to store dry food materials, as well as shelves for drying cleaned utensils.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.19",
+          "text": "A cooking area with a canopy for the chimney must be provided to draw fumes, with the chimney raised at least 2 meters above the nearest building.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "chimney height above nearest building",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "7-2.20",
+          "text": "At least 3 cooling units must be provided to store different types of food.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "cooling units",
+            "operator": ">=",
+            "value": 3,
+            "unit": "units"
+          }
+        },
+        {
+          "item_no": "7-2.21",
+          "text": "Work areas must be arranged to avoid overlapping between different stages of food preparation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.22",
+          "text": "Approved food packaging materials must be used, as per Dubai Municipality regulations.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.23",
+          "text": "Plastic bags should not be used for storing food.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.24",
+          "text": "Grease traps must be installed outside the kitchen and dining rooms, connected to the sewage system.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.25",
+          "text": "Pest and rodent control measures must be installed on doors, windows, and openings.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.26",
+          "text": "Proper methods for thawing frozen food must be followed.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.27",
+          "text": "Appropriate temperature measurement devices must be provided for refrigerators and freezers, along with a temperature log.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-2.28",
+          "text": "Food must be protected from contamination during preparation, storage, and transportation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s7_3_kitchen_management",
+      "label": "7-3 Kitchen Management",
+      "applies_to": "Labor accommodations operating a catering service / central kitchen",
+      "source_section": "7-3",
+      "items": [
+        {
+          "item_no": "7-3.1",
+          "text": "The kitchen must be managed by a licensed food service company or a team of professional chefs.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-3.2",
+          "text": "The kitchen must comply with the public health standards of the relevant authority.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-3.3",
+          "text": "A variety of food options must be provided, considering different cultures, dietary requirements, and the need for a balanced and healthy diet.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-3.4",
+          "text": "Free laundry service must be provided for kitchen staff, along with at least two sets of appropriate work uniforms.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "work uniform sets per kitchen staff member",
+            "operator": ">=",
+            "value": 2,
+            "unit": "sets"
+          }
+        },
+        {
+          "item_no": "7-3.5",
+          "text": "Adequate storage facilities must be available for dry, chilled, and frozen foods.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high",
+          "note": "Duplicates 7-2.9 in substance."
+        },
+        {
+          "item_no": "7-3.6",
+          "text": "There must be three separate food preparation areas (for meat, fish, and vegetables), each equipped with a double stainless-steel sink, separate cutting tools, a refrigerator, and a stainless-steel preparation table.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high",
+          "note": "Conflicts with 7-2.10, which permits a 'triple or double' sink in the utensil washing area and does not specify sink type per preparation area; and restates 7-2.12/13/14 with a different fitting spec ('double stainless-steel sink' here versus 'separate washing sink' there)."
+        },
+        {
+          "item_no": "7-3.7",
+          "text": "Stainless steel handwashing sinks (in proportion to the number of workers) must be provided, equipped with hot and cold water, liquid soap, and hand drying facilities.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high",
+          "note": "Duplicates 7-2.15."
+        },
+        {
+          "item_no": "7-3.8",
+          "text": "Kitchen floors, ceilings, and walls must be made of non-absorbent, easy-to-clean materials.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 12,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-3.9",
+          "text": "The kitchen and cooking facilities must be always kept clean.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-3.10",
+          "text": "The kitchen must be equipped with an insect control system.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "7-3.11",
+          "text": "All food served on site must comply with the food safety regulations stipulated in the Dubai Food Code.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high",
+          "note": "Delegating item - Dubai Food Code."
+        },
+        {
+          "item_no": "7-3.12",
+          "text": "Notices indicating meal times must be displayed at the entrances of the dining hall.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s8_dining_halls",
+      "label": "8- Dining Halls",
+      "applies_to": "Dining halls in labor accommodations",
+      "source_section": "8",
+      "items": [
+        {
+          "item_no": "8.1",
+          "text": "The dining hall must be equipped with enough tables and chairs.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "8.2",
+          "text": "Chilled drinking water must be provided.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "8.3",
+          "text": "A handwashing station must be available (equipped with hot and cold water, liquid soap, and paper towels).",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "8.4",
+          "text": "The dining hall must have the capacity to accommodate one-third of the total number of workers at a time.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "dining hall seating capacity",
+            "operator": ">=",
+            "value": "total_workers / 3",
+            "unit": "persons"
+          }
+        },
+        {
+          "item_no": "8.5",
+          "text": "Dining rooms must be provided with adequate lighting and ventilation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "8.6",
+          "text": "Dining halls must be equipped with an air conditioning system in accordance with the specifications set by the approved municipal regulations.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s9_laundry",
+      "label": "9- Laundry Facilities",
+      "applies_to": "Laundry facilities in labor accommodations",
+      "source_section": "9",
+      "items": [
+        {
+          "item_no": "9.1",
+          "text": "Laundry rooms must be located on the ground floor of the accommodation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "9.2",
+          "text": "Walls and floors of the laundry rooms must be moisture resistant.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "9.3",
+          "text": "The laundry room must have adequate ventilation to eliminate moisture and reduce the buildup of bacteria and fungi, with proper natural or mechanical ventilation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "9.4",
+          "text": "The facility must be equipped with all essential services such as hot and cold-water supply, ventilation, air conditioning, proper drainage, and sufficient lighting.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "9.5",
+          "text": "The laundry area must be separated from living and dining areas, and must be located independently, away from residential units, kitchens, and restrooms.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        },
+        {
+          "item_no": "9.6",
+          "text": "Washing clothes contaminated with hazardous materials, such as pesticides, is strictly prohibited in residential laundry rooms. Such items must be sent to a specialized laundry facility with all necessary precautionary measures in place.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 13,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s10_first_aid_room",
+      "label": "10- First Aid Room",
+      "applies_to": "All permanent labor accommodations",
+      "source_section": "10",
+      "items": [
+        {
+          "item_no": "10.1",
+          "text": "Each labor accommodation must have at least one first aid room equipped with adequate furniture, supplies, and a cabinet containing first aid materials (first aid kit).",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "first aid rooms",
+            "operator": ">=",
+            "value": 1,
+            "unit": "rooms"
+          }
+        }
+      ]
+    },
+    {
+      "key": "gu85_s11_sanitary_facilities",
+      "label": "11- Sanitary Facilities",
+      "applies_to": "Sanitary facilities in labor accommodations",
+      "source_section": "11",
+      "items": [
+        {
+          "item_no": "11.1",
+          "text": "At least one toilet must be provided for every 8 people.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "persons per toilet",
+            "operator": "<=",
+            "value": 8,
+            "unit": "persons"
+          }
+        },
+        {
+          "item_no": "11.2",
+          "text": "At least one shower facility must be provided for every 8 people.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "persons per shower",
+            "operator": "<=",
+            "value": 8,
+            "unit": "persons"
+          }
+        },
+        {
+          "item_no": "11.3",
+          "text": "At least one handwashing basin must be provided for every 8 persons.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "persons per handwashing basin",
+            "operator": "<=",
+            "value": 8,
+            "unit": "persons"
+          }
+        },
+        {
+          "item_no": "11.4",
+          "text": "At least one urinal must be provided for every 25 persons.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "persons per urinal",
+            "operator": "<=",
+            "value": 25,
+            "unit": "persons"
+          }
+        },
+        {
+          "item_no": "11.5",
+          "text": "Both hot and cold water must be provided in the bathrooms.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.6",
+          "text": "Toilet and bathroom designs must include enough rust-resistant clothes and towel hooks.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.7",
+          "text": "No toilet or urinal shall be installed in a room used for purposes other than sanitation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.8",
+          "text": "Floors and walls (up to a height of no less than 2 meters) must be tiled with ceramic material.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "ceramic tiling height on walls",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "11.9",
+          "text": "Bathroom floors must be made of non-slip, washable materials to ensure safety and ease of maintenance.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.10",
+          "text": "Bathrooms and toilets must be cleaned regularly using approved cleaning and disinfecting agents.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "note": "'Regularly' with no stated interval."
+        },
+        {
+          "item_no": "11.11",
+          "text": "Proper ventilation and lighting must be provided.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.12",
+          "text": "Facilities must be supplied with running water.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.13",
+          "text": "Handwashing basins must be provided with liquid soap and hand drying tools.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.14",
+          "text": "Wastewater must be drained in a hygienic manner.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "11.15",
+          "text": "Toilets must ensure adequate privacy.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s12_public_health",
+      "label": "12- Public Health Requirements",
+      "applies_to": "All permanent labor accommodations",
+      "source_section": "12",
+      "items": [
+        {
+          "item_no": "12-1.1",
+          "text": "Sealed, washable garbage containers must be provided in sufficient quantity.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "12-1.2",
+          "text": "Waste containers must be emptied regularly.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high",
+          "note": "'Regularly' with no stated interval."
+        },
+        {
+          "item_no": "12-2.1",
+          "text": "All effective measures and procedures must be taken to prevent the presence or breeding of public health pests such as insects and rodents.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 14,
+          "confidence": "high"
+        },
+        {
+          "item_no": "12-2.2",
+          "text": "A specialized pest control company approved by Dubai Municipality must be contracted to carry out pest control services.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "12-2.3",
+          "text": "The number of visits must comply with the requirements set by Dubai Municipality in this regard.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high",
+          "note": "Explicitly delegating: GU85 declines to state the pest control visit frequency and points at an unnamed DM requirement. No cadence can be encoded from this document."
+        },
+        {
+          "item_no": "12-2.4",
+          "text": "Pest control must be carried out immediately upon the detection of insects, rodents, or any pests within the accommodation.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu85_s13_public_safety",
+      "label": "13- Public Safety",
+      "applies_to": "All permanent labor accommodations",
+      "source_section": "13",
+      "items": [
+        {
+          "item_no": "13-1.1",
+          "text": "A valid Fire Safety Compliance Certificate must be obtained from the general command of Dubai civil defense.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-1.2",
+          "text": "Electrical sockets and connections must be in good condition, properly located, and safely covered.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-2.1",
+          "text": "A valid elevator safety certificate and maintenance report must be provided by a company accredited by the Emirates International Accreditation Center (EIAC).",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-2.2",
+          "text": "Elevators must be used properly, and instructions must be followed.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-2.3",
+          "text": "Moving parts of the elevator drive system must be secured.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-3.1",
+          "text": "Adequate and appropriate lighting must be provided in the storage room.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-3.2",
+          "text": "The storage area must be kept clean.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high"
+        },
+        {
+          "item_no": "13-3.3",
+          "text": "Items must be stored properly, raised at least 20 cm above the floor, at least 50 cm below the ceiling, and 30 cm away from the walls.",
+          "response_type": "numeric",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "stored item clearances",
+            "constraints": [
+              {
+                "what": "above floor",
+                "operator": ">=",
+                "value": 20,
+                "unit": "cm"
+              },
+              {
+                "what": "below ceiling",
+                "operator": ">=",
+                "value": 50,
+                "unit": "cm"
+              },
+              {
+                "what": "from walls",
+                "operator": ">=",
+                "value": 30,
+                "unit": "cm"
+              }
+            ]
+          }
+        },
+        {
+          "item_no": "13-4.1",
+          "text": "Compliance with swimming pool safety requirements is mandatory, as outlined in the technical guidelines DM-HSD-GU81-PSPS2.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 15,
+          "confidence": "high",
+          "note": "Delegating item - GU81, already extracted as gu81_limits.json."
+        }
+      ]
+    },
+    {
+      "key": "gu85_s14_15_delegated",
+      "label": "14- Water Quality / 15- Indoor Air Quality",
+      "applies_to": "All permanent labor accommodations",
+      "source_section": "14, 15",
+      "template_note": "These two sections contain NO requirements of their own - they are pure pointers to other guidelines. They are kept as a template only so the cross-module dependency is visible; an inspection engine should resolve them to the referenced modules rather than render them as checkboxes.",
+      "items": [
+        {
+          "item_no": "14.1",
+          "text": "Technical Guidelines for the Safety of Emergency Water Systems DM-HSD-GU133-EWS1",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Delegating - GU133, already extracted as gu133_limits.json."
+        },
+        {
+          "item_no": "14.2",
+          "text": "Technical Guidelines on Controlling Legionella Bacteria in Water Systems DM-HSD-GU44-LCWS2",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Delegating - GU44, already extracted as gu44_limits.json."
+        },
+        {
+          "item_no": "14.3",
+          "text": "Technical Guidelines on the Quality of Unbottled Drinking Water DM-HSD-GU17-DW1",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Delegating - GU17, not yet extracted. Printed without a bullet in the source, unlike 14.1 and 14.2."
+        },
+        {
+          "item_no": "15.1",
+          "text": "Compliance with Technical Guidelines for Indoor Air Quality for a Healthy Life (DM-HSD-GU119-IAQ).",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 16,
+          "confidence": "high",
+          "note": "Delegating - GU119, already extracted as gu119_limits.json."
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Routine inspection frequency is set automatically by DM's Smart Inspection System from the accommodation's classification and risk level. The mapping is not published, so no cadence can be encoded.",
+      "trigger_event": null,
+      "applies_to": "All permanent labor accommodations in Dubai",
+      "source_quote": "Routine Inspection: The inspection that is automatically assigned and scheduled through the Smart Inspection System, based on the accommodation classification and the risk level."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Corrective action timeframe varies 'according to the severity of the violations committed'; the severities and timeframes are not published in GU85.",
+      "trigger_event": "violations stated in a previous inspection report",
+      "applies_to": "All permanent labor accommodations",
+      "source_quote": "Follow-up Inspection: The inspection that is assigned and scheduled to ensure that appropriate corrective actions are taken regarding the violations stated in the inspection report, within the specified timeframe according to the severity of the violations committed."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "directive issued by the Department Director, Section Manager, or their authorized representative",
+      "applies_to": "All permanent labor accommodations",
+      "source_quote": "Inspection Based on a Management Order: The inspection that is assigned and scheduled based on a directive issued by the Department Director, Section Manager, or their authorized representative."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "complaint received from individuals or the public through official approved channels",
+      "applies_to": "All permanent labor accommodations",
+      "source_quote": "Inspection Based on a Complaint: The inspection that is assigned and scheduled for the purpose of responding to complaints received from individuals or the public through official approved channels, and for taking the necessary actions in accordance with applicable laws and regulations."
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Random by design; no cadence.",
+      "trigger_event": "sample inspection visit",
+      "applies_to": "All permanent labor accommodations",
+      "source_quote": "Sample Inspection: A visit conducted by the Judicial Control Officer and accompanying personnel to collect random samples from accommodation for testing or study purposes."
+    },
+    {
+      "obligation_type": "permit_renewal",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "Explicitly annual - the only firm cadence in the whole document.",
+      "trigger_event": null,
+      "applies_to": "Labor accommodations operating a catering service / central kitchen",
+      "source_quote": "An annual permit must be obtained from the relevant Dubai Municipality department to operate a catering service/central kitchen within the labor accommodation"
+    },
+    {
+      "obligation_type": "cleaning",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "At least twice per day; expressed as a frequency, not an interval.",
+      "trigger_event": null,
+      "applies_to": "Individual cooking kitchens",
+      "source_quote": "Cooking stations, food preparation surfaces, sinks, and floors must be cleaned at least twice a day."
+    },
+    {
+      "obligation_type": "deep_cleaning",
+      "cadence_months": 3,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": null,
+      "applies_to": "Individual cooking kitchen facilities",
+      "source_quote": "A deep cleaning of individual cooking kitchen facilities must be carried out at least once every three months."
+    },
+    {
+      "obligation_type": "pest_control",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "GU85 explicitly declines to state the visit frequency and defers to an unnamed DM requirement. Not encodable from this document.",
+      "trigger_event": null,
+      "applies_to": "All permanent labor accommodations",
+      "source_quote": "The number of visits must comply with the requirements set by Dubai Municipality in this regard."
+    },
+    {
+      "obligation_type": "pest_control",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "detection of insects, rodents, or any pests within the accommodation",
+      "applies_to": "All permanent labor accommodations",
+      "source_quote": "Pest control must be carried out immediately upon the detection of insects, rodents, or any pests within the accommodation."
+    },
+    {
+      "obligation_type": "maintenance",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Regular' with no stated interval.",
+      "trigger_event": null,
+      "applies_to": "All accommodation facilities",
+      "source_quote": "Regular maintenance of all accommodation facilities must be carried out considering the designated rest times for workers."
+    },
+    {
+      "obligation_type": "cleaning",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Regularly' with no stated interval.",
+      "trigger_event": null,
+      "applies_to": "Bathrooms and toilets",
+      "source_quote": "Bathrooms and toilets must be cleaned regularly using approved cleaning and disinfecting agents."
+    },
+    {
+      "obligation_type": "waste_removal",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Regularly' with no stated interval.",
+      "trigger_event": null,
+      "applies_to": "Waste containers",
+      "source_quote": "Waste containers must be emptied regularly."
+    },
+    {
+      "obligation_type": "appeal_window",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "The objection period is specified in the issued inspection report, not in the guideline.",
+      "trigger_event": "issue of an inspection report",
+      "applies_to": "Dubai Municipality clients",
+      "source_quote": "Dubai Municipality ensures the right to raise objections upon request from its clients within the period specified in the issued inspection reports."
+    }
+  ],
+  "referenced_standards": [
+    "DM-HSD-GU119-IAQ - Technical Guidelines for Indoor Air Quality for a Healthy Life",
+    "DM-HSD-GU131-CSLA2 - Certification Scheme for Health and Safety Officer in Laborer Accommodations",
+    "DM-HSD-GU81-PSPS2 - Technical Guidelines for the Safety of Public Swimming Pools",
+    "DM-HSD-GU46-KFPA2 - Technical Guidelines (46) on Occupational Health and Safety in Kitchens and Food Preparation Areas",
+    "DM-HSD-GU133-EWS1 - Technical Guidelines for the Safety of Emergency Water Systems",
+    "DM-HSD-GU44-LCWS2 - Technical Guidelines on Controlling Legionella Bacteria in Water Systems",
+    "DM-HSD-GU17-DW1 - Technical Guidelines (17) on the Quality of Unbottled Drinking Water",
+    "Dubai Building Code",
+    "Dubai Food Code"
+  ],
+  "references": [
+    "Local Order No. (11) of 2003 concerning Public Health and Community Safety in the Emirate of Dubai.",
+    "Administrative Decision No. (30) of 2007 issuing the Executive Regulations of Local Order No. (11) of 2003 regarding Public Health and Community Safety in the Emirate of Dubai.",
+    "Administrative Decision No. (128) of 2007 concerning the Requirements for Establishing Workers' Accommodation Complexes.",
+    "Administrative Decision No. (62) of 2008 amending Administrative Decision No. (30) of 2007, which issued the Executive Regulation of Local Order No. (11) of 2003 concerning public health and community safety in the Emirate of Dubai.",
+    "Executive Council Resolution No. (12) of 2025 Concerning the Provision of Accommodation for Workers Employed at Establishments in the Emirate of Dubai",
+    "Cabinet Resolution No. (13) of 2009 regarding the Approval of the General Standards Manual for Collective Labor Accommodation and its Associated Services.",
+    "Administrative Resolution No. (110) of 2020 Regulating the Provision of Services at Labour Accommodation"
+  ]
+}

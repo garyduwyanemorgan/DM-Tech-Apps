@@ -277,8 +277,47 @@ what is being charged for.
 
 `checklist_templates` (versioned against a `standard_id`) → `checklist_items` →
 `inspections` → `inspection_findings`, with findings feeding the existing
-corrective-action table. Specified here only so earlier phases do not foreclose
-it.
+corrective-action table.
+
+> **Reading the documents showed this model is half right, and that Phase 4
+> needs a second primitive it does not currently budget for.**
+>
+> **GU137 — the Phase 4 lead — is not a checklist at all.** It sets no
+> checkpoint, no acceptance criterion and no failure condition. Its Appendix A is
+> a *register*: the inverse shape of a checklist, with fixed columns and variable
+> unbounded rows, one per hazard identified. It cannot be expressed as
+> `checklist_items` without pretending ten columns are ten items. Phase 4
+> therefore needs `risk_assessments` → `risk_assessment_entries` alongside the
+> checklist tables. GU137 is `module_kind = process` (§7.12) — it cannot say
+> COMPLIANT. Its 3×3 matrix is labelled "an example" and is asymmetric (High
+> probability × Low impact = Low), so it must never be recomputed as
+> probability × severity.
+>
+> **The `inspections` → `findings` half fits well.** The template half needs:
+> `parent_item_id` (GU84 has 43 unscored group-header rows; GU83 is flat, from
+> the same DM template), `spec_limit_id` (about thirty items across four of five
+> documents require a *measurement* — GU85 alone carries 19 numeric thresholds,
+> so checklists and limits are a hybrid, not alternatives), an applicability
+> predicate, and a `template_provenance` flag — because **GU85 states outright
+> that its scored checklist lives in DM's internal system, not in the published
+> document.** Some templates can only ever be partial.
+>
+> **Severity vocabulary must be namespaced per standard, never global.** GU83 and
+> GU84 use incompatible vocabularies: "Minor" is a risk *outcome* in GU83 and a
+> severity *input* in GU84; "Medium" is the reverse; GU83 grades A–F with no E,
+> GU84 grades A–E with no F, and grade A means different things in each. A single
+> enum will silently mis-map. It also has no slot for **Catastrophic**, and
+> collapsing that into `critical` is substantive — one Catastrophic is grade F
+> alone, where five Criticals would be needed otherwise.
+>
+> **Do not implement either grading formula.** Both join bands with an
+> undecidable `&/or`, GU83's grades A and B overlap, and a zero-violation
+> establishment matches no band at all. Emit violation counts and let the grade
+> stay the regulator's to assign.
+>
+> Also confirmed: templates are genuinely versioned against an edition — GU85's
+> change log shows the requirement set changing between editions — which
+> validates hanging them off `standard_id`.
 
 ### 4.7 `laboratories` — who is permitted to produce the evidence (Phase 1)
 
@@ -778,7 +817,41 @@ guideline:**
   of 34.5 or a CO₂ reading of 380 ppm falls between published bands. Snapping to
   the nearest band is exactly the confident wrong answer §7.4 forbids.
 
-**7.13 Pre-existing items unchanged by this proposal.** CORS is still
+**7.13 A published guideline is not necessarily a live one.** GU93 is an
+unrevised COVID-19 emergency measure (v2, January 2021) that now **contradicts**
+GU85: GU93 requires one person per dining table while GU85 sizes the hall for a
+third of the workforce at once. Both are currently published on the DM portal,
+and nothing in the catalogue distinguishes them.
+
+Selling GU93 as a live module would have a client enforcing a superseded
+emergency rule against a current one. `standards` therefore needs
+`lifecycle_status` — live / emergency / dormant / withdrawn — orthogonal to
+`module_kind` (§7.12), which asks what a module can *claim* rather than whether
+it still *applies*. Neither field substitutes for the other, and both gate
+sellability.
+
+This also means **currency cannot be derived from the edition chain alone.** A
+document that nothing supersedes may still be dead — nobody issued a successor,
+they simply stopped meaning it. `supersedes_id` answers "is there a newer
+edition"; it cannot answer "is this still in force".
+
+**7.14 Two extraction lessons that should become standing practice.**
+
+- **Render-and-read must be the default for checklist guidelines, not the
+  fallback.** Text extraction alone loses roughly a quarter of GU93 — pages 5, 7
+  and 9 return blank while holding flowcharts, including the document's only
+  decision point. A silently empty page is indistinguishable from a page with
+  nothing on it.
+- **Cross-references in DM documents cannot be trusted without checking.** GU83's
+  annex cross-references are systematically off by one, and GU84 proves why: it
+  cites the same annex numbers and they are correct there, so GU83's body was
+  copied from GU84 without renumbering. Relatedly, GU83's cover and footers say
+  V4.1 while its own history log tops out at 3, and its Part E is titled
+  "Business activity Annexes" with **no activity-to-annex mapping printed
+  anywhere** — the largest single content gap found so far, and one only DM can
+  close.
+
+**7.15 Pre-existing items unchanged by this proposal.** CORS is still
 `allow_origins=["*"]`; invite email is not wired to a transactional provider;
 billing has never processed a live payment.
 

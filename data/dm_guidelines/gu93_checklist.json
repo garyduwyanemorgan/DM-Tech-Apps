@@ -1,0 +1,1070 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU93-LAP_E",
+    "guideline_no": 93,
+    "title": "Precautionary measures for labor accommodations, transportations, and working at construction sites",
+    "version": "2.0",
+    "issued_on": "2021-01-01",
+    "superseded_issue_date": "2020-04-05",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2021/01/DM-HSD-GU93-LAP_E_Precautionary-Measures-for-Labor-Accommodations-Transportations-and-Working-at-Construction-Sites_V2-002.pdf",
+    "language": "en"
+  },
+  "module_kind": "process",
+  "notes": {
+    "module_kind_justification": "GU93 sets no limits, assigns no severity to any failure, defines no grade or category, prescribes no inspection regime and states no cadence. It is a list of precautions and three worker-journey flowcharts. A report may say the measures were observed in place on a given date; it may not say COMPLIANT. Process module under section 7.12.",
+    "pandemic_document": "GU93 is a COVID-19 emergency measure. It never names the disease, but it is unmistakable: facemasks, 2-metre distancing, isolation rooms, symptom screening at every entry and exit, DHA quarantine referral, no gatherings above three, one person per dining table, no fingerprint attendance, remote work for eligible staff, and 'the re-opening circulars'. Version 1 issued 5 April 2020, two weeks into the first lockdown; version 2 on 1 January 2021. There has been no revision in over five years.",
+    "commercial_recommendation": "DO NOT SELL GU93 AS A LIVE COMPLIANCE MODULE. Its requirements describe a public-health emergency posture that Dubai has long since exited, and several of them now conflict with currently published guidelines - most sharply GU93 3.5.2 (one person per dining table) against GU85 8.4 (dining hall sized for a third of the workforce at once). Serving GU93 items to an FM contractor today would generate corrective actions for conditions no regulator is enforcing, which is a reputational and contractual liability, not merely a stale module. It stays on the DM portal, so it belongs in the catalogue with a status flag; it does not belong in a sold entitlement without written confirmation from DM that it is still in force. Recommended status: PUBLISHED BUT PRESUMED DORMANT - verify before sale.",
+    "no_severities_no_grading": "No risk classes, no matrix, no grading table, no inspection types, no appeal process - none of the machinery GU83, GU84 and GU85 carry. Every failure_severity is 'unknown' because the document defines no failure at all.",
+    "no_obligations_with_cadence": "Not one interval is stated anywhere in the document. Cleaning is 'regular', 'periodical' or to be 'increased'; disposal is 'periodic'. Every obligation below therefore carries a cadence_note rather than a number. There is nothing here an overdue calculation can key off.",
+    "flowcharts": "Pages 5, 7 and 9 contain no extractable text - they are images, and a text-only extraction pass reports them as blank. Read visually, they are three worker-journey flowcharts, and page 7 contains the only DECISION POINT in the document ('Are there symptoms?' with No and Yes branches). They are recorded under flowcharts below, not as checklist items, because a flowchart is a procedure a worker follows, not a checkpoint an inspector attests to. Any extraction of this document that relies on text alone silently loses a quarter of its content.",
+    "numbering": "Sections are numbered by the document. All bullets within them are unnumbered; every item_no is positional and assigned by this extraction.",
+    "defects_found": [
+      "Sections 4 and 7 are almost entirely duplicated - eight items each, seven of them verbatim identical. Section 4 is headed 'Leaving accommodation' but its first item describes getting OFF a bus, which only makes sense in section 7's 'Return to accommodation' context. Section 4 appears to be a copy of section 7 that was never adapted.",
+      "3.2.1 and 3.3.1 are run-on sentences that fuse two separate requirements with no punctuation between them.",
+      "3.4.3 reads 'Regular cleaning and cleaning' where every parallel item says 'cleaning and disinfection'.",
+      "3.5.6 requires cleaning and disinfection of TOILETS but is printed under section 3.5 Dining room.",
+      "6.3 states a maximum as a range, 'maximum 3 to 5 workers per group' - the same defect as GU85 6.3.",
+      "6.4 does not parse: 'Providing tools and materials sterilization Clearance is sufficient in various locations on site'.",
+      "6.1 and 6.7 are near-duplicates of each other.",
+      "3.1.8 points at unnamed, undated 're-opening circulars' that cannot be resolved.",
+      "Many items are phrased as 'Encourage labors to...' - an exhortation on the operator, not a condition of the premises. 3.1.9 attaches a hard number (no more than 3 gathering) to one of these, so the operator is asked to encourage a numeric limit rather than enforce it. Neither form is attestable in the way GU83's requirements are."
+    ]
+  },
+  "flowcharts": [
+    {
+      "key": "gu93_flow_leaving_accommodation",
+      "label": "Leaving the accommodation",
+      "source_page": 7,
+      "extraction_note": "Image only - not present in text extraction. Read visually.",
+      "nodes": [
+        {
+          "type": "start",
+          "text": "The need for a worker to leave the accommodation"
+        },
+        {
+          "type": "step",
+          "text": "Standing in a row, leaving 2 meters between individuals"
+        },
+        {
+          "type": "step",
+          "text": "Monitor any symptoms that appear on the worker, such as (coughing, colds, runny nose, etc.)"
+        },
+        {
+          "type": "decision",
+          "text": "Are there symptoms?",
+          "branches": {
+            "No": "Allowing exit from the accommodation",
+            "Yes": "Contact DHA for further action"
+          }
+        },
+        {
+          "type": "end",
+          "text": "Allowing exit from the accommodation",
+          "branch": "No"
+        },
+        {
+          "type": "step",
+          "text": "Contact DHA for further action",
+          "branch": "Yes"
+        },
+        {
+          "type": "step",
+          "text": "Isolate worker inside room individually , until wellbeing and health conditions",
+          "branch": "Yes"
+        },
+        {
+          "type": "step",
+          "text": "Isolate individuals in contact with suspected case inside their rooms until their wellbeing and health conditions",
+          "branch": "Yes"
+        },
+        {
+          "type": "end",
+          "text": "Labor camp disinfection",
+          "branch": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "gu93_flow_bus_entry",
+      "label": "Bus entry",
+      "source_page": 9,
+      "extraction_note": "Image only - not present in text extraction. Read visually.",
+      "nodes": [
+        {
+          "type": "start",
+          "text": "Labor entry to the bus"
+        },
+        {
+          "type": "step",
+          "text": "Standing in a row, leaving 2 meters between individuals"
+        },
+        {
+          "type": "step",
+          "text": "Hand sanitization before entering the bus"
+        },
+        {
+          "type": "step",
+          "text": "Each worker sits on a single chair"
+        },
+        {
+          "type": "step",
+          "text": "Ensure that all workers sit windingly, i.e. worker sitting next to the window and another worker beside the corridor that follows and so on"
+        },
+        {
+          "type": "end",
+          "text": "Workers sit properly and the bus moves on"
+        },
+        {
+          "type": "annotation",
+          "text": "Sterilization and disinfection of the bus after each time the work is transferred"
+        }
+      ]
+    },
+    {
+      "key": "gu93_flow_return_to_accommodation",
+      "label": "Return to the accommodation",
+      "source_page": 5,
+      "extraction_note": "Image only - not present in text extraction. Read visually.",
+      "nodes": [
+        {
+          "type": "start",
+          "text": "allow asymptomatic workers entry"
+        },
+        {
+          "type": "step",
+          "text": "Head straight to the toilet (wash hands with soap and water)"
+        },
+        {
+          "type": "step",
+          "text": "Heading to the room (sterilizing hands with sterilizers in the corridors)"
+        },
+        {
+          "type": "step",
+          "text": "Leave the shoes outside the room"
+        },
+        {
+          "type": "step",
+          "text": "Enter the room and make sure it is ventilated"
+        },
+        {
+          "type": "step",
+          "text": "Stay in the room"
+        },
+        {
+          "type": "step",
+          "text": "Exit the room to the kitchen according to the time set for the worker by the accommodation management"
+        },
+        {
+          "type": "step",
+          "text": "Inside the kitchen - leave a distance of 2 meters between individuals"
+        },
+        {
+          "type": "step",
+          "text": "Head to dining room"
+        },
+        {
+          "type": "step",
+          "text": "Leave 2 meters between dining tables"
+        },
+        {
+          "type": "step",
+          "text": "The worker sits alone on the table"
+        },
+        {
+          "type": "step",
+          "text": "Not more than three individuals gathered in the accommodation yard, while adhering to the policy of social separation"
+        },
+        {
+          "type": "end",
+          "text": "The worker returns to the room"
+        }
+      ]
+    }
+  ],
+  "checklist_templates": [
+    {
+      "key": "gu93_s3_1_labor_management",
+      "label": "3.1 Labor management responsibilities",
+      "applies_to": "Owners or operators of labor accommodations",
+      "source_section": "3.1",
+      "template_note": "Printed as unnumbered bullets; item numbers are positional and assigned by this extraction.",
+      "items": [
+        {
+          "item_no": "3.1.1",
+          "text": "Increase the frequency of cleaning and disinfection of facilities and direct contact surfaces for individuals inside accommodation such as:",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high",
+          "note": "'Increase the frequency' relative to an unstated baseline. Not measurable and not attestable as printed."
+        },
+        {
+          "item_no": "3.1.1.1",
+          "text": "Bathrooms, shower rooms and laundries",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.2",
+          "text": "Dining room tables and chairs.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.3",
+          "text": "Kitchen and related-facilities.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.4",
+          "text": "Handles of all doors.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.5",
+          "text": "Overnight rooms and related personal accessories.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.6",
+          "text": "Elevator buttons and hand handles inside.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.7",
+          "text": "Electronic device controls (TV, air conditioning, lighting)",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.8",
+          "text": "Stair handles",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.1.9",
+          "text": "Mosques and Praying rooms ( if any )",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.2",
+          "text": "Availability of hand wash liquid in all accommodation sinks",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.3",
+          "text": "Availability of hand sanitizers at the entrance, corridors and inside buses",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.4",
+          "text": "Labors symptoms check before leaving and entering the accommodation",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.5",
+          "text": "Availability of isolation rooms in appropriate numbers to isolate suspected labors, in addition to first aid room",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high",
+          "note": "'Appropriate numbers' is undefined - no ratio to headcount is given, unlike GU85 which fixes one toilet per 8 persons. Not enforceable as a count."
+        },
+        {
+          "item_no": "3.1.6",
+          "text": "Availability of disposable water cups",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.7",
+          "text": "Availability of multi-languages signboards that the labors understand about virus prevention methods",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.8",
+          "text": "Follow instructions in re-opening of recreational areas re-opening circulars.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "low",
+          "note": "Points at 'the re-opening circulars', a set of pandemic-era DM circulars that are not named, not dated and not linked. They are almost certainly no longer in force. This item cannot be resolved to any current requirement and must not be presented to an inspector as actionable."
+        },
+        {
+          "item_no": "3.1.9",
+          "text": "Encourage labors to follow the social distancing practices inside accommodation and prevention of more than 3 people gathering",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "maximum gathering size",
+            "operator": "<=",
+            "value": 3,
+            "unit": "persons",
+            "note": "Stated as something to 'encourage', not to enforce - the verb makes this an exhortation rather than a requirement, so a numeric threshold sits oddly here."
+          }
+        },
+        {
+          "item_no": "3.1.10",
+          "text": "Encourage labors to follow proper health behavior and prevent spitting",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 3,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.1.11",
+          "text": "Encourage labors to wear facemask outside rooms",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu93_s3_2_overnight_rooms",
+      "label": "3.2 Overnight rooms",
+      "applies_to": "Overnight rooms in labor accommodations",
+      "source_section": "3.2",
+      "items": [
+        {
+          "item_no": "3.2.1",
+          "text": "Proper room (mechanical and natural) ventilation Regular cleaning and disinfection using products approved by Dubai Municipality",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "low",
+          "note": "RUN-ON IN THE SOURCE. Two distinct requirements are printed as one bullet with no punctuation between 'ventilation' and 'Regular' - the same defect recurs at 3.3.1. Reproduced verbatim rather than split, because splitting it would create two checkpoints DM printed as one."
+        },
+        {
+          "item_no": "3.2.2",
+          "text": "Avoid crowdedness inside rooms",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "note": "'Crowdedness' is undefined here. GU85 fixes 3 m2 per person and 8 to 10 workers per room; GU93 states no figure."
+        }
+      ]
+    },
+    {
+      "key": "gu93_s3_3_toilets",
+      "label": "3.3 Toilets",
+      "applies_to": "Toilets in labor accommodations",
+      "source_section": "3.3",
+      "items": [
+        {
+          "item_no": "3.3.1",
+          "text": "Proper toilets (mechanical and natural) ventilation Providing Dubai Municipality approved hand washing liquid in all toilets",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "low",
+          "note": "Run-on in the source, as at 3.2.1. Reproduced verbatim."
+        },
+        {
+          "item_no": "3.3.2",
+          "text": "Provide guidance on how to wash the hands properly",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.3.3",
+          "text": "Regular cleaning and disinfection using products approved by Dubai Municipality",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "note": "'Regular' with no stated interval."
+        }
+      ]
+    },
+    {
+      "key": "gu93_s3_4_kitchen",
+      "label": "3.4 Kitchen",
+      "applies_to": "Kitchens in labor accommodations",
+      "source_section": "3.4",
+      "items": [
+        {
+          "item_no": "3.4.1",
+          "text": "Follow social distancing guide within the kitchen, and maintain a distance of 2 meters between individuals inside the kitchen.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "separation distance between individuals",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "3.4.2",
+          "text": "Rotation of kitchen use by labors and not allowed all labors to be inside the kitchen at the same time",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.4.3",
+          "text": "Regular cleaning and cleaning of the kitchen and tools inside by products approved by Dubai Municipality",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "note": "Printed as 'cleaning and cleaning'; almost certainly intended as 'cleaning and disinfection' by analogy with 3.2.1, 3.3.3 and 3.5.6, but reproduced verbatim rather than corrected."
+        }
+      ]
+    },
+    {
+      "key": "gu93_s3_5_dining_room",
+      "label": "3.5 Dining room",
+      "applies_to": "Dining rooms in labor accommodations",
+      "source_section": "3.5",
+      "items": [
+        {
+          "item_no": "3.5.1",
+          "text": "Distance of 2 meters between the dining tables to be kept",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "distance between dining tables",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "3.5.2",
+          "text": "Crowdedness in the dining room is not allowed and to keep one person per table",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "persons per dining table",
+            "operator": "<=",
+            "value": 1,
+            "unit": "persons"
+          },
+          "note": "Directly contradicts GU85 requirement 8.4, which sizes the dining hall to seat one third of the workforce at a time with 'enough tables and chairs'. One person per table at 2 m spacing cannot be reconciled with that capacity in the same room. The two guidelines were written for different conditions and both are currently published."
+        },
+        {
+          "item_no": "3.5.3",
+          "text": "Enter the dining hall in batches to prevent overcrowding",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.5.4",
+          "text": "If catering services is available, food served in the form of ready meals, with providing social distancing guiding signs at food supply outlet.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.5.5",
+          "text": "Necessity of leaving dining room immediately after eating.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high"
+        },
+        {
+          "item_no": "3.5.6",
+          "text": "Regular cleaning and disinfection of toilets using products approved by Dubai Municipality",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 4,
+          "confidence": "high",
+          "note": "Printed under 'Dining room' but refers to TOILETS - an apparent copy-paste from section 3.3. Left in the section where the document prints it."
+        }
+      ]
+    },
+    {
+      "key": "gu93_s4_leaving_accommodation",
+      "label": "4. Leaving accommodation precautionary measures",
+      "applies_to": "Labor accommodations, at the point workers leave",
+      "source_section": "4",
+      "items": [
+        {
+          "item_no": "4.1",
+          "text": "Get off the bus in a sequential form and line up in line with a distance of 2 meters between the individuals housing officials.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "low",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "separation distance between individuals",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          },
+          "note": "The sentence is garbled: it describes GETTING OFF a bus under a heading about LEAVING the accommodation, and ends with the ungrammatical fragment 'between the individuals housing officials'. Identical text is repeated verbatim at 7.1 under 'Return to accommodation', where getting off a bus does make sense. Section 4 appears to have been copied from section 7 without adjustment."
+        },
+        {
+          "item_no": "4.2",
+          "text": "Workers monitoring for any symptoms appear on workers.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        },
+        {
+          "item_no": "4.3",
+          "text": "In case of symptoms appearance such as coughing - colds, the following shall be taken:",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        },
+        {
+          "item_no": "4.3.1",
+          "text": "Isolate worker inside an isolation room with attached bathroom (in case if no separate bathroom inside room, assigning a private bathroom is necessary).",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        },
+        {
+          "item_no": "4.3.2",
+          "text": "Contact DHA for necessary procedures.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        },
+        {
+          "item_no": "4.3.3",
+          "text": "Isolate individuals who share same room of suspected case in their room, until confirming the suspected case.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        },
+        {
+          "item_no": "4.3.4",
+          "text": "If case confirmed, contact DHA for transferring in-contact individuals in quarantine.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        },
+        {
+          "item_no": "4.3.5",
+          "text": "Accommodation sterilization by a Dubai Municipality listed company, with using Dubai Municipality approved biocides, and company shall provide certificate upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 6,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu93_s5_bus",
+      "label": "5. Bus entry and journeys precautionary measures",
+      "applies_to": "Buses transporting workers",
+      "source_section": "5",
+      "items": [
+        {
+          "item_no": "5.1",
+          "text": "Bus sterilization before labors entry (sterilize chairs and hand handles)",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.2",
+          "text": "line up with 2 meters distance between labors",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "separation distance between individuals",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "5.3",
+          "text": "Wearing facemask all the time",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.4",
+          "text": "labors without flu like symptoms are only allowed to enter the bus",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.5",
+          "text": "hand sanitizer to be kept at bus entrance",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.6",
+          "text": "labor must sanitize their hands upon entry",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.7",
+          "text": "Using tissues when sneezing or coughing , and cover mouth by arm if tissues are not available",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.8",
+          "text": "Avoid handshakes ,and direct contact with others",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.9",
+          "text": "Bus sterilization after labors transportation and before next trip",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high"
+        },
+        {
+          "item_no": "5.10",
+          "text": "Follow instructions of public transport by RTA (road and transport authority) regarding the allowed number of worker in each trip.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 8,
+          "confidence": "high",
+          "note": "Delegating item - the occupancy limit lives with the RTA and is not stated here. It was a pandemic-era limit and is very unlikely still to be in force."
+        }
+      ]
+    },
+    {
+      "key": "gu93_s6_construction_sites",
+      "label": "6. Construction sites precautionary measures",
+      "applies_to": "All companies working in the construction sector",
+      "source_section": "6",
+      "preamble": "All companies working in the construction sector must abide by the precautionary measures within the work sites described as below:",
+      "items": [
+        {
+          "item_no": "6.1",
+          "text": "Ensure workers get off from buses regularly and maintain a distance of not less than 2 meters between the worker and the other",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "separation distance between individuals",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          }
+        },
+        {
+          "item_no": "6.2",
+          "text": "Provide and oblige workers to wear personal protective equipment such as muzzles, gloves and glasses.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "note": "'Muzzles' is the document's own word, apparently a translation of face masks. Reproduced verbatim."
+        },
+        {
+          "item_no": "6.3",
+          "text": "Workers distribution in maximum 3 to 5 workers per group at work sites, with 2 meters spacing consideration while places entries and during work progress as much as possible, and to avoid workers crowdedness inside site lifts provided with signs of measures.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "low",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "workers per group",
+            "operator": "<=",
+            "value": null,
+            "unit": "workers",
+            "ambiguity": "A maximum printed as a range, 'maximum 3 to 5 workers per group'. The identical defect appears in GU85 requirement 6.3 ('no more than 8 to 10 workers'). Left unresolved."
+          }
+        },
+        {
+          "item_no": "6.4",
+          "text": "Providing tools and materials sterilization Clearance is sufficient in various locations on site such as entrances, exits, temporary offices, lifts, warehouses ( stores ), bathrooms and all floors of the project.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "low",
+          "note": "The sentence does not parse - 'sterilization Clearance is sufficient' has no coherent reading. Reproduced verbatim; not interpretable as a checkpoint."
+        },
+        {
+          "item_no": "6.5",
+          "text": "Distribution of workers' rest times at the sites at different times in order to avoid gatherings in rest and dining areas while ensuring safety distance among them and providing cups and tools for use.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.6",
+          "text": "Providing sufficient waste containers in worksite, disposed periodically.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "note": "'Periodically' with no stated interval."
+        },
+        {
+          "item_no": "6.7",
+          "text": "Ensure workers get off from buses regularly and in maintained distance after worksite duty.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "note": "Near-duplicate of 6.1, differing only in the trailing clause."
+        },
+        {
+          "item_no": "6.8",
+          "text": "Avoid all site's office meetings, and virtual way instead.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.9",
+          "text": "Not using attendance fingerprints devices, and reduce paper mailing as possible by using electronic mails instead.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.10",
+          "text": "Implement remote (distant) work for staff eligible to work from home.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.11",
+          "text": "Provide protective overalls for stores workers, where the most workers dealing with others during delivery and dispatching materials and tools.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high"
+        },
+        {
+          "item_no": "6.12",
+          "text": "Periodical disinfection for worksite offices, temporary offices, bathrooms, stores, tools and equipment used in project.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 10,
+          "confidence": "high",
+          "note": "'Periodical' with no stated interval."
+        }
+      ]
+    },
+    {
+      "key": "gu93_s7_return_to_accommodation",
+      "label": "7. Return to accommodation precautionary measures",
+      "applies_to": "Labor accommodations, at the point workers return",
+      "source_section": "7",
+      "template_note": "Every item in this section is a verbatim or near-verbatim repeat of section 4. The two sections differ only in items 4.2/7.2 ('Workers monitoring for any symptoms appear on workers.' versus 'Monitor any symptoms appear on workers.'). Scoring both sections independently double-counts the same controls.",
+      "items": [
+        {
+          "item_no": "7.1",
+          "text": "Get off the bus in a sequential form and line up in line with a distance of 2 meters between the individuals housing officials.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement": {
+            "parameter": "separation distance between individuals",
+            "operator": ">=",
+            "value": 2,
+            "unit": "m"
+          },
+          "note": "Verbatim duplicate of 4.1."
+        },
+        {
+          "item_no": "7.2",
+          "text": "Monitor any symptoms appear on workers.",
+          "response_type": "yes_no",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Near-duplicate of 4.2."
+        },
+        {
+          "item_no": "7.3",
+          "text": "In case of symptoms appearance such as coughing - colds, the following shall be taken:",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Verbatim duplicate of 4.3."
+        },
+        {
+          "item_no": "7.3.1",
+          "text": "Isolate worker inside an isolation room with attached bathroom (in case if no separate bathroom inside room, assigning a private bathroom is necessary).",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Verbatim duplicate of 4.3.1."
+        },
+        {
+          "item_no": "7.3.2",
+          "text": "Contact DHA for necessary procedures.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Verbatim duplicate of 4.3.2."
+        },
+        {
+          "item_no": "7.3.3",
+          "text": "Isolate individuals who share same room of suspected case in their room, until confirming the suspected case.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Verbatim duplicate of 4.3.3."
+        },
+        {
+          "item_no": "7.3.4",
+          "text": "If case confirmed, contact DHA for transferring in-contact individuals in quarantine.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Verbatim duplicate of 4.3.4."
+        },
+        {
+          "item_no": "7.3.5",
+          "text": "Accommodation sterilization by a Dubai Municipality listed company, with using Dubai Municipality approved biocides, and company shall provide certificate upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": false,
+          "failure_severity": "unknown",
+          "source_page": 11,
+          "confidence": "high",
+          "note": "Verbatim duplicate of 4.3.5."
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "cleaning",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Increase the frequency' relative to an unstated baseline. No interval, and no baseline to increase from.",
+      "trigger_event": null,
+      "applies_to": "Facilities and direct contact surfaces inside the accommodation",
+      "source_quote": "Increase the frequency of cleaning and disinfection of facilities and direct contact surfaces for individuals inside accommodation"
+    },
+    {
+      "obligation_type": "health_screening",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per movement, not periodic - performed every time a worker leaves or enters.",
+      "trigger_event": "worker leaving or entering the accommodation",
+      "applies_to": "All workers",
+      "source_quote": "Labors symptoms check before leaving and entering the accommodation"
+    },
+    {
+      "obligation_type": "isolation_and_notification",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "appearance of symptoms such as coughing or colds in a worker",
+      "applies_to": "Labor accommodations",
+      "source_quote": "In case of symptoms appearance such as coughing - colds, the following shall be taken: Isolate worker inside an isolation room with attached bathroom ...; Contact DHA for necessary procedures."
+    },
+    {
+      "obligation_type": "disinfection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "confirmed case in the accommodation",
+      "applies_to": "Labor accommodations",
+      "source_quote": "Accommodation sterilization by a Dubai Municipality listed company, with using Dubai Municipality approved biocides, and company shall provide certificate upon request."
+    },
+    {
+      "obligation_type": "disinfection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per trip, not periodic.",
+      "trigger_event": "before workers board and after each transport run",
+      "applies_to": "Buses transporting workers",
+      "source_quote": "Bus sterilization before labors entry (sterilize chairs and hand handles) ... Bus sterilization after labors transportation and before next trip"
+    },
+    {
+      "obligation_type": "disinfection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Periodical' with no stated interval.",
+      "trigger_event": null,
+      "applies_to": "Worksite offices, temporary offices, bathrooms, stores, tools and equipment",
+      "source_quote": "Periodical disinfection for worksite offices, temporary offices, bathrooms, stores, tools and equipment used in project."
+    },
+    {
+      "obligation_type": "waste_removal",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Periodically' with no stated interval.",
+      "trigger_event": null,
+      "applies_to": "Construction worksites",
+      "source_quote": "Providing sufficient waste containers in worksite, disposed periodically."
+    }
+  ],
+  "referenced_authorities": [
+    "DHA (Dubai Health Authority) - for suspected and confirmed case procedures and quarantine transfer",
+    "RTA (Road and Transport Authority) - for the allowed number of workers per bus trip",
+    "Dubai Municipality listed disinfection companies and DM-approved biocides",
+    "Unnamed DM 're-opening circulars' for recreational areas - not resolvable"
+  ]
+}
