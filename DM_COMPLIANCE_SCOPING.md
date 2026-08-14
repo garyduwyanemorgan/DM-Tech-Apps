@@ -1,8 +1,9 @@
 # DM Compliance Monitoring — Scoping Document
 
 > Status: **decisions taken, ready to build.** Written against the code at
-> v1.8.0. Revision 2 — supersedes the initial draft; incorporates the modular
-> commercial model and the five decisions recorded in §8.
+> v1.8.0. Revision 3 — supersedes revision 2; re-sequences the build around the
+> quantitative/laboratory family (§8 decision 7) and models laboratory
+> accreditation as a first-class gate (§8 decision 8).
 >
 > Companion documents: `PRODUCT_OVERVIEW.md` (describes the lagoon product and
 > is now partly stale — see §2.2), `PERMISSIONS_MATRIX.md`, `db/migrations/README.md`.
@@ -196,10 +197,25 @@ An obligation is satisfied by evidence and otherwise ages `due_soon` →
 `overdue`, raising an alert and optionally opening a corrective action through
 the existing `core/corrective.py` machine.
 
+> **Not every obligation has a cadence, and this table cannot yet say so.** The
+> GU44 extraction turned up a sampling obligation triggered by an *event* — take
+> a sample after a tank is cleaned or disinfected — rather than by a schedule.
+> With only `cadence_months` / `cadence_days`, such a row has null cadence and is
+> indistinguishable from one where nobody filled the field in. It would then sit
+> in the registry never becoming due, which is the silent-gap failure this table
+> exists to eliminate.
+>
+> Add `trigger_event TEXT` and make the model explicit that an obligation is
+> *either* periodic *or* event-triggered, with a CHECK that exactly one is set —
+> the same both-or-neither discipline 022 applies to verification provenance.
+> Event-triggered obligations become due when the triggering event is recorded
+> and overdue when the evidence does not follow within `grace_days`. Worth doing
+> in Phase 1: retrofitting it means revisiting every obligation already loaded.
+
 ### 4.4 `certificates` — third-party examination with an expiry
 
-Tier 2's primitive, and the basis of the first three sellable modules (§6,
-Phase 2). Distinct from `lab_samples` because nothing is measured: a competent
+The plant-certificate primitive (§6, Phase 3). Distinct from `lab_samples`
+because nothing is measured and nothing is judged against a limit: a competent
 person examines a crane and issues a certificate with a validity period.
 
 ```
@@ -264,6 +280,46 @@ what is being charged for.
 corrective-action table. Specified here only so earlier phases do not foreclose
 it.
 
+### 4.7 `laboratories` — who is permitted to produce the evidence (Phase 1)
+
+Dubai Municipality accredits the laboratories. An FM contractor may not
+self-test: every quantitative obligation must be discharged by an **independent,
+DM-accredited** laboratory. Evidence from a laboratory that was not accredited —
+or whose accreditation had lapsed **on the sampling date** — is rejected by DM.
+
+Today the app cannot see that failure. `issuer_accreditation` on §4.4 is a free
+text field on a table that does not yet exist, and nothing checks it.
+
+```
+laboratories
+  id
+  name                   'Wimpey Laboratories'
+  authority              'DM'  — same reasoning as §4.1
+  accreditation_no
+  accredited_from, accredited_until
+  scope_of_accreditation → parameter keys or test families this lab may certify
+  status                 'active' | 'lapsed' | 'withdrawn'
+  verified_by, verified_on   provenance — same rule as §7.1
+```
+
+Two design points follow from the constraint:
+
+- **The check is against the sampling date, not today.** A certificate issued
+  while the laboratory was accredited stays valid after the accreditation
+  lapses. This is the same reasoning `core/standards.py::citation_is_stale`
+  already applies to guideline editions, and it should be implemented the same
+  way.
+- **Accreditation is scoped by test family, not held wholesale.** A laboratory
+  accredited for chemistry but not for *Legionella* enumeration cannot certify a
+  GU44 result. The gate therefore checks the *parameter*, not merely the
+  laboratory — which is why `scope_of_accreditation` exists rather than a bare
+  boolean. See §8 still-open.
+
+Implemented as a new gate in `ingestion/gates.py`, which is where the existing
+assurance gateway lives and already classifies failures rather than repairing
+them. Surfaced as a first-class report status, per the dashboard tile already
+sketched in `Lab Reports Example/Extraction and reporting protocol.md`.
+
 ---
 
 ## 5. Migration path off `core/constants.py`
@@ -282,22 +338,74 @@ Reimplement `core/calculations.py` on top of it. `COMPLIANCE_LIMITS` remains in
 seeder reads it directly.
 
 > **Step 2 is larger than it looks.** A codebase audit found the verdict logic
-> is not one implementation but seven, and they already disagree:
+> is not one implementation but **eight**, and they already disagree:
 > `core/calculations.py:15-51` (the canonical one), a second inline copy of all
 > ten limits in `core/alert_engine.py:88-110`, a private limits dict in
-> `ui/monitoring.py:41-48`, a hand-copied TypeScript duplicate in
-> `frontend/src/constants.ts:10-21`, and three further TS verdict engines in
-> `Dashboard.tsx:21-49`, `ComplianceReport.tsx:263-322` and `Chemistry.tsx:242-256`.
-> Known live divergences: `Dashboard.tsx` uses inclusive bounds where Python uses
-> strict, so they differ at exactly the limit value; its risk bands are 20/50
-> against Python's 10/30; and `compliance_summary` emits `NON-COMPLIANT` where
-> the lab path and database use `NON_COMPLIANT`, papered over by a substring
-> check in `status.ts:53`. `ComplianceReport.tsx` reimplements the PDF's logic
-> and can disagree with the PDF a regulator actually receives.
+> `ui/monitoring.py:41-66`, a hand-copied TypeScript duplicate in
+> `frontend/src/constants.ts:10-21`, three further TS verdict engines in
+> `Dashboard.tsx:21-27`, `ComplianceReport.tsx:290-292` and `Chemistry.tsx:244-246`,
+> and `ingestion/gates.py:99-179`, which judges the laboratory's own printed
+> specification.
+>
+> **The good news first, because it bounds the risk: not one limit VALUE differs
+> anywhere.** All eight sites use 6.0/9.0, 4.0, 50, 75, 50, 5.0, 5.0, 10, 200,
+> 1000 wherever they carry a number, and `frontend/src/constants.ts` is
+> character-for-character identical to `core/constants.py`. Every divergence below
+> is an operator, a band, a label or a coverage gap — never a different number.
+> Consolidation is therefore a tractable job rather than an archaeology exercise.
+>
+> Verified divergences, all confirmed by reading the code:
+>
+> - **Strictness, and it is nine of ten parameters, not one.** Every Python site
+>   is strict (`value < max`, `value > min`); all three TypeScript engines are
+>   inclusive. Only pH agrees, because it is inclusive everywhere. So DO = 4.0,
+>   TSS = 50, COD = 50, turbidity = 75, ammonia = 5.0, phosphate = 5.0,
+>   oil & grease = 10, E. coli = 200 and coliforms = 1000 each render **green on
+>   screen and red in the PDF for the same reading.** Laboratories report values
+>   on exactly these round numbers routinely, so this is live, not theoretical.
+> - **`ingestion/gates.py` is the eighth site and the one that matters most.**
+>   Its regex at `gates.py:143` explicitly matches the `<` or `≤` glyph on the
+>   laboratory's printed specification — and then discards it, judging inclusively
+>   at `gates.py:173`. A printed `"<1000"` and a printed `"1000"` become the same
+>   limit. This is the only divergence that sits on a document the regulator has
+>   actually seen, and after seeding, a coliform result of exactly 1000 against a
+>   printed `"<1000"` is a PASS by the gate and a breach by the resolver. Under
+>   decision 6 that surfaces as a finding — which is right, but the finding would
+>   be *ours*, not the laboratory's. Fix the gate before it starts generating
+>   false disagreements. Note also that the comment at `gates.py:163` argues the
+>   opposite of what the branch beneath it does.
+> - **Four risk-band schemes, not two.** `calculations.py:35-40` uses 10/30;
+>   `Dashboard.tsx:37-49` uses 20/50; `ComplianceReport.tsx:310-322` uses 0/25;
+>   `ui/monitoring.py:57-65` uses 0.8×/1.2× of the raw limit rather than a margin
+>   percentage at all.
+> - **The pH margin formula differs structurally.** `calculations.py:25` divides
+>   the two-sided margin by the range size; `Dashboard.tsx:32-33` and
+>   `ComplianceReport.tsx:295-300` test the maximum first and so compute
+>   `(9.0 − v)/9.0`, ignoring the lower bound entirely. pH 6.1 — nearly on the
+>   floor — is 3.3% and HIGH risk in Python, 32% and LOW in the UI. This will
+>   surface during consolidation as a parity failure that looks like a bug in the
+>   new resolver and is not.
+> - **Coverage gaps masquerading as agreement.** `ui/monitoring.py` judges six of
+>   the ten parameters; `Chemistry.tsx:69-78` judges eight, silently omitting
+>   E. coli and total coliforms. A parameter that is never judged agrees with
+>   everything.
+> - **The verdict string, and a live defect behind it.** `compliance_summary`
+>   emits `NON-COMPLIANT` where the lab path and database use `NON_COMPLIANT`,
+>   papered over by a substring check in `status.ts:52-53`. That bridge is fragile
+>   in both directions, and one of them is already broken: **an `INCOMPLETE`
+>   certificate contains no `NON` and no failing parameters, so it currently
+>   renders green.** An unassessed certificate is displaying as compliant, today,
+>   independently of the strictness question — the §7.4 confident-wrong-answer
+>   failure arriving through the UI rather than the resolver. `INCOMPLETE` needs
+>   its own light. This is the cheapest fix in the whole consolidation and the one
+>   with the highest consequence, so do it first.
 >
 > Step 2 is therefore a consolidation, not a swap. Sequence it as: land the
 > resolver, prove parity against `check_compliance` over a value grid for all ten
-> parameters, then retire the copies one at a time behind that parity test.
+> parameters *at exactly the bound*, then retire the copies one at a time behind
+> that parity test. The data half of that proof already exists in
+> `tests/test_seed_standards.py`, written before the resolver so that it
+> constrains the resolver rather than agreeing with it by construction.
 
 **Step 3 — prove with a second scope.** Add the facilities Legionella set
 (GU44) — the gap in §3.3 — and judge the existing `lab_samples` rows against it.
@@ -322,13 +430,23 @@ Guardrails that already exist and must not regress:
 ## 6. Build order
 
 Sequenced so the risky generalisation happens before there is much to
-generalise, and so the first modules to reach market are the ones every FM
-contractor must buy (§8 decision 3).
+generalise, and so the first modules to reach market are the ones that reuse the
+laboratory pipeline this codebase already has (§8 decision 7).
 
-### Phase 1 — Registries, entitlements, and proof on GU44
-Migrations per §4.1–4.3 and §4.5, plus `core/specs.py` and the §5 migration
-path. Ships an Obligations view (due / due soon / overdue per site) and a module
-catalogue with entitlement ticking.
+> **Revision 3 re-sequenced this section.** Revision 2 led with the plant
+> certificate modules on the reasoning that they sell to every FM contractor
+> regardless of site type. That advantage is real but was outweighed: the
+> certificate and checklist primitives are both *new*, whereas the quantitative
+> family reuses `ingestion/`, `extract.py`, `core/specs.py` and the whole
+> lab-data assurance gateway. Building certificates first would also have
+> deferred the two known pipeline defects (§7.7 and the §5 step-2 note) behind a
+> primitive that does not touch them, leaving them live under the Safari Park
+> deployment. The old Phase 2 and 3 become Phase 3 and 4; the old Phase 4 leads.
+
+### Phase 1 — Registries, entitlements, laboratories, and proof on GU44
+Migrations per §4.1–4.3, §4.5 and §4.7, plus `core/specs.py` and the §5
+migration path. Ships an Obligations view (due / due soon / overdue per site), a
+module catalogue with entitlement ticking, and the laboratory accreditation gate.
 
 **GU44 Legionella completes inside this phase, not as a Phase 2 SKU.** Not for
 revenue — because it is the only guideline with real certificates already in the
@@ -338,44 +456,114 @@ it.
 
 Also in scope: replace `billing.py`'s site-count tiers with base + per-module.
 
-### Phase 2 — Universal plant certificates (first revenue modules)
-Builds the §4.4 certificate primitive, then three to six SKUs off it. These sell
-to very nearly every FM contractor regardless of site type, which is why they go
-first.
+### Phase 2 — Quantitative guidelines (first revenue modules)
+Every module here is a numeric limit judged by `core/specs.py` against evidence
+the existing pipeline already ingests. **Acceptance criterion from §5 step 4
+applies: each of these should be seed data plus a limit table, with no Python
+change.** If one of them forces a code change, that is a defect in the resolver
+and should be fixed there rather than special-cased.
 
-| Guideline | Subject |
-|---|---|
-| GU48 | Cranes, hoists, lifts and other lifting appliances |
-| GU47 | Boilers and pressure vessels |
-| GU67 | Mobile elevated work platforms (MEWP) |
-| GU74 | Mobile access towers |
-| GU146 | Safe forklift operations |
-| GU41 | Guarding of dangerous machinery |
+Ordered by how many clients carry the obligation — **revised against the actual
+documents**, which contradicted the assumptions this table was first built on:
 
-GU48, GU47 and GU67 are the priority three; the rest are cheap additions once
-the primitive exists.
+| Guideline | Subject | Evidence | Status after reading it |
+|---|---|---|---|
+| **GU119** | Indoor air quality | instrument | **Leads.** The only one with explicit "must not be exceeded" limits |
+| GU81 / GU80 | Public / private swimming pools | laboratory | Solid; 49 limits extracted |
+| GU142 | Mould remediation and control | laboratory | Solid |
+| GU120 / GU145 | Water features; water coolers and dispensers | laboratory | GU145 is **Arabic** — see §7.2 |
+| GU133 / GU17 | Water systems in emergencies; un-bottled drinking water | laboratory | GU17 is **English**, not Arabic as previously recorded |
+| GU38 | Heat stress at work | instrument | **Cannot yield a verdict** — see below |
+| GU141 | EIAQI index | instrument | **Deferred** — see below |
+| GU34 | Pool plan approval | — | Process document, no limits |
+| GU10 | Classroom ventilation | instrument | **Not self-contained** — delegates to ASHRAE 62.1 |
+| GU78 | Ionizing radiation | dosimetry service | **Dead link** on the DM portal (§7.11) |
 
-### Phase 3 — Risk assessment (checklist primitive)
+> **Three corrections that came from reading the documents rather than the list.**
+>
+> **GU38 is not a WBGT guideline and sets no compliance limit.** The string
+> "WBGT" does not appear in V3.0 and there is no work/rest ratio table; it uses
+> **Heat Index**, in a four-row table whose third column is headed "Control
+> Approach" — management effort, not permissibility. Even the top band (46 ºC+)
+> says "enhanced controls", not stop work. The only stop-work language sits in an
+> Annex A chart legend that contradicts the main table for the same temperature
+> range, and the actual midday-break rule is delegated to a MoHRE regulation GU38
+> neither reproduces nor cites by number. Its only hard ceilings are core body
+> temperature (≤38.5 / ≤38 ºC) — clinical, measured on a person, not an
+> instrument parameter anyone sells monitoring for.
+>
+> **So a GU38 report cannot claim COMPLIANT or NON-COMPLIANT.** It can classify a
+> risk band and track obligations, which is a real product — but it is a
+> *monitoring* module, not a *compliance* module, and it must not be sold or
+> templated as the latter. This is the §7.12 distinction in its first concrete
+> instance, and it needs settling before GU38 is priced.
+>
+> **GU141 is a calculation engine, not a limit table, and it is internally
+> inconsistent.** It publishes two mutually incompatible methods for the final
+> score (§7.8 weighted summation versus Figure No.1's integer-weightage scheme),
+> its weights table is contradicted by its own worked example, and it never states
+> which EIAQI band constitutes compliance. It would breach the §5 step-4
+> no-Python-change criterion *and* could not produce a verdict even if implemented
+> perfectly. Deferred until DM clarifies; GU119 carries the indoor-air module
+> alone.
+>
+> **GU10 delegates its binding requirement wholesale to ASHRAE 62.1.** The 295 /
+> 345 CFM figures it prints are explicitly area-dependent. What remains is a
+> floor-plan and register check, not an instrument reading — closer to the Phase 4
+> checklist primitive than to this phase.
+
+> **The family is wider than "laboratory".** WBGT, EIAQI and classroom
+> ventilation are quantitative measurements against numeric limits, so
+> `core/specs.py` judges them identically — but the evidence arrives from an
+> instrument or a monitoring contractor, not a sample sent away. That is good for
+> the product (more SKUs on one resolver) and it means the §4.7 accreditation
+> gate applies to the laboratory subset only. Do not conflate the two when
+> sizing either the ingestion work or the laboratory relationship.
+
+### Phase 3 — Universal plant certificates
+Builds the §4.4 certificate primitive — a new primitive, reusing nothing from
+`ingestion/`. **Reading the five documents cut this from five SKUs to three.**
+
+| Guideline | Subject | Verdict after reading it |
+|---|---|---|
+| GU48 | Lifting appliances | **Fits.** EIAC third-party examination, 12-month |
+| GU67 | MEWP | **Fits.** EIAC third-party examination, 6-month |
+| GU146 | Safe forklift operations | **Fits.** EIAC third-party examination, 12-month |
+| GU47 | Boilers and pressure vessels | **Arabic-only** (§7.2). V5.0, 2026-01-20 — the newest document in the group, so translating it is not wasted work |
+| GU74 | Mobile access towers | **Moved to Phase 4.** No accredited third party at all: the recurring duty is an in-house 7-day inspection, and the only third-party artefact is a one-off BS EN 1004 product conformity certification that never expires |
+| GU41 | Guarding of dangerous machinery | **Moved to Phase 4.** Names no accreditation body, issues no certificate; thirteen asset types of guard-design specification. A checklist guideline |
+
+Building GU74 or GU41 as certificate SKUs would ship a module whose central
+artefact the source document never requires.
+
+> **The finding that has to be settled before the primitive is built: not one of
+> the five documents states a certificate validity period.** They all state an
+> examination *interval* and stop. So §4.4's `valid_until` **cannot be derived
+> from the standard.** It must either come from the uploaded certificate itself,
+> or from an `issued_on + interval` assumption that is explicitly recorded as an
+> assumption. Silently computing it would put an expiry date on a
+> regulator-facing report that no published document supports.
+>
+> **Two model gaps §4.4 does not cover.** First, an `examinations` layer is
+> needed between `standards` and `certificates`: GU146 alone imposes three
+> different examinations at three cadences on one asset, so examination
+> requirements are not a property of the certificate. Second, **one asset must
+> not generate two overdue obligations** — GU48 and GU146 both impose a 12-month
+> EIAC test on forklifts, and a contractor entitled to both modules would
+> otherwise see the same test due twice. Obligation de-duplication across
+> overlapping guidelines is a Phase 1 design question, not a Phase 3 one.
+>
+> Of the 29 examination requirements extracted, **14 are event-triggered with no
+> cadence** — after repair, after modification, before first use. That
+> independently confirms the `trigger_event` column added to §4.3.
+
+### Phase 4 — Risk assessment (checklist primitive)
 GU137 (H&S risk assessment) and GU135 (built-environment establishments). Also
-near-universal, but needs the §4.6 checklist engine, which is why it follows
-rather than accompanies Phase 2.
-
-### Phase 4 — Numeric-limit guidelines
-Cheap once Phase 1 is proven — these reuse the existing lab pipeline and add
-only limit tables.
-
-| Guideline | Subject |
-|---|---|
-| GU81 / GU80 / GU34 | Public / private swimming pools; pool plan approval |
-| GU120 / GU145 | Water features; water coolers and dispensers |
-| GU133 / GU17 | Water systems in emergencies; un-bottled drinking water *(GU17 Arabic only)* |
-| GU141 / GU119 | Environmental indoor air quality (EIAQI) |
-| GU142 | Mould remediation and control |
-| GU38 | Heat stress at work (WBGT) |
-| GU10 / GU78 | Classroom ventilation; ionizing radiation |
+near-universal, but needs the §4.6 checklist engine — the third new primitive,
+which is why it follows the other two rather than accompanying them.
 
 ### Phase 5 — People, competency and permits
-Reuses the Phase 2 expiry primitive against `subject_user_id`, adds
+Reuses the Phase 3 expiry primitive against `subject_user_id`, adds
 permit-to-work.
 
 | Guideline | Subject |
@@ -414,9 +602,34 @@ nothing. The `provenance` field on `guideline_modules` and `verified_by` /
 `verified_on` on `standards` enforce it in the schema rather than by good
 intentions. Revisit resourcing once modules are selling.
 
-**7.2 Arabic-only sources.** GU17, GU124, GU125, GU129, GU130 are published in
-Arabic only. Limit encoding and extraction need Arabic handling and a
-native-Arabic reviewer. Sequence last within their phase.
+**7.2 Arabic-only sources — corrected against the published catalogue.** The
+earlier list in this section was wrong in both directions, and the correction
+changes phase priorities rather than merely tidying a footnote.
+
+**Wrong in our favour:** GU17 and GU129 are now published in **English**. GU17
+(un-bottled drinking water) was called out as a Phase 2 obstacle and is not one.
+
+**Wrong against us:** thirteen documents are Arabic, ten of which were unnamed
+here. Two sit on the critical path:
+
+| Guideline | Subject | Phase | Why it hurts |
+|---|---|---|---|
+| **GU145** | Water coolers and dispensers | **2** | A leading revenue module needs translation before its limits can be encoded |
+| **GU47** | Boilers and pressure vessels | **3** | One of the three priority certificate SKUs |
+| GU135 | Risk assessment of buildings | 4 | Pairs with GU137, which is English |
+| GU72, GU97, GU90 | Eyewash/showers, PPE, temporary structures | 5–6 | Later, but budget for them |
+
+Remaining Arabic: GU143, GU130, GU125, GU124, GU118, GU115, GU29.
+
+So translation is not a tail-end problem to sequence last — it is a **Phase 2 and
+Phase 3 dependency** with two priority SKUs behind it. Budget a native-Arabic
+reviewer before those phases begin, not within them. Note also that the catalogue
+distinguishes seven documents *explicitly stated* as Arabic from six *inferred
+from an Arabic filename*; the inferred ones should be confirmed by opening them
+before any translation is commissioned.
+
+Source: `data/dm_guidelines/catalogue.json`, extracted from the DM technical
+guidelines list. Unverified per §7.1 — confirm before acting on the budget.
 
 **7.3 The science layer demotes.** `science/` does not generalise beyond
 lagoons. It stops being the headline and becomes a premium module for one scope.
@@ -455,12 +668,130 @@ load-bearing the moment `qualifier_rule` starts judging these rows, because
 careful below-LOQ logic built on invented numbers is worse than no logic. Fix it
 in Phase 1, before step 3.
 
-**7.8 Pre-existing items unchanged by this proposal.** CORS is still
+**7.8 A parser per laboratory looks like a treadmill and is not.** `wimpey.py`
+is a hand-written positional parser for one laboratory's LIMS forms, and the
+obvious fear is that every new laboratory costs another one, forever. It does
+not: **DM accredits the laboratories, so the set is closed and knowable.**
+Supporting all of them is a project with an end, and completing it means owning
+the ingestion layer for the whole regulated market — a far harder position to
+displace than a catalogue of limit tables, which a competitor can retype.
+
+Treat the accredited list as the parser backlog, sequenced by how many client
+sites each laboratory serves. Two cautions: the vision fallback in `extract.py`
+must remain the honest low-confidence path for anything unparsed (§7.7), never a
+silent substitute for a missing parser; and a laboratory changing its form
+revision breaks a deterministic parser loudly, which is correct — `gates.py`
+already classifies parser-bug versus source anomaly, and that classification is
+what stops a layout change becoming a wrong number.
+
+**7.9 The independence requirement cuts both ways.** DM requires the laboratory
+to be independent of the FM contractor. A product that let the contractor lean on
+the laboratory — silently overriding a certified statement, or quietly
+re-judging a result until it passed — would be structurally unacceptable to the
+regulator and to the laboratory. Decision 6 is therefore not merely good manners:
+it is what makes the platform admissible to both sides of a relationship the
+regulation deliberately keeps at arm's length. It must not be weakened for
+convenience later.
+
+**7.11 What the published catalogue actually contains.** The DM technical
+guidelines list carries **81 entries** — 77 numbered guidelines plus four
+unnumbered scheme documents (Lifeguard, OHS Practitioner, OHS Person in Charge,
+NOC to practise H&S activities). All 81 are captured in
+`data/dm_guidelines/catalogue.json`. Four findings change how the registry is
+loaded:
+
+- **No issue date is published anywhere.** Each page shows a `Date` field that is
+  the CMS record date, not the edition date — GU44's page reads 27/07/2026 while
+  its V.6 edition issued 2025-08-19. It is stored as `portal_document_date` and
+  **must never be loaded into `standards.issued_on`.** Doing so would feed
+  `citation_is_stale` a fabricated date and produce exactly the wrong-staleness
+  warnings §7.1 exists to prevent. Issue dates come from inside the PDF only.
+- **GU78 (ionizing radiation) is a dead link** — it redirects to the DM home page
+  with no PDF and no code. It is a Phase 2 module, so it needs chasing with DM
+  directly rather than waiting to be found.
+- **GU10 carries a number/code conflict:** listed as guideline 10, but its file is
+  `DM-HSD-GU101-VSC2`. One of the two is a DM typo and there is no GU101 row to
+  disambiguate. Both are recorded as printed. This is precisely the case where a
+  wrong code silently breaks citation matching, so it must be resolved with DM
+  before the module ships.
+- **Nineteen entries are not named in §6 at all.** Two clusters are worth a
+  decision: the consumer-product laboratory family (GU132/117/116/115/107/100/86/
+  82/30/29/18), which reuses the Phase 2 resolver exactly but sells to *traders*
+  rather than FM contractors — a different buyer and therefore arguably a
+  different product; and GU62 (acetylene generators) plus GU53 (LPG cylinders),
+  which share the Phase 3 certificate shape and the same buyer, making them the
+  cheapest additions once that primitive exists.
+
+Mechanically: URLs **cannot** be constructed from a guideline number — slugs use
+three inconsistent conventions and the host alternates between `dm.gov.ae` and
+`www.dm.gov.ae` — so `page_url` is stored per entry. Codes and versions exist
+only inside PDF filenames, so `file_label` holds the exact printed filename as
+the audit trail behind every extracted code, and is the right key to diff on when
+refreshing: a new edition changes the filename while the list-page title does not.
+The list needs no browser, just an HTTP fetch and a table parse; the WordPress
+REST API is closed.
+
+**7.12 Not every guideline can produce a verdict, and the catalogue must say
+which.** Reading the first four documents properly turned up a distinction the
+data model does not yet carry. A guideline can be any of:
+
+| Kind | What a report can claim | Example |
+|---|---|---|
+| **Compliance** | COMPLIANT / NON-COMPLIANT against a stated limit | GU119, GU81 |
+| **Monitoring** | a risk band and a control obligation, but no verdict | GU38 |
+| **Process** | that a procedure was followed; no measurement | GU34 |
+| **Delegating** | nothing on its own — the limit lives in an external standard | GU10 → ASHRAE 62.1 |
+| **Unusable** | nothing; the document contradicts itself | GU141 |
+
+This matters commercially and legally. Under modular pricing each of these is
+still sellable — an FM contractor genuinely needs to track GU38 obligations — but
+they are **not the same product**, and a report that claims compliance against a
+guideline setting no compliance limit is a misrepresentation to a regulator. It
+is also the precise failure §7.4 warns about, arriving from an unexpected
+direction: not the wrong limits applied to an asset, but a verdict rendered where
+the source document authorises none.
+
+`guideline_modules` therefore needs a `module_kind` column alongside
+`provenance`, and the resolver must refuse to emit a verdict for a module that is
+not of kind `compliance`. Add it when §4.5 is built — retrofitting it after
+reports exist means reissuing them.
+
+**Verification traps found while extracting, which apply to every future
+guideline:**
+
+- **Never take `version` from a filename — and never take a *date* from one
+  either.** GU119's URL says `_V2` while the document is V4; GU67's PDF sits
+  under `/2021/05/` though the edition is 2024; GU74's under `/2021/01/` for a
+  2025 edition; GU146's filename ends `10.5.26` for a December 2025 document.
+  Upload paths record when a file was uploaded, not what is in it. Versions and
+  issue dates come from inside the document, always.
+- **Codes are not uniform.** GU146's code is `DM-HSD-146-FL2` — it omits the `GU`
+  prefix every other guideline uses. Together with the GU10/GU101 conflict
+  (§7.11), that is two of roughly eighty documents whose code would silently
+  break citation matching if assumed to follow the pattern.
+- **Omit an ambiguous cell, never guess it.** GU119's ozone short-term value
+  prints as `0.1 2 ppm`; it was left out rather than assumed to be 0.12.
+- **Verify column-to-unit mapping by x-coordinate, not text order.** A number
+  attached to the wrong unit is a wrong verdict that looks entirely plausible,
+  and this is the likeliest place for a silent transcription error.
+- **Band tables have gaps, and gaps must resolve to NOT_ASSESSED.** A heat index
+  of 34.5 or a CO₂ reading of 380 ppm falls between published bands. Snapping to
+  the nearest band is exactly the confident wrong answer §7.4 forbids.
+
+**7.13 Pre-existing items unchanged by this proposal.** CORS is still
 `allow_origins=["*"]`; invite email is not wired to a transactional provider;
-billing has never processed a live payment. `python-multipart` is missing from
-`requirements.txt` despite `api_server` importing it, which stops two test
-modules collecting in a clean environment. All should close before the first
-paid module sale.
+billing has never processed a live payment.
+
+Two undeclared dependencies, both of the same kind: `python-multipart` is missing
+from `requirements.txt` despite `api_server` importing it, and **`pydantic` is
+missing despite `ingestion/schema.py` importing it directly** — it resolves only
+transitively through `fastapi`, unpinned. Between them, five test modules fail to
+collect in a clean environment (`test_integration_phases`,
+`test_lab_sample_persistence`, `test_report_types`, `test_resolver_authz`,
+`test_wimpey_parser`). That is most of the coverage over the ingestion path this
+build now depends on, and it directly contradicts the header of
+`requirements.txt`, which promises that a rebuild installs exactly the tested
+versions. All should close before the first paid module sale.
 
 ---
 
@@ -470,17 +801,33 @@ paid module sale.
 |---|---|---|
 | 1 | Role of `DECCA-Lagoons-App` | **Frozen rollback point.** DM-Tech-Apps becomes the single product with lagoon as one scope. No porting burden; cutover planned in Phase 1. |
 | 2 | Multi-emirate support | **Authority as data, DM-only content.** `standards.authority` from day one; all seed data, UI and reports stay DM-specific. |
-| 3 | Guideline build order | **Universal modules first** — GU48, GU47, GU67 (Phase 2), then GU137 (Phase 3). GU44 completes inside Phase 1 as the registry's proof. |
+| 3 | Guideline build order | ~~Universal modules first — GU48, GU47, GU67, then GU137.~~ **Superseded by decision 7.** GU44 completing inside Phase 1 as the registry's proof survives unchanged. |
 | 4 | Pricing shape | **Base platform fee + per-module add-on.** Replaces site-count tiers. |
 | 5 | Guideline currency | **Narrow verified catalogue.** Only personally verified modules go on sale; provenance recorded in the schema. Revisit once selling. |
 | 6 | Our limits vs the lab's printed specification | **Both verdicts; disagreement is a finding.** `ingestion/gates.py` keeps judging the laboratory's own printed spec; the resolver adds ours alongside. Where they differ, surface it — that usually means the lab judged against a superseded edition or the wrong limit for the asset, which is what `core/standards.py` already exists to catch. Never silently override an accredited laboratory's certified statement. |
 
+| 7 | Which family to build first | **The quantitative/laboratory family, ahead of certificates and checklists.** Those two are new primitives; the quantitative family reuses `ingestion/`, `extract.py` and the assurance gateway that is already the most defensible work in the repo. It also forces the two known pipeline defects (§5 step 2, §7.7) to be fixed as part of shipping rather than deferred behind primitives that never touch them. §6 re-sequenced accordingly. |
+| 8 | The laboratory's role | **Mandatory counterparty, and accreditation is modelled and gated.** DM accredits the laboratories and the FM may not self-test, so every quantitative obligation necessarily passes through an accredited independent lab — the lab is neither a marketing channel nor a customer but the other half of a transaction the platform already sits inside. `laboratories` registry per §4.7, checked at the sampling date and scoped by test family, surfaced as a first-class report status. The obligation registry (§4.3) is simultaneously the contractor's compliance alert and the laboratory's forward book of demand. |
+
 ### Still open
 
+- **The accredited-laboratory list.** Whether DM publishes it in a form we can
+  consult programmatically or must transcribe, and how often it changes. Governs
+  whether §4.7 is maintained by import or by the same verified-catalogue
+  discipline as §7.1. Needed before the accreditation gate ships.
+- **Whether accreditation is scoped by test type.** If a laboratory can hold
+  accreditation for chemistry but not for *Legionella* enumeration, the gate must
+  check the parameter and not merely the laboratory — which is why §4.7 carries
+  `scope_of_accreditation` rather than a boolean. Confirm against DM's published
+  scope documents before that column's shape is fixed.
+- **Selling to laboratories.** Decision 8 settles that labs are counterparties,
+  not a channel. It does not settle whether a laboratory-side product (sample
+  tracking, certificate issuance, client portals) is worth building later. That
+  is a second product, not a module; defer until modules are selling.
 - **Product name.** The repo is `DM-Tech-Apps`, which is a folder-and-repo name,
   not a product name. Deferred deliberately; needed before customer-facing UI
   and report templates are written (late Phase 1).
 - **Al Ghurair's full reporting register.** Not a blocker for Phase 1, but the
-  Phase 2 module priority should be sanity-checked against what they actually
+  Phase 2 and 3 module priority should be sanity-checked against what they actually
   file across their whole portfolio before the three SKUs are finalised.
 - **Safari Park cutover timing** (§7.6).
