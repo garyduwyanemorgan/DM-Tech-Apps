@@ -138,16 +138,30 @@ def evaluate_printed_spec(result: LabResult) -> tuple[ResultStatus, str]:
             "non-detection — this is not a pass."
         )
 
-    # "<1000", "500*", "500" — a numeric ceiling. The trailing * is a footnote
-    # marker pointing at the specification reference, not part of the number.
-    m = re.match(r"^[<≤]?\s*(\d+(?:\.\d+)?)\s*\*?$", spec)
+    # "<1000", "≤1000", "500*", "500" — a numeric ceiling. The trailing * is a
+    # footnote marker pointing at the specification reference, not part of the
+    # number.
+    #
+    # The operator is part of the limit, not decoration: a laboratory printing
+    # "<1000" has stated that 1000 itself is out of specification, while "≤1000"
+    # and a bare "1000" admit it. Discarding the glyph made those three specs
+    # identical and turned a result of exactly 1000 against a printed "<1000"
+    # into a PASS — a verdict we would have to defend against the accredited
+    # laboratory that printed the limit. A bare number keeps its long-standing
+    # inclusive reading, which is the conventional meaning of a printed maximum.
+    m = re.match(r"^(?P<op>[<≤])?\s*(?P<limit>\d+(?:\.\d+)?)\s*\*?$", spec)
     if not m:
         return ResultStatus.NOT_ASSESSED, (
             f"The specification printed on the certificate ('{spec}') is not in a "
             "form this system can interpret; a reviewer must read it against the "
             "result by hand — this is not a pass."
         )
-    limit = float(m.group(1))
+    limit = float(m.group("limit"))
+    # True when the certificate printed "<" — the limit itself is excluded.
+    exclusive = m.group("op") == "<"
+
+    def within(value: float) -> bool:
+        return value < limit if exclusive else value <= limit
 
     if result.qualifier == "ND":
         return ResultStatus.PASS, (
@@ -160,7 +174,12 @@ def evaluate_printed_spec(result: LabResult) -> tuple[ResultStatus, str]:
             "a pass."
         )
     if result.qualifier == "<":
-        # "<0.5" against a limit of 0.5 proves nothing about the true value.
+        # A result of "<0.5" says only that the true value lies below 0.5. That
+        # is enough whenever the reported bound is at or under the limit: the
+        # true value is then strictly below the limit, which satisfies an
+        # inclusive and an exclusive limit alike — so this branch needs no
+        # `exclusive` test. What it cannot do is judge a bound that sits *above*
+        # the limit, which is the case handled below.
         if result.value_num <= limit:
             return ResultStatus.PASS, (
                 f"Reported {printed}, which is within the printed limit of {spec}."
@@ -170,9 +189,15 @@ def evaluate_printed_spec(result: LabResult) -> tuple[ResultStatus, str]:
             "only bounded above the limit, so it neither demonstrates compliance "
             "nor proves an exceedance — this is not a pass."
         )
-    if result.value_num <= limit:
+    if within(result.value_num):
         return ResultStatus.PASS, (
             f"Reported {printed}, which is within the printed limit of {spec}."
+        )
+    if exclusive and result.value_num == limit:
+        return ResultStatus.FAIL, (
+            f"Reported {printed}, which is exactly the printed limit of {spec} — "
+            "the certificate states the limit exclusively, so the value must be "
+            "below it and this result does not meet the specification."
         )
     return ResultStatus.FAIL, (
         f"Reported {printed}, which exceeds the printed limit of {spec}."

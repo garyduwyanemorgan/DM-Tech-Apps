@@ -30,6 +30,12 @@ pillow==12.2.0            # image downscale before vision call (extract.py)
 fastapi==0.136.3
 uvicorn[standard]==0.34.0
 PyJWT[crypto]==2.10.1      # Clerk JWT verification via JWKS
+# Both of the following arrive transitively through fastapi, unpinned. They are
+# declared here because this codebase imports them directly, and a transitive
+# resolution is not a tested version.
+pydantic==2.13.4           # imported by ingestion/schema.py (v2 API: field_validator);
+                           # fastapi 0.136.3 requires >=2.9.0
+python-multipart==0.0.32   # required by api_server.py for UploadFile/File upload endpoints
 
 # ── Agent input (MCP server for Claude Desktop; not used by the web services) ──
 mcp[cli]==1.27.2
