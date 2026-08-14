@@ -55,9 +55,17 @@ export const ExecutiveDashboard: React.FC<Props> = ({ setActiveSite, setActiveTa
       <div className="glass-card">
         <h2 className="section-heading" style={{ fontSize: '1rem', marginBottom: '1rem' }}>Projects Requiring Management Attention</h2>
         {attention.length === 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#006100', fontSize: '0.9rem', fontWeight: 600 }}>
-            <ShieldCheck size={18} /> All projects within compliance — no escalations.
-          </div>
+          /* "No escalations" is only an all-clear when every project actually
+             carries a verdict. Unassessed projects are stated, not absorbed. */
+          kpis.grey > 0 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#64748B', fontSize: '0.9rem', fontWeight: 600 }}>
+              <ShieldCheck size={18} /> No escalations — but {kpis.grey} project{kpis.grey === 1 ? '' : 's'} could not be assessed.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#006100', fontSize: '0.9rem', fontWeight: 600 }}>
+              <ShieldCheck size={18} /> All projects within compliance — no escalations.
+            </div>
+          )
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {attention.map((s) => {

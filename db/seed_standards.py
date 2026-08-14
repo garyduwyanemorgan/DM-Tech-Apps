@@ -414,8 +414,14 @@ def upsert_spec_limits(client, set_id: Optional[str], dry_run: bool,
     if set_id:
         res = (
             client.table("spec_limits")
-            .select("id,parameter_key,parameter_label,unit,min_val,max_val,"
-                    "min_inclusive,max_inclusive,display,qualifier_rule")
+            # spec_set_id must be selected even though it is the column we
+            # filtered on: drifted_columns() compares every key in the desired
+            # row, so omitting it here makes it read as None and report drift on
+            # every limit, every run. False drift is worse than none — it trains
+            # the operator to ignore the one report that is meant to stop a
+            # silent overwrite.
+            .select("id,spec_set_id,parameter_key,parameter_label,unit,min_val,"
+                    "max_val,min_inclusive,max_inclusive,display,qualifier_rule")
             .eq("spec_set_id", set_id)
             .execute()
         )

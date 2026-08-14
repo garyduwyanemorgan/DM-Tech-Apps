@@ -7,7 +7,7 @@
 // a palette change propagates everywhere from a single edit.
 //
 // Two color systems coexist deliberately and must not be conflated:
-//   STATUS — the 4-state compliance traffic light (green/yellow/red/blue)
+//   STATUS — the compliance traffic light (green/yellow/red/blue/grey)
 //   ALERT  — the 4-level bloom/escalation scale (GREEN/WATCH/WARNING/CRITICAL),
 //            which has an orange level 3 with no traffic-light equivalent.
 
@@ -31,12 +31,21 @@ export const COLORS = {
   awaiting: '#3B82F6',
 } as const
 
-/** 4-state compliance traffic-light pill: pastel bg/fg + saturated dot. */
+/**
+ * Compliance traffic-light pill: pastel bg/fg + saturated dot.
+ *
+ * `notAssessed` is the neutral slate state already used for "No verdict
+ * recorded" on the certificate tables (ComplianceReport, Monitoring,
+ * UploadReport). It exists because "we cannot judge this" is a third answer
+ * alongside pass and breach, and must never be painted as either. It is not a
+ * new colour: it reuses the slate badge tone.
+ */
 export const STATUS = {
   compliant:      { bg: '#C6EFCE', fg: '#006100', dot: COLORS.compliant, label: 'Compliant' },
   actionRequired: { bg: '#FFEB9C', fg: '#856404', dot: COLORS.warning,   label: 'Action Required' },
   critical:       { bg: '#FFC7CE', fg: '#9C0006', dot: COLORS.critical,  label: 'Critical' },
   awaitingLab:    { bg: '#D6E4F0', fg: '#1B3A5C', dot: COLORS.awaiting,  label: 'Awaiting Lab' },
+  notAssessed:    { bg: '#F1F5F9', fg: COLORS.slate, dot: COLORS.slateLight, label: 'Not Assessed' },
 } as const
 
 export type StatusKey = keyof typeof STATUS

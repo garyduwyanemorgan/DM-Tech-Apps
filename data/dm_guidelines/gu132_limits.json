@@ -1,0 +1,48 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU132-FCM2",
+    "guideline_no": 132,
+    "title": "Technical Guidelines for Food Contact Materials",
+    "version": "V 1.0",
+    "issued_on": "2024-07-24",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2026/01/DM-HSD-GU132-FCM2_Technical-Guidelines-for-Food-Contact-Materials_V1.pdf",
+    "language": "en"
+  },
+  "module_kind": "delegating",
+  "specification_sets": [],
+  "obligations": [
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No cadence stated anywhere in the document. The obligation is a condition of placing a product on the market, not a recurring schedule.",
+      "trigger_event": "placing a material or article on the market",
+      "applies_to": "Business operator — 'The natural or legal persons responsible for ensuring that the requirements of this regulation are met within the business under their control' (page 5). 'Business' is defined as 'Any undertaking ... carrying out any of the activities related to any stage of manufacture, processing and distribution of materials and articles' (page 5).",
+      "source_quote": "Page 4: 'Any material or article intended to come into contact with food which is placed on the market should comply with the requirements of this Regulation.' Page 9: 'Materials and articles ... shall be manufactured in compliance with good manufacturing practice (or any food safety system or quality management that is acceptable to Dubai Municipality) so that, under normal or foreseeable conditions of use, they do not transfer their constituents to food in quantities which could: endanger human health; or bring about an unacceptable change in the composition of the food; or bring about a deterioration in the organoleptic characteristics thereof.'"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Continuous record-keeping duty, no cadence stated.",
+      "trigger_event": "supply of materials or articles to or from another business",
+      "applies_to": "Business operators",
+      "source_quote": "Page 14: 'business operators shall have in place systems and procedures to allow identification of the businesses from which and to which materials or articles and, where appropriate, substances or products covered by this Standard and its implementing measures used in their manufacture are supplied. That information shall be made available to the competent authorities on demand.'"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-triggered enforcement action, not a schedule.",
+      "trigger_event": "product found not to comply with safety requirements, or recall requested by Dubai Municipality or another relevant authority",
+      "applies_to": "The business placing the product on the market",
+      "source_quote": "Page 13: 'The product recall is promptly and efficiently retrieving Batch/ Bar Code of the product that does not comply with safety requirements, or that may have an undesirable effect on consumers. Recalls can be initiated at the request of the Dubai Municipality, or other relevant authorities to recall the product.'"
+    }
+  ],
+  "extraction_notes": {
+    "why_no_limits": "GU132 states no numeric limit of its own. Every quantitative requirement is delegated to an external standard: 'in compliance with the relevant GSO standards' (page 7), 'GSO STANDARD GSO 839/2017' (pages 7-8), 'GSO standard 2231' (page 15, References), and the EU food-contact framework (page 15). Section 9(e)-(f) contemplates that 'specific limits on the migration of certain constituents' and 'an overall limit on the migration of constituents into or on to food' 'may be maintaining or adopted by Gulf standard or national provisions' (pages 9-10) — i.e. the migration limits are explicitly somewhere else. This is the same shape as GU10 to ASHRAE 62.1 in scoping doc section 7.12: module_kind 'delegating', and the resolver must refuse to emit a verdict.",
+    "numbers_deliberately_not_encoded": "Section 6 (pages 10-11) contains percentages — 'Contain a maximum of 0.15% carbon, a minimum of 16% chromium' (SAE 200 and 300 series), 'the only the alloys with 16%+ chromium will be considered FCS', 'chromium content of 12-14%' — but section 6 is titled 'Typical Applications of the Various Stainless-Steel Types' and the sentences describe how the SAE series are constituted, not a DM acceptance criterion that a laboratory certificate is judged against. Encoding them as spec_limits would manufacture a verdict the document does not authorise. Recorded here instead.",
+    "applies_to_scope_problem": "Neither 'lagoon' nor 'facilities' fits. The regulated object is a traded product (a material or article), not a site or an asset. See data/dm_guidelines/consumer_products_notes.md.",
+    "version_provenance": "Version 'V 1.0' and issue date '24th July 2024' both read from inside the PDF (cover page 1 and the Document History Log on page 2, and repeated in every page footer). The catalogue's portal_document_date is 2026-01-26 and the upload path is /uploads/2026/01/ — neither is the issue date."
+  }
+}

@@ -80,8 +80,15 @@ export const ProjectDashboard: React.FC<Props> = ({ setActiveSite, setActiveTab 
                     ))}
                   </div>
                 ) : (
-                  <span style={{ fontSize: '0.8rem', color: s.light === 'blue' ? '#1B3A5C' : '#006100' }}>
-                    {s.light === 'blue' ? 'Awaiting laboratory results' : 'No outstanding compliance issues'}
+                  // No failing parameters is not the same as a clean bill: a grey
+                  // site has a reading that could not be judged, and saying
+                  // "no outstanding compliance issues" there would assert a pass.
+                  <span style={{ fontSize: '0.8rem', color: s.light === 'blue' ? '#1B3A5C' : s.light === 'grey' ? '#64748B' : '#006100' }}>
+                    {s.light === 'blue'
+                      ? 'Awaiting laboratory results'
+                      : s.light === 'grey'
+                        ? 'Not assessed — no verdict recorded'
+                        : 'No outstanding compliance issues'}
                   </span>
                 )}
               </div>

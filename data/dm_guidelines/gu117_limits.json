@@ -1,0 +1,147 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU117-FP2",
+    "guideline_no": 117,
+    "title": "Technical Guidelines for Fragrance Products",
+    "version": "V 2.0",
+    "issued_on": "2024-05-04",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/07/DM-HSD-GU117-FP2_Technical-Guidelines-for-Fragrance-Products_V2.0.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "specification_sets": [
+    {
+      "key": "gu117_fragrance_lab_test_report",
+      "label": "GU117 Table 1 — Laboratory tests applicable for Fragrance products (Perfumes, Toilet Waters, Eau de Cologne)",
+      "applies_to_scope": "consumer_product",
+      "applies_to": "Fragrance products submitted for registration in the Montaji system. The table's only sub-heading row reads 'Perfumes , Toilet Waters, Eau de Cologne', but the Bitrex and Methanol rows say 'All products'.",
+      "source_section": "7.5 Laboratory Test Report, Table 1",
+      "limits": [
+        {
+          "parameter_key": "bitrex",
+          "parameter_label": "Bitrex (denatonium benzoate)",
+          "unit": null,
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "All products: Absent",
+          "qualifier_rule": "detect_fails",
+          "source_page": 11,
+          "source_quote": "Table 1, row 'Bitrex', Specification limit column: 'All products: Absent'. Non-numeric absence requirement — a detection is a failure. Per migration 016 this must never be modelled as a numeric zero. Read from the rendered page 11 image; the table text also extracts cleanly.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "methanol",
+          "parameter_label": "Methanol",
+          "unit": null,
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "All products: Absent",
+          "qualifier_rule": "detect_fails",
+          "source_page": 11,
+          "source_quote": "Table 1, row 'Methanol', Specification limit column: 'All products: Absent'.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "solvents_water_essential_oil_content",
+          "parameter_label": "Solvents (Ethanol, Propan-1-ol and Diethyl Phthalate), Water and Essential Oil Content",
+          "unit": null,
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "No maximum limit",
+          "qualifier_rule": "report_only",
+          "source_page": 11,
+          "source_quote": "Table 1, row 'Solvents (Ethanol, Propan-1-ol and Diethyl Phthalate), Water and Essential Oil Content', Specification limit column: 'No maximum limit'. The test is required but the document sets no bound, so no verdict can be rendered against it — the result is reportable only.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "turbidity_visual_inspection",
+          "parameter_label": "Turbidity & Visual inspection",
+          "unit": null,
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "(blank)",
+          "qualifier_rule": null,
+          "source_page": 11,
+          "source_quote": "Table 1, row 'Turbidity & Visual inspection': the Specification limit cell is EMPTY in the published document. Verified by rendering page 11 at 190 dpi — the cell is genuinely blank, not a text-extraction loss. No limit, no inclusivity, and no acceptance criterion is stated, so nothing can be judged. Recorded so that the gap is visible rather than silently omitted; DM would have to close it.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "allergens",
+          "parameter_label": "Allergens (the 26 listed in Table 2)",
+          "unit": "%",
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "No maximum limit: allergens equal to or above the below limits should be indicated on the label (within the ingredients) as follow: — 0,001 % in leave-on products — 0,01 % in rinse-off products",
+          "qualifier_rule": "labelling_trigger",
+          "source_page": 11,
+          "source_quote": "Table 1, row 'Allergens', Specification limit column, verbatim: 'No maximum limit: allergens equal to or above the below limits should be indicated on the label (within the ingredients) as follow: — 0,001 % in leave-on products — 0,01 % in rinse-off products'. DELIBERATELY UNBOUNDED: the document states 'No maximum limit' in terms, so 0,001 %/0,01 % are LABELLING thresholds ('equal to or above' — inclusive at the threshold), not pass/fail limits. Loading them as min_val would make the resolver fail every product BELOW the threshold, which is the exact inversion scoping doc section 7.4 forbids. The numbers are preserved verbatim in `display` only. Note also the European decimal comma in the source.",
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No cadence. The laboratory test report is a dossier document submitted once per product registration, and the registration is then valid for 5 years (6-4). It is not a recurring sampling programme.",
+      "trigger_event": "application to register a fragrance product in the Montaji system (and re-application at the 5-year renewal)",
+      "applies_to": "The applicant: holder of a Commercial License with fragrance TRADING activity, an Industrial License with fragrance MANUFACTURING activity, a Tajer, Intelaq or E-Trader license (6-1).",
+      "source_quote": "Page 11, 7.5: 'Tests can be requested to ensure the safety and quality of the product applied. Table 1 summarizes the tests applicable for Fragrance products.' Page 10, 7: 'To proceed with registration of a fragrance product ... the product must fulfill all the below documents'. Page 9, 6-4: 'The registration of a Fragrance product shall be valid for 5 years as extension for renewal to be reviewed.'"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Precondition of market access, not a schedule.",
+      "trigger_event": "manufacture, import, export, advertisement, sale or distribution of a fragrance product in Dubai",
+      "applies_to": "Any party placing a fragrance product on the Dubai market",
+      "source_quote": "Page 7, section 6: 'It is necessary to emphasize that no fragrance product shall be manufactured, imported, exported, advertised, sold, or distributed in Dubai unless it has been registered in Montaji system in accordance with Dubai Municipality regulation.'"
+    },
+    {
+      "obligation_type": "examination",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Certificate held, not periodically renewed by this document; no validity period stated here.",
+      "trigger_event": "registration of a product manufactured inside the UAE (GMP) or outside the UAE (Free Sale Certificate)",
+      "applies_to": "The manufacturer (GMP/ISO 22716) or the government authority of the country of origin (FSC)",
+      "source_quote": "Page 10, 7.3: 'This certificate is mandatory only for products manufactured inside UAE ... the manufacturer should possess the ISO 22716 (GMP) certificate for the manufacturing of perfumes and fragrances scope.' Page 11, 7.4: 'This certificate is mandatory for all products manufactured outside the UAE ... should be attested by any government authority at the country of origin.'"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-triggered.",
+      "trigger_event": "any subsequent amendment in the particulars of the registration",
+      "applies_to": "The registration holder",
+      "source_quote": "Page 9, 6-3: 'After a Fragrance Product has been registered, any subsequent amendment in particulars of the application relating to the Fragrance must be notified or approved by the Registration and Permits Section.'"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-triggered enforcement action.",
+      "trigger_event": "product does not comply with health and safety requirements, or a recall is requested by DM or another authority",
+      "applies_to": "The registration holder / party placing on the market",
+      "source_quote": "Page 9, 6-6: 'The product recall & Withdrawal is promptly and efficiently retrieving Batch/ Bar Code of the product that does not comply with health and safety requirements ... Recalls & Withdrawal can be initiated at the request of the Dubai Municipality, or other relevant authorities to recall the product.'"
+    }
+  ],
+  "extraction_notes": {
+    "laboratory_independence": "GU117 requires an accredited laboratory but does not require DM accreditation specifically: 'All laboratory tests to be done by accredited laboratory either in the country of origin or from any accredited laboratories' (page 11), pointing at EIAC (UAE) and ILAC (worldwide). This is a materially WIDER laboratory universe than the FM modules, where DM accredits the labs and the set is closed (scoping doc section 7.8, decision 8). The `laboratories` registry in section 4.7 cannot gate this — any ILAC-accredited lab on earth qualifies.",
+    "table_2_render_only": "Table 2 (the 26 allergens with CAS numbers, page 12) is an EMBEDDED IMAGE. Text extraction of page 12 returns the heading 'Table 2 summarizes the 26 allergens found in fragrances' and then nothing — the entire table is invisible to text extraction. Confirmed by rendering. Exactly the failure mode scoping doc section 7.14 describes. The 26 substances are a reference list, not limits, so they are not encoded as spec_limits.",
+    "specification_limits_are_declared_volatile": "Page 11 carries a red note: '*Note: All the specification limit should be updated/revised as per the update in the regulation/standard'. The document therefore disclaims the currency of its own limit table, which interacts badly with the narrow-verified-catalogue rule (section 7.1) — the edition chain cannot tell us when Table 1 stopped being current.",
+    "applies_to_scope_problem": "'consumer_product' is used above and is NOT a permitted value: migration 022's CHECK allows only 'lagoon' and 'facilities'. These rows will be rejected by the database as written. See consumer_products_notes.md — widening the CHECK is a schema decision, not something to paper over by mislabelling a perfume as a 'facility'.",
+    "version_provenance": "V 2.0, issued 4th May 2024, superseding 06th Jan 2022 — read from the cover (page 1), the Document History Log (page 2) and every page footer. The upload path /uploads/2024/07/ is not an issue date."
+  }
+}

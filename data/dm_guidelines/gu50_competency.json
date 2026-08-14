@@ -1,0 +1,80 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU50-SHA2",
+    "guideline_no": 50,
+    "title": "Technical Guidelines for Safe Handling of Asbestos",
+    "version": "V 4.0",
+    "issued_on": "2024-04-30",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/01/DM-HSD-GU50-SHA2_-Technical-Guidelines-for-Safe-Handling-of-Asbestos_V5-26-04-2024.pdf",
+    "language": "en"
+  },
+  "module_kind": "process",
+  "notes": "VERSION CONFLICT — READ THIS BEFORE USING catalogue.json. The catalogue records version 'V.5' and the PDF filename ends '_V5-26-04-2024'. THE DOCUMENT ITSELF SAYS V 4.0, in three independent places: the cover page 'Version # V 4.0', the Document History Log (single row, 'V 4.0 / 30/04/2024 / New corporate template'), and the footer of every one of the 10 pages ('Version #: 4.0'). The stated issue date is 30/04/2024, not the 26/04/2024 in the filename, and the superseded issue date is 09/02/2022. This is exactly the section 7.12 trap ('never take version or a date from a filename'), and catalogue.json needs correcting: guideline_no 50 version should be V 4.0, not V.5. THE EXPECTATION THAT THIS DOCUMENT CARRIES EXPOSURE LIMITS IS WRONG. All 10 pages were rendered and read. GU50 states NO asbestos control limit, NO fibre concentration (no f/ml, no f/cc), NO air-monitoring or clearance-testing requirement, NO analytical method, and NO licensing, competency, training or certification requirement for anyone who removes, handles or disposes of asbestos. There is not one named competent-person role in the entire document. It is a list of 'should' precautions plus a PPE schedule, so module_kind = process: a report may claim that a stated procedure was followed and that the listed PPE was issued, and nothing more. The catalogue's evidence_type 'laboratory' for GU50 is not supported by the document and should be changed to 'process' or 'checklist'. CROSS-REFERENCE WARNING: page 5 says workers 'must be provided with and wear the personal protective equipment and clothing required for the job as required in Part 4'. The document has no 'Part 4'; its structure is sections 1-6, and PPE is at 4-5, not 4. The reference was not relied on. AMBIGUOUS CELL OMITTED (section 7.12 rule): page 6 reads 'Asbestos fiber or waste should always be double bagged in a minimum of 200 plastic bags.' As printed this is not a usable requirement — 200 bags per consignment is not a plausible reading and the figure is very likely a mangled material thickness (200 gauge / 200 micron polyethylene). It is therefore recorded in this note and deliberately NOT entered as a limit rather than guessed at. Only DM can resolve it.",
+  "competencies": [],
+  "limits": [],
+  "obligations": [
+    {
+      "obligation_type": "ppe_provision",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement, no interval and no inspection or replacement cadence stated.",
+      "trigger_event": null,
+      "applies_to": "All workers engaged in handling, use, transportation, disposal of asbestos fiber or any product containing asbestos in manufacturing, use, demolition, construction, disposal activities",
+      "source_quote": "All workers engaged in handling, use, transportation, disposal of asbestos fiber or any product containing asbestos in manufacturing, use, demolition, construction, disposal activities shall be provided with and use appropriate personal protective equipment. (p8) All workers shall be provided with the following personal protective equipment: Work coverall. Safety shoes. Goggles. Gloves. A helmet and earplug earmuff are required depending upon the nature of the operation. (p8-9)"
+    },
+    {
+      "obligation_type": "respiratory_protection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No fit-testing, face-fit, maintenance or replacement interval is stated. No respirator protection factor or filter class is specified beyond 'suitable for asbestos fiber filtration'.",
+      "trigger_event": null,
+      "applies_to": "Manufacturing industry; removal of sheets / dry solids containing asbestos; removal of insulation",
+      "source_quote": "Respiratory protection - Dust respirator/ dust mask suitable for asbestos fiber filtration. (p9, repeated for 4-5-2, 4-5-3 and 4-5-4)"
+    },
+    {
+      "obligation_type": "contaminated_clothing_segregation",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement. Note this is one of the few 'shall' obligations in the document.",
+      "trigger_event": null,
+      "applies_to": "Workers occupied in the collection, transport or disposal of asbestos waste",
+      "source_quote": "Contaminated protective clothing shall be segregated and cleaned separately. (p8)"
+    },
+    {
+      "obligation_type": "waste_covering_at_landfill",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Daily, expressed as an end-of-working-day condition rather than a periodic cadence.",
+      "trigger_event": "end of each working day",
+      "applies_to": "Asbestos waste deposited at a landfill site",
+      "source_quote": "No asbestos waste in the landfill site shall be left uncovered at the end of a working day. (p8)"
+    },
+    {
+      "obligation_type": "waste_disposal_route",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "disposal of asbestos cement sheets or dry solids",
+      "applies_to": "Asbestos cement sheets or dry solids",
+      "source_quote": "Asbestos cement sheets or dry solids are to be disposed of as landfill material at solid waste building materials disposal sites. (p8)"
+    },
+    {
+      "obligation_type": "bag_labelling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per bag. The approved label is not reproduced or referenced to a standard in the document.",
+      "trigger_event": "packing asbestos fibre or waste",
+      "applies_to": "All bags containing asbestos fibre or waste",
+      "source_quote": "All bags should be printed with an approved label identifying the contents as asbestos and carrying a health warning. (p6)"
+    },
+    {
+      "obligation_type": "double_bagging",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per consignment. See the notes field: the accompanying '200 plastic bags' figure is ambiguous as printed and was deliberately not encoded.",
+      "trigger_event": "packing asbestos fibre or waste; disposal of brake dust",
+      "applies_to": "Asbestos fibre or waste; brake dust",
+      "source_quote": "Asbestos fiber or waste should always be double bagged in a minimum of 200 plastic bags. Bags should be closed by either heat sealing or tape. (p6) Brake dust must be double bagged before disposal into the general waste stream. (p7)"
+    }
+  ]
+}

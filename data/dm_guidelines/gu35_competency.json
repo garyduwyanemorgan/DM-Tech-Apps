@@ -1,0 +1,333 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU35-URAS2",
+    "guideline_no": 35,
+    "title": "Technical Guidelines for Usage of Rope Access System",
+    "version": "V 5.0",
+    "issued_on": "2025-07-22",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/10/DM-HSD-GU35-URAS2_Technical-Guidelines-for-Usage-of-Rope-Access-System_V5.-22-07-2025.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "Version V 5.0 and issue date 22/07/2025 come from the cover page (p1), the history log (p2) and every page footer. The filename happens to agree this time, but it was NOT used as the source. Portal record date 2025-10-06 is a CMS date and is wrong. History log: V3.0 30/04/2024, V4.0 11/02/2025 ('Changes on certification titles, after 17020 audit by EIAC, on pages: 4, 11, 12'), V5.0 22/07/2025 ('Page 10: changes on certification requirements'). All 21 pages were rendered and read. module_kind = compliance on a NARROW basis: the document states two objectively checkable mandatory obligations with a stated interval — six-monthly EIAC-accredited third-party thorough inspection and certification of anchorages and of all other rope access system elements — and a mandatory requirement that technicians hold a valid accredited third-party certification. Presence and currency of those certificates is a fact, not a judgement. Most of the remainder of the document is 'should' guidance and cannot support a verdict; the resolver must be scoped to the certified-and-in-date items only. CROSS-REFERENCE WARNING (section 7.14 rule): the document contains at least two internal references that do not resolve. Page 14 says 'Refer to Section 5F for anchorage' — anchorage is section 4-6, and section 5 is 'References' with no sub-part F. Page 18 says 'each employee shall be trained and certified (Refer to Section C)' — the document has no Section C; its sections are numbered 1 to 6. Neither reference was followed or relied on. NO CERTIFICATE VALIDITY PERIOD IS STATED ANYWHERE in this document for any human competency. It requires certifications to be 'valid' and 'accredited third-party' but never says for how long. validity_months is null everywhere by observation, not by omission.",
+  "competencies": [
+    {
+      "role": "rope access manager (appointed person)",
+      "requirement": "The employer or company management shall appoint a competent person(s) that will be responsible for managing all aspects of rope access work. The appointed person(s) must posess the necessary experience, training and qualification in the type of work the company plans to undertake. Managers must have practical experience of various work methods wherein they are capable to define the most suitable safe system of work in the worksite.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "appointment by the employer / company management",
+      "source_page": 10,
+      "source_quote": "The employer or company management shall appoint a competent person(s) that will be responsible for managing all aspects of rope access work. The appointed person(s) must posess the necessary experience, training and qualification in the type of work the company plans to undertake.",
+      "confidence": "high"
+    },
+    {
+      "role": "rope access supervisor",
+      "requirement": "Trained and holding a valid certification. Supervisors should be fully conversant with the access techniques required for each job and should be aware of any limitations of those techniques, should be competent in rescue techniques for both general and specific situations, must have the appropriate interpersonal skills, must be able to plan for and carry out any necessary rescue, must have experience of and competence in worksite and personnel supervision, must have adequate knowledge on OHS and applicable legislations related to rope access systems, and should not be suffering from height phobia (acrophobia).",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "every work site shall be properly and adequately supervised",
+      "source_page": 10,
+      "source_quote": "In addition the supervisor shall have the following skills: • Trained and holding a valid certification (p10, continuing to p11)",
+      "confidence": "high"
+    },
+    {
+      "role": "rope access supervisor — first aid",
+      "requirement": "In possession of valid first aid at work certification.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": null,
+      "source_page": 11,
+      "source_quote": "In possession of valid first aid at work certification;",
+      "confidence": "high"
+    },
+    {
+      "role": "rope access technician (worker)",
+      "requirement": "Rope access technicians shall ensure that they are holding a valid accredited third-party certification and must have the following mimimum level of practical skills needed to conduct rope access work: controlled descent; use of back-up system; short ascent; change from one rope to another; knots, elementary safe rigging, rope management; selection of safe anchor points; equipment cares and pre-use checks; safety of third parties; elementary rescue. Before starting any rope acess job, all technicians shall be competent to properly inspect access equipment before every use; understand all risks arising from the access method and work task; use all access techniques required by a worksite.",
+      "issuing_body": "an accredited third party (the document says 'accredited third-party certification' but does NOT name the accreditation body for the technician certificate; EIAC is named only for equipment and anchorage inspection, not for the person's certificate)",
+      "validity_months": null,
+      "renewal_requirement": "If access techniques have not been used by the technician for more than six months, refresher training must be carried out and the technician should receive a higher level of supervision until they have become accustomed again to this type of work.",
+      "trigger_event": null,
+      "source_page": 11,
+      "source_quote": "Rope access technicians shall ensure that they are holding a valid accredited third-party certification and must have the following mimimum level of practical skills needed to conduct rope access work:",
+      "confidence": "high"
+    },
+    {
+      "role": "rope access technician — medical fitness",
+      "requirement": "The technician is required to undergo regular medical examination to ensure physical fitness and ensure that the worker is not suffering from height phobia (acrophobia). Personnel should be physically fit and in good health and should, generally, not have the following medical conditions/impairment: heart disease/chest pain; high blood pressure; epilepsy, fits, blackouts; fear of heights/vertigo; giddiness/difficulty with balance; impaired limb function; alcohol or drug dependence; psychiatric illness/undergoing counselling; diabetes.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": "'regular medical examination' — NO interval is stated. Do not infer one.",
+      "trigger_event": null,
+      "source_page": 11,
+      "source_quote": "The technician is required to undergo regular medical examination to ensure physical fitness and ensure that the worker is not suffering from height phobia (acrophobia).",
+      "confidence": "high"
+    },
+    {
+      "role": "aid-climbing technician",
+      "requirement": "Ensure technicians involved in aid climbing are specifically trained and qualified, following a thorough risk assessment. Appropriate access, rescue plans and equipment should be provided.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "work involving aid climbing",
+      "source_page": 15,
+      "source_quote": "Ensure technicians involved in aid climbing are specifically trained and qualified, following a thorough risk assessment. Appropriate access, rescue plans and equipment should be provided.",
+      "confidence": "high"
+    },
+    {
+      "role": "competent person — risk assessment",
+      "requirement": "Hazard identification and Risk Assessment shall be conducted and recorded by a competent person(s) and appropriate knowledge of the work activity.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "before conducting any work at height",
+      "source_page": 9,
+      "source_quote": "Hazard identification and Risk Assessment shall be conducted and recorded by a competent person(s) and appropriate knowledge of the work activity.",
+      "confidence": "high"
+    },
+    {
+      "role": "competent person — pre-use inspection of the rope access system",
+      "requirement": "Ensure that a competent person visually inspects the rope access system before each use and should continue during the course of the job. In addition, as best practice, pre-use testing and inspection of anchorages shall be conducted by an in-house competent person.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "before each use and during the course of the job",
+      "source_page": 19,
+      "source_quote": "Ensure that a competent person visually inspects the rope access system before each use and should continue during the course of the job.",
+      "confidence": "high"
+    },
+    {
+      "role": "EIAC-accredited third party inspector (equipment and anchorage)",
+      "requirement": "Permanent anchorage (e.g., chemical resin/mechanical anchor bolts) shall be thoroughly inspected and certified by Emirates International Accreditation Center (EIAC) accredited third party company upon initial installation, once every six months, or modification. All other elements of rope access system (e.g., harnesses, karabiners, slings, etc.) shall be thoroughly inspected and certified by an EIAC accredited third party company at least once every six months depending on the frequency of use or severity of wear.",
+      "issuing_body": "Emirates International Accreditation Center (EIAC) accredited third party company",
+      "validity_months": null,
+      "renewal_requirement": "Re-inspection and re-certification at least once every six months; also on initial installation and after modification.",
+      "trigger_event": "initial installation; modification; six-monthly",
+      "source_page": 13,
+      "source_quote": "Permanent anchorage (e.g., chemical resin/mechanical anchor bolts) shall be thoroughly inspected and certified by Emirates International Accreditation Center (EIAC) accredited third party company upon initial installation, once every six months, or modification. (p13) ... All other elements of rope access system (e.g., harnesses, karabiners, slings, etc.) shall be thoroughly inspected and certified by an Emirates International Accreditation Center (EIAC) accredited third party company at least once every six months depending on the frequency of use or severity of wear. (p14)",
+      "confidence": "high"
+    },
+    {
+      "role": "first aiders and fire wardens",
+      "requirement": "The organization shall maintain adequate number of first aiders and fire warders as referenced in respective requirements of Dubai Corporation of Ambulance Services (DCAS) and Dubai Civil Defense (DCD).",
+      "issuing_body": "Dubai Corporation of Ambulance Services (DCAS) and Dubai Civil Defense (DCD) — DELEGATED, the numbers live in those bodies' requirements, not in GU35",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": null,
+      "source_page": 19,
+      "source_quote": "The organization shall maintain adequate number of first aiders and fire warders as referenced in respective requirements of Dubai Corporation of Ambulance Services (DCAS) and Dubai Civil Defense (DCD).",
+      "confidence": "high"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "rope_access_technician_min_age",
+      "parameter_label": "Minimum age of a rope access technician",
+      "unit": "years",
+      "min_val": 18.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "at least 18 years of age",
+      "qualifier_rule": "min",
+      "source_page": 11,
+      "source_quote": "Rope access technician should be at least 18 years of age and normally with a maximum weight of 100 kg.",
+      "note": "'at least' is INCLUSIVE. Note the governing verb is 'should', not 'shall'.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "rope_access_technician_max_weight",
+      "parameter_label": "Maximum weight of a rope access technician",
+      "unit": "kg",
+      "min_val": null,
+      "max_val": 100.0,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "normally with a maximum weight of 100 kg",
+      "qualifier_rule": "max",
+      "source_page": 11,
+      "source_quote": "Rope access technician should be at least 18 years of age and normally with a maximum weight of 100 kg.",
+      "note": "'maximum weight of 100 kg' is INCLUSIVE at 100 kg. HEAVILY QUALIFIED: the sentence says 'should' and 'normally', so exceeding it is not automatically non-compliant. Must not drive a hard verdict.",
+      "confidence": "medium"
+    },
+    {
+      "parameter_key": "rope_access_rope_diameter",
+      "parameter_label": "Diameter of kernmantle semi-static rope for rope access",
+      "unit": "mm",
+      "min_val": 10.5,
+      "max_val": 11.5,
+      "min_inclusive": null,
+      "max_inclusive": null,
+      "display": "of a diameter between 10.5 mm and 11.5 mm, in accordance with EN 1891",
+      "qualifier_rule": "bound",
+      "source_page": 13,
+      "source_quote": "Rope should be of kernmantle construction, semi-static (low stretch) type, of a diameter between 10.5 mm and 11.5 mm, in accordance with EN 1891.",
+      "note": "INCLUSIVITY DELIBERATELY NULL. The document's glyph is the word 'between' with no inequality sign and no 'inclusive'/'to and including' wording, so whether a rope of exactly 10.5 mm or exactly 11.5 mm complies cannot be read off the source. Section 7.12 rule: a guessed operator is a confident wrong verdict. Note this file's treatment differs from gu133_limits.json, which recorded a 'between 1-2 ppm' range as inclusive both ends; that earlier call was a reading, not a stated glyph, and is flagged in competency_group_notes.md. Governing verb is 'should'. The underlying diameter authority is EN 1891 (external).",
+      "confidence": "medium"
+    },
+    {
+      "parameter_key": "rope_access_anchor_strength",
+      "parameter_label": "Minimum anchor point strength cited for rope access anchorage",
+      "unit": "kN",
+      "min_val": 15.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "IRATA Requirement – 15 KN minimum",
+      "qualifier_rule": "min",
+      "source_page": 14,
+      "source_quote": "Rope access system shall always be securely attached to at least two independently anchored systems and each anchor point, and the means of attachment thereto is suitable and of sufficient strength and stability for the purpose of supporting any foreseeable loading (e.g., reference BS 8610, BS EN 795, IRATA Requirement – 15 KN minimum). Refer to Section 5F for anchorage.",
+      "note": "DELEGATED, NOT DM-SET. The 15 kN figure is printed inside an 'e.g., reference ...' parenthesis attributing it to IRATA, alongside BS 8610 and BS EN 795. GU35 itself sets no anchor strength; it points at external standards. 'minimum' is INCLUSIVE. Do not sell this as a DM limit. The same sentence carries the broken cross-reference 'Section 5F', which does not exist in this document.",
+      "confidence": "medium"
+    },
+    {
+      "parameter_key": "rope_access_anchor_count",
+      "parameter_label": "Minimum number of independently anchored systems",
+      "unit": "count",
+      "min_val": 2.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "at least two independently anchored systems",
+      "qualifier_rule": "min",
+      "source_page": 14,
+      "source_quote": "Rope access system shall always be securely attached to at least two independently anchored systems and each anchor point...",
+      "note": "'at least two' is INCLUSIVE. Governing verb is 'shall always', so this one is a hard requirement.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "rope_access_wind_speed_stop",
+      "parameter_label": "Wind speed at which rope access activities must be reviewed and/or postponed",
+      "unit": "km/h",
+      "min_val": null,
+      "max_val": 25.0,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "reviewed and/or postponed if the wind speed exceeds continued 25 km/h",
+      "qualifier_rule": "max",
+      "source_page": 15,
+      "source_quote": "Ensure that a calibrated anemometer is available on-site, and all rope access activities shall be reviewed and/or postponed if the wind speed exceeds continued 25 km/h or gusting and local eddies exist. (sentence begins p15, completes p16)",
+      "note": "Glyph is the word 'exceeds', so 25 km/h itself does NOT trigger — the maximum permitted is 25 km/h INCLUSIVE and the trigger is above it. The consequence is 'reviewed AND/OR postponed', not an absolute prohibition, so exceeding it is not automatically non-compliant; it obliges a documented review. Also triggers independently on gusting and local eddies with no numeric threshold. Sentence spans a page break — both halves were read.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "rope_access_haul_rope_item_mass",
+      "parameter_label": "Mass above which a work item must be suspended on an additional haul rope",
+      "unit": "kg",
+      "min_val": 8.0,
+      "max_val": null,
+      "min_inclusive": false,
+      "max_inclusive": null,
+      "display": "large items (over 8 kg) should be suspended on an additional haul rope",
+      "qualifier_rule": "trigger",
+      "source_page": 15,
+      "source_quote": "All items must be attached to avoid falling and large items (over 8 kg) should be suspended on an additional haul rope. Tool bags or pouches may be appropriate for some work. (sentence begins p14, completes p15)",
+      "note": "'over 8 kg' is EXCLUSIVE — exactly 8 kg does not trigger the haul rope requirement. This is a trigger threshold, not an acceptance limit. Governing verb is 'should'.",
+      "confidence": "high"
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "third_party_examination_anchorage",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "'once every six months' for permanent anchorage; 'at least once every six months' for all other rope access system elements, 'depending on the frequency of use or severity of wear' — so six months is a ceiling, not a fixed period. Also required on initial installation and after modification.",
+      "trigger_event": "initial installation; modification",
+      "applies_to": "Permanent anchorage (chemical resin / mechanical anchor bolts) and all other elements of the rope access system (harnesses, karabiners, slings etc.)",
+      "source_quote": "Permanent anchorage (e.g., chemical resin/mechanical anchor bolts) shall be thoroughly inspected and certified by Emirates International Accreditation Center (EIAC) accredited third party company upon initial installation, once every six months, or modification. (p13); All anchorages shall be thoroughly inspected and certified by Emirates International Accreditation Center (EIAC) accredited third party company at least once every six months, upon installation, modification, etc. (p16)"
+    },
+    {
+      "obligation_type": "refresher_training",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Not periodic. Triggered by six months of non-use of the access techniques, not by elapsed time since training.",
+      "trigger_event": "access techniques not used by the technician for more than six months",
+      "applies_to": "Rope access technicians",
+      "source_quote": "Note: If access techniques have not been used by the technician for more than six months, refresher training must be carried out and the technician should receive a higher level of supervision until they have become accustomed again to this type of work. (p18)"
+    },
+    {
+      "obligation_type": "training_record_retention",
+      "cadence_months": 60,
+      "cadence_days": null,
+      "cadence_note": "Retention period, not a recurrence: records must be KEPT for at least five (5) years, inclusive minimum.",
+      "trigger_event": null,
+      "applies_to": "Records of any training including induction and toolbox talks",
+      "source_quote": "Records of any training including induction and toolbox talks shall be properly kept for at least five (5) years and be made readily available to Dubai Municipality OHS inspectors and other regulatory agencies for review and demonstrate compliance with pertinent UAE and DM regulations. (p18)"
+    },
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No interval stated. Supervisors shall monitor the work and provide advice for the review and revision of the risk assessments and SSW as the work progresses.",
+      "trigger_event": "before conducting any work at height",
+      "applies_to": "The employer, for all establishments using rope access systems in the Emirate of Dubai",
+      "source_quote": "Before conducting any work at height, the employer shall conduct a thorough hazard identification and risk assessment to establish whether rope access is an appropriate method for the work. (p8)"
+    },
+    {
+      "obligation_type": "safe_system_of_work",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing document, no interval stated.",
+      "trigger_event": null,
+      "applies_to": "All establishments using rope access systems",
+      "source_quote": "Based on the conducted risk assessment, a safe system of work (SSW) should be established and followed to ensure that rope access operations can be carried out safely. Key elements of the SSW should be written down. (p9)"
+    },
+    {
+      "obligation_type": "pre_use_inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per use, plus continuing during the job. Documented inspection procedure shall be available and all inspection conducted shall be recorded.",
+      "trigger_event": "before each use of the rope access system",
+      "applies_to": "Rope access system and its accessories",
+      "source_quote": "Ensure that a competent person visually inspects the rope access system before each use and should continue during the course of the job. (p19) Documented inspection procedure shall be available and all inspection conducted shall be recorded. (p19)"
+    },
+    {
+      "obligation_type": "emergency_drill",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'periodic' and 'from time to time' — NO numeric interval is stated. Do not infer one.",
+      "trigger_event": null,
+      "applies_to": "Persons who have on-site responsibility for the rescue of a trapped person; work teams",
+      "source_quote": "Ensure to conduct periodic emergency drills including rescue for persons who have on-site responsibility for the rescue of a trapped person. (p19) ... In any case, work teams should practice rescue techniques from time to time. (p18)"
+    },
+    {
+      "obligation_type": "rescue_plan",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per worksite.",
+      "trigger_event": "each worksite where rope access work is carried out",
+      "applies_to": "All rope access worksites",
+      "source_quote": "There should be a specific rescue plan for each worksite, with on-site practice if appropriate. (p18)"
+    },
+    {
+      "obligation_type": "medical_examination",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'regular medical examination' — NO interval stated. Recording a number here would be invention.",
+      "trigger_event": null,
+      "applies_to": "Rope access technicians",
+      "source_quote": "The technician is required to undergo regular medical examination to ensure physical fitness and ensure that the worker is not suffering from height phobia (acrophobia). (p11)"
+    },
+    {
+      "obligation_type": "record_availability_to_inspector",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "On demand.",
+      "trigger_event": "request by a DM OHS inspector",
+      "applies_to": "Operating manuals, inspection records, third party testing, maintenance records",
+      "source_quote": "All related documents such as operating manuals, inspection, third party testing, maintenance, etc. shall be properly kept and be made available to DM OHS inspectors when requested. (p16)"
+    },
+    {
+      "obligation_type": "subcontractor_verification",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "employing subcontracted rope access technicians",
+      "applies_to": "Cleaning companies employing subcontracted rope access technicians",
+      "source_quote": "Where cleaning companies employ subcontracted rope access technicians, they must confirm that the subcontractor carries out the above inspection and examination requirements to ensure that all equipment used is fit for purpose and in good condition. (p20)"
+    }
+  ]
+}

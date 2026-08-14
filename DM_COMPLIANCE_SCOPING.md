@@ -205,6 +205,22 @@ the existing `core/corrective.py` machine.
 > in the registry never becoming due, which is the silent-gap failure this table
 > exists to eliminate.
 >
+> **The `obligation_type` vocabulary is far too narrow, and real documents prove
+> it.** §4.3 lists four types — sampling, examination, inspection, competency —
+> derived from GU44's shape. Loading the extracted corpus against migration 023
+> refused 25 obligations, most of them because the document requires something
+> outside that list: `cleaning`, `deep_cleaning`, `disinfection`, `pest_control`,
+> `waste_removal`, `maintenance`, `permit_renewal`, `health_screening`,
+> `isolation_and_notification`, `noise_control`, `reporting`, `self_inspection`,
+> `appeal_window`. These are not exotic — they are what an FM contractor is
+> actually on the hook for, and several are the recurring duties a client would
+> most expect the product to track.
+>
+> Widen the vocabulary before Phase 1 closes. Note also that many carry their
+> trigger as prose in `cadence_note` rather than as a `trigger_event`, and that
+> prose must be promoted by a human rather than parsed — a mis-parsed trigger
+> produces a compliance deadline nobody agreed to.
+>
 > Add `trigger_event TEXT` and make the model explicit that an obligation is
 > *either* periodic *or* event-triggered, with a CHECK that exactly one is set —
 > the same both-or-neither discipline 022 applies to verification provenance.
@@ -428,16 +444,27 @@ seeder reads it directly.
 >   the ten parameters; `Chemistry.tsx:69-78` judges eight, silently omitting
 >   E. coli and total coliforms. A parameter that is never judged agrees with
 >   everything.
-> - **The verdict string, and a live defect behind it.** `compliance_summary`
->   emits `NON-COMPLIANT` where the lab path and database use `NON_COMPLIANT`,
->   papered over by a substring check in `status.ts:52-53`. That bridge is fragile
->   in both directions, and one of them is already broken: **an `INCOMPLETE`
->   certificate contains no `NON` and no failing parameters, so it currently
->   renders green.** An unassessed certificate is displaying as compliant, today,
->   independently of the strictness question — the §7.4 confident-wrong-answer
->   failure arriving through the UI rather than the resolver. `INCOMPLETE` needs
->   its own light. This is the cheapest fix in the whole consolidation and the one
->   with the highest consequence, so do it first.
+> - **The verdict string, and the trap behind it — now fixed.**
+>   `compliance_summary` emits `NON-COMPLIANT` where the lab path and database use
+>   `NON_COMPLIANT`, and `status.ts` bridged the two with a `.includes('NON')`
+>   substring test. That bridge failed in the dangerous direction: any status
+>   outside the vocabulary — `INCOMPLETE`, `NOT_ASSESSED`, an unrecognised value,
+>   or an absent one — contains no `NON` and no failing parameters, and so fell
+>   through to **green**.
+>
+>   **Corrected scope, verified rather than assumed:** this was *latent*, not a
+>   live miscolouring. `readings[].compliance` is fed only by
+>   `compliance_summary`, which emits just the two verdicts; certificates carrying
+>   `INCOMPLETE` travel in a separate array that `ComplianceReport.tsx` and
+>   `Monitoring.tsx` already render amber correctly. So the defect was armed and
+>   one producer change away from firing — which is exactly what landing
+>   `core/specs.py` would have done, since it emits `NOT_ASSESSED`.
+>
+>   Fixed by normalising both spellings to one canonical verdict at a single
+>   boundary and giving unjudged results their own grey light. Green is now
+>   reachable only on an explicit `COMPLIANT`. Confirmed against the old
+>   implementation over a 24-case table: every transition is green → grey, with no
+>   green↔red movement and no case newly rendering green.
 >
 > Step 2 is therefore a consolidation, not a swap. Sequence it as: land the
 > resolver, prove parity against `check_compliance` over a value grid for all ten

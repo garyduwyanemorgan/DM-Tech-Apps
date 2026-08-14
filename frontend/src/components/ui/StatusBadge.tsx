@@ -9,7 +9,6 @@
 // `variant="count"` renders the smaller dot-less pill ("To-do 13").
 import React from 'react'
 import { LIGHT_STYLE, type TrafficLight } from '../../lib/status'
-import { COLORS } from '../../lib/tokens'
 
 export type BadgeTone = 'green' | 'amber' | 'red' | 'slate' | 'blue'
 
@@ -18,11 +17,11 @@ const TONE_STYLE: Record<BadgeTone, { bg: string; fg: string; dot: string }> = {
   amber: { bg: LIGHT_STYLE.yellow.bg, fg: LIGHT_STYLE.yellow.color, dot: LIGHT_STYLE.yellow.dot },
   red: { bg: LIGHT_STYLE.red.bg, fg: LIGHT_STYLE.red.color, dot: LIGHT_STYLE.red.dot },
   blue: { bg: LIGHT_STYLE.blue.bg, fg: LIGHT_STYLE.blue.color, dot: LIGHT_STYLE.blue.dot },
-  slate: { bg: '#f1f5f9', fg: COLORS.slate, dot: COLORS.slateLight },
+  slate: { bg: LIGHT_STYLE.grey.bg, fg: LIGHT_STYLE.grey.color, dot: LIGHT_STYLE.grey.dot },
 }
 
 const STATUS_TONE: Record<TrafficLight, BadgeTone> = {
-  green: 'green', yellow: 'amber', red: 'red', blue: 'blue',
+  green: 'green', yellow: 'amber', red: 'red', blue: 'blue', grey: 'slate',
 }
 
 interface BaseProps {

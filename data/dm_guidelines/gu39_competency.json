@@ -1,0 +1,164 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU39-CSE2",
+    "guideline_no": 39,
+    "title": "Technical Guidelines for Confined Spaces Entry",
+    "version": "V 3.0",
+    "issued_on": "2024-04-30",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/01/DM-HSD-GU39-CSE2_Technical-Guidelines-for-Confined-Spaces-Entry_V3-26-04-2024.pdf",
+    "language": "en"
+  },
+  "module_kind": "process",
+  "notes": "Version 'V 3.0' and issue date 30/04/2024 are taken from the document cover page (p1) and the repeated page footers, NOT from the filename (which ends '_V3-26-04-2024' — the 26/04/2024 in the filename is NOT the issue date the document states) and not from the portal record date 2025-01-30. Superseded issue date stated as 22/12/2019. The whole document is 7 pages: cover, history log, contents, purpose/scope, definitions + guidelines 1-7, guidelines 8-25, references. Every page was rendered and read; nothing was skipped. The document names competent/trained roles but defines NO certification body, NO qualification, and NO validity period for any of them.",
+  "competencies": [
+    {
+      "role": "gas tester (atmosphere testing before entry)",
+      "requirement": "The confined space must be ventilated, tested, and certified to ensure that the air free from both toxic and flammable vapors and to note any decrease in the level of oxygen in the atmosphere. Testing should be carried out by a competent person using a suitable gas detector witch correctly calibrated.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "before entry into a confined space",
+      "source_page": 5,
+      "source_quote": "6. The confined space must be ventilated, tested, and certified to ensure that the air free from both toxic and flammable vapors and to note any decrease in the level of oxygen in the atmosphere. Testing should be carried out by a competent person using a suitable gas detector witch correctly calibrated.",
+      "confidence": "high"
+    },
+    {
+      "role": "trained gas tester (testing during the work)",
+      "requirement": "Gas test of atmosphere shall be done before and during the progress of the work by a trained gas tester, at the level where work is required.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "before entry and continuously during the progress of the work",
+      "source_page": 6,
+      "source_quote": "12. Gas test of atmosphere shall be done before and during the progress of the work by a trained gas tester, at the level where work is required.",
+      "confidence": "high"
+    },
+    {
+      "role": "responsible supervisor of confined space work",
+      "requirement": "Adequate control and supervision of the work in confined space shall be maintained by responsible supervisor, in addition to buddy system.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "for the duration of confined space work",
+      "source_page": 6,
+      "source_quote": "9. Adequate control and supervision of the work in confined space shall be maintained by responsible supervisor, in addition to buddy system.",
+      "confidence": "high"
+    },
+    {
+      "role": "standby person / attendant outside the space",
+      "requirement": "Persons entering a confined space must wear safety harness/ safety belt with a lifeline and a second person as standby outside on duty should assist him in case of emergency.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "whenever a person is inside the confined space",
+      "source_page": 6,
+      "source_quote": "14. Persons entering a confined space must wear safety harness/ safety belt with a lifeline and a second person as standby outside on duty should assist him in case of emergency.",
+      "confidence": "high"
+    },
+    {
+      "role": "confined space entrant (worker)",
+      "requirement": "Workers must be properly trained and well equipped to recognize, understand, and control the hazards they could encounter; the permit to work content 'should be clearly understood and followed by the workers'. No specific training standard, syllabus, examining body or refresher period is stated.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": null,
+      "source_page": 4,
+      "source_quote": "Prevention of injuries to the life and health of workers requires that they are properly trained and well equipped to recognize, understand, and control the hazards they could encounter.",
+      "confidence": "medium"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "confined_space_manhole_min_dimension",
+      "parameter_label": "Minimum manhole / means of egress opening for vessels, tanks etc.",
+      "unit": "mm",
+      "min_val": null,
+      "max_val": null,
+      "min_inclusive": null,
+      "max_inclusive": null,
+      "display": "not less than 450 mm x 407 mm, or 457 mm diameter",
+      "qualifier_rule": "min",
+      "source_page": 5,
+      "source_quote": "3. The confined space shall, have adequate means of getting out. The design of vessels, tanks etc. shall take care of manhole which may be rectangular, oval, or circular in shape and be not less than 450 mm x 407 mm or 457 mm diameter.",
+      "note": "This is a two-dimensional / diameter requirement, not a single scalar, so min_val is deliberately left null rather than forced into one number. 'not less than' is INCLUSIVE, so an opening of exactly 450 x 407 mm, or exactly 457 mm diameter, complies. Rectangular/oval openings take the 450 x 407 mm form; circular openings take the 457 mm diameter form. This is an equipment design specification, not an exposure limit.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "confined_space_portable_electrical_voltage",
+      "parameter_label": "Maximum voltage of portable electric light or appliance used inside a confined space (without earth leakage protection and full isolation)",
+      "unit": "V",
+      "min_val": null,
+      "max_val": 24.0,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "voltage not exceeding 24 volts",
+      "qualifier_rule": "max",
+      "source_page": 6,
+      "source_quote": "16. No portable electric light or any other electric appliance of voltage exceeding 24 volts shall be permitted for use inside any chamber, tank, vat, pit, pipe, flue, or any other confined space unless earth leakage protection device is provided and full isolation to the electrical connections.",
+      "note": "Glyph is the words 'exceeding 24 volts' in a prohibition, i.e. 24 V itself is permitted — INCLUSIVE maximum. The limit is conditional: above 24 V is permitted IF an earth leakage protection device is provided and the electrical connections are fully isolated, so a reading above 24 V is not automatically non-compliant.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "confined_space_scope_depth_trigger",
+      "parameter_label": "Depth above which a bin, silo, pit, vat, tub, vault, vessel or tank counts as a confined space",
+      "unit": "ft",
+      "min_val": 4.0,
+      "max_val": null,
+      "min_inclusive": false,
+      "max_inclusive": null,
+      "display": "more than 4 feet in depth",
+      "qualifier_rule": "scope_trigger",
+      "source_page": 4,
+      "source_quote": "Bins, silos, pits, vats, tubs, vaults, vessels, or tanks of more than 4 feet in depth.",
+      "note": "SCOPE TRIGGER, NOT AN ACCEPTANCE LIMIT. It decides whether the guideline applies to a structure; it never produces a compliant/non-compliant verdict. 'more than' is EXCLUSIVE, so exactly 4 feet does not by itself bring a pit into this bullet — though the list is explicitly non-exhaustive ('may include but is not limited to'), so a shallower space can still be a confined space under the general definition. Unit is imperial in the source and is recorded as printed; it was not converted.",
+      "confidence": "high"
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "permit_to_work",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per entry, not periodic. No expiry or maximum duration is stated for the permit.",
+      "trigger_event": "every entry into a confined space",
+      "applies_to": "All establishments in the Emirate of Dubai whose work includes working in confined space",
+      "source_quote": "7. Entry into confined space shall be controlled by a permit to work system specifying the description of work, possible hazards, personal protection required, tools and equipment to be used, gas monitoring, isolations, preparation of confined space and all other safety precautions and it should be clearly understood and followed by the workers. (p5)"
+    },
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No review interval stated.",
+      "trigger_event": "before entry into a confined space is considered",
+      "applies_to": "All establishments whose work includes working in confined space",
+      "source_quote": "2. Entry into a confined space for any purpose should only be considered when all reasonably practicable steps have been taken Risk assessment, Emergency plan and required precautions. (p5)"
+    },
+    {
+      "obligation_type": "atmosphere_test_and_certification",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Before entry AND continuously during the progress of the work. No numeric frequency for the 'during' testing is given.",
+      "trigger_event": "before entry and during the work",
+      "applies_to": "Every confined space to be entered",
+      "source_quote": "6. The confined space must be ventilated, tested, and certified... (p5) 12. Gas test of atmosphere shall be done before and during the progress of the work by a trained gas tester, at the level where work is required. (p6)"
+    },
+    {
+      "obligation_type": "emergency_and_rescue_procedure",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement, no cadence stated.",
+      "trigger_event": null,
+      "applies_to": "All establishments whose work includes working in confined space",
+      "source_quote": "24. Rescue and emergency procedures must be established. 25. Confined space entry procedures shall be developed and followed strictly. (p6)"
+    },
+    {
+      "obligation_type": "gas_detector_calibration",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "The document requires the detector be 'correctly calibrated' but states NO calibration interval and NO calibrating body. Do not infer one.",
+      "trigger_event": null,
+      "applies_to": "Gas detectors used for confined space atmosphere testing",
+      "source_quote": "Testing should be carried out by a competent person using a suitable gas detector witch correctly calibrated. (p5, item 6)"
+    }
+  ]
+}
