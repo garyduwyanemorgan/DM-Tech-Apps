@@ -1,0 +1,119 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU48-ECLA2",
+    "guideline_no": 48,
+    "title": "Technical Guidelines for Examination and Certification of Cranes, Hoists, Lifts and Other Lifting Equipment",
+    "version": "V 5.0",
+    "issued_on": "2025-01-29",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/02/DM-HSD-GU48-ECLA2_Technical-Guidelines-for-Examination-and-Certification-of-Cranes-Hoists-Lifts-and-Other-Lifting-Equipment_V5.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "module_kind = compliance per section 7.12: requirement 1 states a binding, objectively checkable obligation with a stated interval ('shall be tested and certified by a third party accredited by EIAC once every 12 months'). Presence and currency of an EIAC third-party certificate is a fact, not a judgement, so a report may legitimately claim COMPLIANT / NON-COMPLIANT. Issue date 29/01/2025 and version V 5.0 are taken from the document cover page and page footers, not the filename or portal record date (portal_document_date 2025-02-17 is a CMS date). Document also records superseded issue date 09/05/2024 (V 4.0). The document states NO certificate validity period anywhere; certificate_validity_months is therefore left null rather than inferred from the 12-month test interval (rule 3).",
+  "subjects": [
+    {
+      "asset_type": "crane",
+      "description": "Industrial machines equipped with hoists, chains, or cables, used for lifting, lowering, and moving heavy materials or objects within a construction site, manufacturing facility, or other industrial settings. Includes overhead cranes, tower cranes and mobile cranes.",
+      "source_page": 4,
+      "source_quote": "Industrial machines equipped with hoists, chains, or cables, used for lifting, lowering, and moving heavy materials or objects within a construction site, manufacturing facility, or other industrial settings. Cranes come in several types, including overhead cranes, tower cranes, and mobile cranes, each serving specific purposes based on the intended application"
+    },
+    {
+      "asset_type": "hoist",
+      "description": "Mechanized lifting devices designed to raise or lower heavy objects vertically, consisting of a drum or pulley system around which a chain or wire rope is wound.",
+      "source_page": 4,
+      "source_quote": "Mechanized lifting devices designed to raise or lower heavy objects vertically. Hoists typically consist of a drum or pulley system around which a chain or wire rope is wound, allowing for controlled lifting, and lowering operations."
+    },
+    {
+      "asset_type": "lift",
+      "description": "Industrial machinery used for vertically transporting people, goods, or materials between levels within a building or structure; includes passenger lifts, goods lifts and platform lifts.",
+      "source_page": 5,
+      "source_quote": "Industrial machinery used for vertically transporting people, goods, or materials between various levels within a building or structure. Lifts, also known as elevators, come in various configurations, including passenger lifts, goods lifts, and platform lifts"
+    },
+    {
+      "asset_type": "lifting equipment and gear",
+      "description": "Lifting equipment and gears used in factories, construction sites, hotels and other workplaces. Named in the requirement clause rather than the definitions section.",
+      "source_page": 5,
+      "source_quote": "Cranes, hoists, lifts, lifting equipment and gears, forklifts, etc. used in factories, construction sites, hotels, and other workplaces shall be tested and certified"
+    },
+    {
+      "asset_type": "forklift",
+      "description": "Forklifts are named inside GU48's requirement 1 as well as being the subject of GU146. GU48 therefore imposes the 12-month third-party test on forklifts independently of GU146.",
+      "source_page": 5,
+      "source_quote": "Cranes, hoists, lifts, lifting equipment and gears, forklifts, etc. used in factories, construction sites, hotels, and other workplaces shall be tested and certified by a third party accredited by Emirates International Accreditation Center (EIAC) once every 12 months."
+    },
+    {
+      "asset_type": "cradle",
+      "description": "Named only in requirement 10 (operator certification), not in requirement 1. Recorded for completeness of asset scope.",
+      "source_page": 6,
+      "source_quote": "Operators of lifting equipment such as cranes, hoists, forklifts, cradles, etc."
+    }
+  ],
+  "examinations": [
+    {
+      "examination_type": "test",
+      "applies_to": "Cranes, hoists, lifts, lifting equipment and gears, forklifts, etc. used in factories, construction sites, hotels, and other workplaces",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "Interval is explicit. The document states no certificate validity period, so certificate_validity_months is null; do not infer 12 months from the test interval.",
+      "trigger_event": null,
+      "examiner_competence": "A third party accredited by Emirates International Accreditation Center (EIAC). Only technically qualified and experienced persons by EIAC shall examine, test and certify. The company/competent person seeking accreditation must hold a Trade License issued by the Dubai Economic Department, hold professional liability insurance coverage, and meet any other requirements issued by the centre.",
+      "certificate_validity_months": null,
+      "source_page": 5,
+      "source_quote": "1- Cranes, hoists, lifts, lifting equipment and gears, forklifts, etc. used in factories, construction sites, hotels, and other workplaces shall be tested and certified by a third party accredited by Emirates International Accreditation Center (EIAC) once every 12 months.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "thorough examination",
+      "applies_to": "Any item of lifting equipment on which repairs have been carried out; the certificate of safety is issued only after examination and test and only after repairs are complete",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "after repairs have been carried out",
+      "examiner_competence": "Accredited third party (EIAC accredited)",
+      "certificate_validity_months": null,
+      "source_page": 5,
+      "source_quote": "4- A accredited third party shall issue a certificate of safety after due examination and test, and only after any repairs have been carried out, specifying the serial number, technical details, tests are done, safe working load … etc. for each equipment.",
+      "confidence": "medium"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Equipment judged unsafe by the accredited third party — use must cease and a report must be sent immediately to the Health and Safety Department",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "third party considers the equipment unsafe",
+      "examiner_competence": "Accredited third party (EIAC accredited)",
+      "certificate_validity_months": null,
+      "source_page": 5,
+      "source_quote": "6- If the accredited third party considers that the equipment is unsafe, the owner must be advised to cease use of the equipment and a report must be sent immediately to the Health and Safety Department.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "test",
+      "applies_to": "PERSON, not plant: operators of lifting equipment such as cranes, hoists, forklifts, cradles etc. used in factories, construction sites, residential and commercial buildings and other workplaces",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "The document sets no renewal interval for operator certification and states no validity period. Silent.",
+      "trigger_event": null,
+      "examiner_competence": "A third party accredited by Emirates International Accreditation Center (EIAC). Training institutes training operators, riggers and signalpersons shall be registered and approved by the Knowledge and Human Development Authority (KHDA).",
+      "certificate_validity_months": null,
+      "source_page": 6,
+      "source_quote": "10- Operators of lifting equipment such as cranes, hoists, forklifts, cradles, etc. used in factories, construction sites, residential and commercial buildings and other workplaces shall be certified by a third party accredited by Emirates International Accreditation Center (EIAC).",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "test",
+      "applies_to": "PERSON, not plant: workers involved in lifting operations — signalperson / signalman and rigger",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No renewal interval or validity period stated. Silent.",
+      "trigger_event": null,
+      "examiner_competence": "A third party accredited by Emirates International Accreditation Center (EIAC)",
+      "certificate_validity_months": null,
+      "source_page": 6,
+      "source_quote": "11- Workers involved in lifting operation such as signalperson / signalman and rigger shall be certified by a third party accredited by Emirates International Accreditation Center (EIAC).",
+      "confidence": "high"
+    }
+  ],
+  "limits": []
+}

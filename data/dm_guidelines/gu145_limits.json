@@ -1,0 +1,38 @@
+{
+  "standard": {
+    "code": "DM-HSD-145-WC",
+    "guideline_no": 145,
+    "title": "دليل الإرشادات الفنية بشأن متطلبات الصحة والسلامة لبرّادات مياه الشرب وثلّاجات السبيل في الأماكن العامة (Technical Guidelines (145) for Safety Requirements of Water Coolers and Dispensers in Public Areas)",
+    "version": "V 1.0",
+    "issued_on": "2026-02-13",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2026/07/Technical-Guidelines-145-for-Safety-Requirements-of-Water-Coolers-and-Dispensers-in-Public-Areas.pdf",
+    "language": "ar"
+  },
+  "specification_sets": [],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Document states an explicit cadence: 'كل ستة أشهر' (every six months). Encoded as cadence_months 6. The document gives NO acceptance criteria for these samples, so this obligation tracks only whether the test happened, never whether it passed.",
+      "applies_to": "Drinking water coolers in public areas. Periodic water samples confirming freedom from pathogenic bacteria, tested at a laboratory accredited by the Emirates International Accreditation Centre (EIAC). This is the laboratory-evidenced obligation and is directly relevant to the §4.7 laboratories registry.",
+      "source_quote": "p7, section 8-3-1 برّادات المياه: 'يجب التأكد من سلامة وجودة مياه البرّاد وخلوّها من البكتيريا الممرِضة، وذلك من خلال أخذ عينات دورية كل ستة أشهر وفحص العينات في مختبرات معتمدة من قبل مركز الامارات العالمي للاعتماد.' — 'The safety and quality of the cooler water, and its freedom from pathogenic bacteria, must be verified by taking periodic samples every six months and testing the samples at laboratories accredited by the Emirates International Accreditation Centre.' NO numeric limit and no parameter list is given for these tests; the acceptance criterion is stated only as freedom from pathogenic bacteria. Arabic-only source — translation is the extractor's and requires a native-Arabic reviewer per DM_COMPLIANCE_SCOPING.md §7.2."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Document states 'مرة كل ستة أشهر على الأقل' (at least once every six months). 'At least' makes six months the MAXIMUM permitted interval, so cadence_months 6 is the correct encoding.",
+      "applies_to": "Drinking water coolers in public areas — periodic cleaning and disinfection, using materials approved by Dubai Municipality.",
+      "source_quote": "p7, section 8-3-1: 'يجب تنظيف وتطهير البرّاد دوريًا (مرة كل ستة أشهر على الأقل).' — 'The cooler must be cleaned and disinfected periodically (at least once every six months).' 'على الأقل' ('at least') makes six months the maximum permitted interval."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Document states 'أو كل ستة أشهر على الأقل أيّهما أسبق' (or at least every six months, whichever is sooner). cadence_months 6 is the outer bound; the manufacturer instruction may make it fall due sooner, which cadence_months alone cannot express.",
+      "applies_to": "Water filters fitted to drinking water coolers in public areas — periodic maintenance and replacement, per the manufacturer's instructions or every six months, whichever comes first, with labels showing the date.",
+      "source_quote": "p7, section 8-3-1: 'يجب صيانة مرشحات المياه بصورة دورية، والحفاظ على نظافتها، ومراقبة استبدالها وفق تعليمات الجهة المصنّعة، أو كل ستة أشهر على الأقل أيّهما أسبق مع وجود ملصقات توضح ذلك.' — 'Water filters must be maintained periodically, kept clean, and their replacement monitored per the manufacturer's instructions or at least every six months, whichever is sooner, with labels showing this.'"
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU119-IAQ",
+    "guideline_no": 119,
+    "title": "Technical Guidelines for Indoor Air Quality for Healthy Life",
+    "version": "V 4",
+    "issued_on": "2024-12-11",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/01/DM-HSD-GU119-IAQ_Technical-Guidelines-for-Indoor-Air-Quality-for-Healthy-Life_V2.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu119_new_building_long_term",
+      "label": "GU119 Table 1 — Air pollutants in NEW buildings, long-term exposure (COMPLIANCE limit)",
+      "applies_to_scope": "facilities",
+      "applies_to": "New buildings, tested prior to occupancy. Long-term exposure column. COMPLIANCE limit: 'the maximum limit ... must not be exceeded'.",
+      "source_section": "9-8-3 Indoor air quality compliance - new buildings, Table No: 1",
+      "limits": [
+        { "parameter_key": "tvoc_8_hour", "parameter_label": "Total Volatile Organic Compounds (TVOC), 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 300.0, "min_inclusive": null, "max_inclusive": true, "display": "300 μg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Total Volatile Organic Compounds (TVOC)', Long Term Exposure Max-acceptable '300 μg/m3', Average Time '8-hour'. Inclusive because the governing sentence is 'The maximum limit for indoor air contaminants included in Table (1) must not be exceeded' (page 31) — a value equal to the limit is not exceeding it.", "confidence": "high" },
+        { "parameter_key": "formaldehyde_8_hour", "parameter_label": "Formaldehyde (HCHO), 8-hour average", "unit": "ppm", "min_val": null, "max_val": 0.01, "min_inclusive": null, "max_inclusive": true, "display": "0.01 ppm", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Formaldehyde (HCHO)', Long Term Exposure Max-acceptable '0.01 ppm', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "lead_3_month", "parameter_label": "Lead, 3-month average", "unit": "µg/m³", "min_val": null, "max_val": 0.15, "min_inclusive": null, "max_inclusive": true, "display": "0.15 µg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Lead', Long Term Exposure Max-acceptable '0.15 µg/m3', Average Time '3 month'.", "confidence": "high" },
+        { "parameter_key": "pm2_5_24_hour", "parameter_label": "Particle Pollution (PM2.5), 24-hour average", "unit": "µg/m³", "min_val": null, "max_val": 35.0, "min_inclusive": null, "max_inclusive": true, "display": "35 μg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Particle Pollution (PM) (PM2.5)', Long Term Exposure Max-acceptable '35 μg/m3', Average Time '24-hour'.", "confidence": "high" },
+        { "parameter_key": "pm10_24_hour", "parameter_label": "Particle Pollution (PM10), 24-hour average", "unit": "µg/m³", "min_val": null, "max_val": 150.0, "min_inclusive": null, "max_inclusive": true, "display": "150 μg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Particle Pollution (PM) (PM10)', Long Term Exposure Max-acceptable '150 μg/m3', Average Time '24-hour'.", "confidence": "high" },
+        { "parameter_key": "total_bacterial_counts", "parameter_label": "Total bacterial counts", "unit": "CFU/m³", "min_val": null, "max_val": 500.0, "min_inclusive": null, "max_inclusive": true, "display": "500 CFU/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Total bacterial counts': '500 CFU/m3'. NO averaging time is printed for this row, and the value is horizontally centred between the long-term and short-term columns (x≈307 where the long-term column sits at x≈205 and the short-term at x≈340), so the column it belongs to is not determinable from the layout.", "confidence": "medium" },
+        { "parameter_key": "total_fungal_counts", "parameter_label": "Total fungal counts", "unit": "CFU/m³", "min_val": null, "max_val": 500.0, "min_inclusive": null, "max_inclusive": true, "display": "500 CFU/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row 'Total fungal counts': '500 CFU/m3'. Same column-ambiguity caveat as total bacterial counts; no averaging time printed.", "confidence": "medium" }
+      ]
+    },
+    {
+      "key": "gu119_new_building_short_term",
+      "label": "GU119 Table 1 — Air pollutants in NEW buildings, short-term exposure (COMPLIANCE limit)",
+      "applies_to_scope": "facilities",
+      "applies_to": "New buildings, tested prior to occupancy. Short-term exposure column.",
+      "source_section": "9-8-3 Indoor air quality compliance - new buildings, Table No: 1",
+      "limits": [
+        { "parameter_key": "tvoc_short_term", "parameter_label": "Total Volatile Organic Compounds (TVOC), short-term", "unit": "ppm", "min_val": null, "max_val": 3.0, "min_inclusive": null, "max_inclusive": true, "display": "3 ppm", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row TVOC, Short Term Exposure Max-acceptable '3 ppm', Average Time 'N/A'. The averaging time is explicitly N/A in the document.", "confidence": "high" },
+        { "parameter_key": "formaldehyde_30_min", "parameter_label": "Formaldehyde (HCHO), 30-minute", "unit": "ppm", "min_val": null, "max_val": 0.08, "min_inclusive": null, "max_inclusive": true, "display": "0.08 ppm / 0.1 mg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row Formaldehyde, Short Term Exposure Max-acceptable '0.08 ppm  0.1 mg/m3', Average Time '30 min'. Two units are printed for one limit; the ppm figure is encoded and the mg/m³ figure preserved in display.", "confidence": "high" },
+        { "parameter_key": "lead_8_hour", "parameter_label": "Lead, 8-hour", "unit": "µg/m³", "min_val": null, "max_val": 30.0, "min_inclusive": null, "max_inclusive": true, "display": "30 µg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row Lead, Short Term Exposure Max-acceptable '30 µg/m3', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "pm2_5_1_hour", "parameter_label": "Particle Pollution (PM2.5), 1-hour", "unit": "µg/m³", "min_val": null, "max_val": 100.0, "min_inclusive": null, "max_inclusive": true, "display": "100 μg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row PM2.5, Short Term Exposure Max-acceptable '100 μg/m3', Average Time '1-hour'.", "confidence": "high" },
+        { "parameter_key": "pm10_8_hour", "parameter_label": "Particle Pollution (PM10), 8-hour", "unit": "µg/m³", "min_val": null, "max_val": 100.0, "min_inclusive": null, "max_inclusive": true, "display": "100 μg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row PM10, Short Term Exposure Max-acceptable '100 μg/m3', Average Time '8-hour'. Note the printed short-term PM10 limit (100) is LOWER than the long-term one (150).", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu119_new_building_tlv_ceiling",
+      "label": "GU119 Table 1 — NEW buildings, Threshold Limit Value – Ceiling (TLV-C)",
+      "applies_to_scope": "facilities",
+      "applies_to": "New buildings. Ceiling values that must not be exceeded at any moment.",
+      "source_section": "9-8-3 Indoor air quality compliance - new buildings, Table No: 1, column 'Threshold Limit Value – Ceiling (TLV-C)'",
+      "limits": [
+        { "parameter_key": "tvoc_ceiling", "parameter_label": "TVOC ceiling (TLV-C)", "unit": "ppm", "min_val": null, "max_val": 5.5, "min_inclusive": null, "max_inclusive": true, "display": "5.5 ppm", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row TVOC, column 'Threshold Limit Value – Ceiling (TLV-C)': '5.5 ppm'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde_ceiling", "parameter_label": "Formaldehyde ceiling (TLV-C)", "unit": "ppm", "min_val": null, "max_val": 1.0, "min_inclusive": null, "max_inclusive": true, "display": "1 ppm", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row Formaldehyde, TLV-C column: '1 ppm'.", "confidence": "high" },
+        { "parameter_key": "lead_ceiling", "parameter_label": "Lead ceiling (TLV-C)", "unit": "µg/m³", "min_val": null, "max_val": 50.0, "min_inclusive": null, "max_inclusive": true, "display": "50 µg/m3", "qualifier_rule": "bound", "source_page": 32, "source_quote": "Table No: 1 row Lead, TLV-C column: '50 µg/m3'.", "confidence": "high" }
+      ]
+    },
+
+    {
+      "key": "gu119_existing_building_long_term",
+      "label": "GU119 Table 2 — Common air pollutants in EXISTING buildings, long-term exposure (COMPLIANCE limit)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Existing occupied buildings/premises. Long-term exposure column. COMPLIANCE limit: 'the maximum limit for indoor air contaminants included in Common Air Pollutant Table (2) must not be exceeded'.",
+      "source_section": "9-8-4 Indoor Air Quality Compliance - Existing Buildings, Table No: 2",
+      "limits": [
+        { "parameter_key": "tvoc_8_hour", "parameter_label": "Total Volatile Organic Compounds (TVOC), 8-hour average", "unit": "mg/m³", "min_val": null, "max_val": 0.6, "min_inclusive": null, "max_inclusive": true, "display": "0.6 mg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row TVOC, Long Term Exposure Max-acceptable '0.6 mg/m3', Average Time '8-hour'. Note the unit differs from Table 1 (which prints 300 μg/m3 = 0.3 mg/m3 for new buildings), so the existing-building limit is twice as permissive.", "confidence": "high" },
+        { "parameter_key": "formaldehyde_8_hour", "parameter_label": "Formaldehyde (HCHO), 8-hour average", "unit": "ppm", "min_val": null, "max_val": 0.01, "min_inclusive": null, "max_inclusive": true, "display": "0.01 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row Formaldehyde (HCHO), Long Term Exposure Max-acceptable '0.01 ppm', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "co2_8_hour", "parameter_label": "Carbon dioxide (CO2), 8-hour average", "unit": "ppm", "min_val": null, "max_val": 800.0, "min_inclusive": null, "max_inclusive": true, "display": "800 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row 'Carbon dioxide (CO2)', Long Term Exposure Max-acceptable '800 ppm', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "co_8_hour", "parameter_label": "Carbon monoxide (CO), 8-hour average", "unit": "ppm", "min_val": null, "max_val": 9.0, "min_inclusive": null, "max_inclusive": true, "display": "9 ppm (10 mg/m3)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row 'carbon monoxide (CO)', Long Term Exposure Max-acceptable '9 ppm (10 mg/m3)', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "co_24_hour", "parameter_label": "Carbon monoxide (CO), 24-hour average", "unit": "mg/m³", "min_val": null, "max_val": 7.0, "min_inclusive": null, "max_inclusive": true, "display": "(7 mg/m3)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2, second CO row, Long Term Exposure Max-acceptable '(7 mg/m3)', Average Time '24-hour'. Printed in parentheses with no ppm equivalent, unlike the 8-hour row.", "confidence": "high" },
+        { "parameter_key": "o3_8_hour", "parameter_label": "Ozone (O3), 8-hour average", "unit": "ppm", "min_val": null, "max_val": 0.06, "min_inclusive": null, "max_inclusive": true, "display": "0.06 ppm (100 µg/m3)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row 'ozone (O3)', Long Term Exposure Max-acceptable '0.06 ppm (100 µg/m3)', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "no2_annual", "parameter_label": "Nitrogen dioxide (NO2), annual average", "unit": "µg/m³", "min_val": null, "max_val": 40.0, "min_inclusive": null, "max_inclusive": true, "display": "40 μg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row 'nitrogen dioxide (NO2)', Long Term Exposure Max-acceptable '40 μg/m3', Average Time 'annual average'.", "confidence": "high" },
+        { "parameter_key": "no2_8_hour", "parameter_label": "Nitrogen dioxide (NO2), 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 150.0, "min_inclusive": null, "max_inclusive": true, "display": "150 μg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2, second NO2 row, Long Term Exposure Max-acceptable '150 μg/m3', Average Time '8-hour'.", "confidence": "high" },
+        { "parameter_key": "pm2_5_24_hour", "parameter_label": "Particle Pollution (PM2.5), 24-hour average", "unit": "µg/m³", "min_val": null, "max_val": 35.0, "min_inclusive": null, "max_inclusive": true, "display": "35 μg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row PM2.5, Long Term Exposure Max-acceptable '35 μg/m3', Average Time '24' (the word 'hour' is omitted in Table 2, present in Table 1).", "confidence": "high" },
+        { "parameter_key": "pm10_24_hour", "parameter_label": "Particle Pollution (PM10), 24-hour average", "unit": "µg/m³", "min_val": null, "max_val": 150.0, "min_inclusive": null, "max_inclusive": true, "display": "150 μg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row PM10, Long Term Exposure Max-acceptable '150 μg/m3', Average Time '24'.", "confidence": "high" },
+        { "parameter_key": "total_bacterial_counts", "parameter_label": "Total bacterial counts", "unit": "CFU/m³", "min_val": null, "max_val": 1000.0, "min_inclusive": null, "max_inclusive": true, "display": "1000 CFU/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row 'Total bacterial counts': '1000 CFU/m3'. No averaging time printed; value horizontally centred (x≈307) between the long-term (x≈222) and short-term (x≈353) columns, so column attribution is not determinable from layout. Twice the new-building limit of 500.", "confidence": "medium" },
+        { "parameter_key": "total_fungal_counts", "parameter_label": "Total fungal counts", "unit": "U/m³ (printed; 'CFU/m³' presumed but NOT printed)", "min_val": null, "max_val": 500.0, "min_inclusive": null, "max_inclusive": true, "display": "500 U/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row 'Total fungal counts': '500 U/m3'. The unit is printed as 'U/m3', not 'CFU/m3' as in Table 1 — recorded verbatim rather than corrected. No averaging time printed.", "confidence": "medium" }
+      ]
+    },
+    {
+      "key": "gu119_existing_building_short_term",
+      "label": "GU119 Table 2 — EXISTING buildings, short-term exposure (COMPLIANCE limit)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Existing occupied buildings/premises. Short-term exposure column.",
+      "source_section": "9-8-4 Indoor Air Quality Compliance - Existing Buildings, Table No: 2",
+      "limits": [
+        { "parameter_key": "tvoc_short_term", "parameter_label": "TVOC, short-term", "unit": "ppm", "min_val": null, "max_val": 3.0, "min_inclusive": null, "max_inclusive": true, "display": "3 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row TVOC, Short Term Exposure Max-acceptable '3 ppm', Average Time 'N/A'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde_30_min", "parameter_label": "Formaldehyde (HCHO), 30-minute", "unit": "ppm", "min_val": null, "max_val": 0.08, "min_inclusive": null, "max_inclusive": true, "display": "0.08 ppm / 0.1 mg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row Formaldehyde, Short Term Exposure Max-acceptable '0.08 ppm  0.1 mg/m3', Average Time '30 min'.", "confidence": "high" },
+        { "parameter_key": "co2_above_outdoor", "parameter_label": "Carbon dioxide (CO2) above outdoor air level (DIFFERENTIAL, not absolute)", "unit": "ppm above outdoor air level", "min_val": null, "max_val": 700.0, "min_inclusive": null, "max_inclusive": true, "display": "700 ppm above outdoor air levels", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row CO2, Short Term Exposure Max-acceptable '700 ppm above outdoor air levels', Average Time 'N/A'. This is a DIFFERENTIAL limit — judging it requires a simultaneous outdoor CO2 reference reading, which no other limit in this document needs.", "confidence": "high" },
+        { "parameter_key": "co_1_hour", "parameter_label": "Carbon monoxide (CO), 1-hour", "unit": "ppm", "min_val": null, "max_val": 25.0, "min_inclusive": null, "max_inclusive": true, "display": "25 ppm (35 mg/m3)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row CO, Short Term Exposure Max-acceptable '25 ppm (35 mg/m3)', Average Time '1-hour'.", "confidence": "high" },
+        { "parameter_key": "co_15_min", "parameter_label": "Carbon monoxide (CO), 15-minute", "unit": "ppm", "min_val": null, "max_val": 90.0, "min_inclusive": null, "max_inclusive": true, "display": "90 ppm (100 mg/m3)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 second CO row, Short Term Exposure Max-acceptable '90 ppm (100 mg/m3)', Average Time '15 MIN'.", "confidence": "high" },
+        { "parameter_key": "no2_1_hour", "parameter_label": "Nitrogen dioxide (NO2), 1-hour", "unit": "ppm", "min_val": null, "max_val": 0.1, "min_inclusive": null, "max_inclusive": true, "display": "0.1 ppm (200 μg/m3)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row NO2, Short Term Exposure Max-acceptable '0.1 ppm (200 μg/m3)', Average Time '1-hour'.", "confidence": "high" },
+        { "parameter_key": "no2_15_min", "parameter_label": "Nitrogen dioxide (NO2), 15-minute", "unit": "ppm", "min_val": null, "max_val": 1.0, "min_inclusive": null, "max_inclusive": true, "display": "1 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 second NO2 row, Short Term Exposure Max-acceptable '1 ppm', Average Time '15 min'.", "confidence": "high" },
+        { "parameter_key": "pm2_5_1_hour", "parameter_label": "Particle Pollution (PM2.5), 1-hour", "unit": "µg/m³", "min_val": null, "max_val": 100.0, "min_inclusive": null, "max_inclusive": true, "display": "100 μg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row PM2.5, Short Term Exposure Max-acceptable '100 μg/m3', Average Time '1-hour'.", "confidence": "high" },
+        { "parameter_key": "pm10_8_hour", "parameter_label": "Particle Pollution (PM10), 8-hour", "unit": "µg/m³", "min_val": null, "max_val": 100.0, "min_inclusive": null, "max_inclusive": true, "display": "100 μg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row PM10, Short Term Exposure Max-acceptable '100 μg/m3', Average Time '8-hour'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu119_existing_building_tlv_ceiling",
+      "label": "GU119 Table 2 — EXISTING buildings, Threshold Limit Value – Ceiling (TLV-C)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Existing buildings. Ceiling values.",
+      "source_section": "9-8-4, Table No: 2, column 'Threshold Limit Value – Ceiling (TLV-C)'",
+      "limits": [
+        { "parameter_key": "tvoc_ceiling", "parameter_label": "TVOC ceiling (TLV-C)", "unit": "ppm", "min_val": null, "max_val": 5.5, "min_inclusive": null, "max_inclusive": true, "display": "5.5 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row TVOC, TLV-C column: '5.5 ppm'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde_ceiling", "parameter_label": "Formaldehyde ceiling (TLV-C)", "unit": "ppm", "min_val": null, "max_val": 1.0, "min_inclusive": null, "max_inclusive": true, "display": "1 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row Formaldehyde, TLV-C column: '1 ppm'.", "confidence": "high" },
+        { "parameter_key": "co2_ceiling", "parameter_label": "Carbon dioxide ceiling (TLV-C)", "unit": "ppm", "min_val": null, "max_val": 5000.0, "min_inclusive": null, "max_inclusive": true, "display": "5000 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row CO2, TLV-C column: '5000 ppm'.", "confidence": "high" },
+        { "parameter_key": "co_ceiling", "parameter_label": "Carbon monoxide ceiling (TLV-C)", "unit": "ppm", "min_val": null, "max_val": 200.0, "min_inclusive": null, "max_inclusive": true, "display": "200 ppm", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row CO, TLV-C column: '200 ppm'.", "confidence": "high" },
+        { "parameter_key": "o3_ceiling", "parameter_label": "Ozone ceiling (TLV-C)", "unit": "µg/m³", "min_val": null, "max_val": 800.0, "min_inclusive": null, "max_inclusive": true, "display": "800 µg/m3", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row ozone (O3), TLV-C column: '800 µg/m3'. Note the unit is µg/m³ while the same row's long-term limit is in ppm.", "confidence": "high" },
+        { "parameter_key": "no2_ceiling_5_min", "parameter_label": "Nitrogen dioxide ceiling (TLV-C), in 5 minutes", "unit": "ppm", "min_val": null, "max_val": 10.0, "min_inclusive": null, "max_inclusive": true, "display": "10 ppm (in 5 min)", "qualifier_rule": "bound", "source_page": 33, "source_quote": "Table No: 2 row NO2, TLV-C column: '10 ppm (in 5 min)'.", "confidence": "high" }
+      ]
+    },
+
+    {
+      "key": "gu119_thermal_physical_comfort",
+      "label": "GU119 Table 3 — Thermal & physical comfort (HVAC capability requirement)",
+      "applies_to_scope": "facilities",
+      "applies_to": "All new and existing buildings. The HVAC system must be CAPABLE of providing this range for 95% of the year — a design/capability requirement, and the column is headed 'Recommended Range', so it is weaker than the Table 1/2 'must not be exceeded' limits.",
+      "source_section": "9-8-5 Thermal and Physical Comfort, Table No: 3",
+      "limits": [
+        { "parameter_key": "dry_bulb_air_temperature", "parameter_label": "Dry bulb air temperature", "unit": "°C", "min_val": 22.5, "max_val": 25.5, "min_inclusive": true, "max_inclusive": true, "display": "22.5 - 25.5 Db", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 3 row 'Dry bulb Air temperature', Recommended Range '22.5 - 25.5 Db', Unit '°C', Remarks 'Based on 80% of occupants comfort'. Inclusivity taken from the hyphenated range notation; no operator glyph is printed.", "confidence": "medium" },
+        { "parameter_key": "relative_humidity", "parameter_label": "Relative humidity", "unit": "%", "min_val": 20.0, "max_val": 60.0, "min_inclusive": true, "max_inclusive": true, "display": "20 - 60", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 3 row 'Relative humidity', Recommended Range '20 - 60', Unit '%', Remarks 'Never to exceed 56%RH at 80F (27C) and 86%RH at 67F (19C).' The remark conflicts with the 60% range ceiling (56 < 60) and is conditioned on temperatures outside the Table 3 temperature range, so it is NOT encoded as a separate limit.", "confidence": "medium" },
+        { "parameter_key": "air_movement", "parameter_label": "Air movement", "unit": "m/s", "min_val": 0.2, "max_val": 0.3, "min_inclusive": true, "max_inclusive": true, "display": "0.2 - 0.3", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 3 row 'Air movement', Recommended Range '0.2 - 0.3', Unit 'M/s'.", "confidence": "medium" }
+      ]
+    },
+    {
+      "key": "gu119_individual_voc_objectives",
+      "label": "GU119 Table 4 — IAQ objectives for individual VOCs (8-hour average)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Alternative assessment route: a sampling point that fails TVOC passes in respect of TVOC if it complies with all 10 individual VOC objectives.",
+      "source_section": "9-8-6 IAQ Objective for Individual VOC, Table No: 4",
+      "limits": [
+        { "parameter_key": "benzene_8_hour", "parameter_label": "Benzene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 17.0, "min_inclusive": null, "max_inclusive": true, "display": "17μg/m3 (0.0053 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Benzene', 8-hour average: '17μg/m3 (0.0053 ppm)'. Inclusivity from §9-8-9: a point 'complying with all the 10 individual VOCs objectives in Table 4 will be regarded as a passed sampling point'.", "confidence": "high" },
+        { "parameter_key": "naphthalene_8_hour", "parameter_label": "Naphthalene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 10.0, "min_inclusive": null, "max_inclusive": true, "display": "10μg/m3 (0.0019 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Naphthalene': '10μg/m3 (0.0019 ppm)'.", "confidence": "high" },
+        { "parameter_key": "pah_8_hour", "parameter_label": "Polycyclic aromatic hydrocarbons, 8-hour average", "unit": "ng/m³", "min_val": null, "max_val": 0.012, "min_inclusive": null, "max_inclusive": true, "display": "0.012ng/m3 (1.2 × 10–4 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Polycyclic aromatic hydrocarbons': '0.012ng/m3 (1.2 × 10–4 ppm)'. The parenthesised ppm conversion is internally inconsistent with 0.012 ng/m³ by roughly ten orders of magnitude; the ng/m³ figure is encoded and the ppm figure preserved verbatim in display without being relied on.", "confidence": "medium" },
+        { "parameter_key": "trichloroethylene_8_hour", "parameter_label": "Trichloroethylene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 230.0, "min_inclusive": null, "max_inclusive": true, "display": "230μg/m3 (0.0043 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Trichloroethylene': '230μg/m3 (0.0043 ppm)'.", "confidence": "high" },
+        { "parameter_key": "tetrachloroethylene_8_hour", "parameter_label": "Tetrachloroethylene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 250.0, "min_inclusive": null, "max_inclusive": true, "display": "250μg/m3 (0.037 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Tetrachloroethylene': '250μg/m3 (0.037 ppm)'.", "confidence": "high" },
+        { "parameter_key": "dichlorobenzene_1_2_8_hour", "parameter_label": "1,2-Dichlorobenzene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 500.0, "min_inclusive": null, "max_inclusive": true, "display": "500μg/m3 (0.083 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row '1,2-Dichlorobenzene': '500μg/m3 (0.083 ppm)'.", "confidence": "high" },
+        { "parameter_key": "toluene_8_hour", "parameter_label": "Toluene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 1092.0, "min_inclusive": null, "max_inclusive": true, "display": "1,092μg/m3 (0.29 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Toluene': '1,092μg/m3 (0.29 ppm)'.", "confidence": "high" },
+        { "parameter_key": "dichlorobenzene_1_4_8_hour", "parameter_label": "1,4-Dichlorobenzene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 200.0, "min_inclusive": null, "max_inclusive": true, "display": "200μg/m3 (0.033 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row '1,4-Dichlorobenzene': '200μg/m3 (0.033 ppm)'.", "confidence": "high" },
+        { "parameter_key": "styrene_8_hour", "parameter_label": "Styrene, 8-hour average", "unit": "ppm", "min_val": null, "max_val": 100.0, "min_inclusive": null, "max_inclusive": true, "display": "100 ppm", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Styrene': '100 ppm'. Recorded verbatim. This is the only row in Table 4 given in ppm with no µg/m³ figure, and 100 ppm is an occupational-exposure order of magnitude — roughly 400,000 µg/m³ — against neighbours in the tens-to-thousands of µg/m³. Very likely a unit error in the document, but NOT corrected here.", "confidence": "low" },
+        { "parameter_key": "xylene_8_hour", "parameter_label": "Xylene, 8-hour average", "unit": "µg/m³", "min_val": null, "max_val": 1447.0, "min_inclusive": null, "max_inclusive": true, "display": "1,447μg/m3 (0.333 ppm)", "qualifier_rule": "bound", "source_page": 34, "source_quote": "Table No: 4 row 'Xylene': '1,447μg/m3 (0.333 ppm)'.", "confidence": "high" }
+      ]
+    },
+
+    {
+      "key": "gu119_parking_ventilation",
+      "label": "GU119 §9-5 — Enclosed parking ventilation (COMPLIANCE limits)",
+      "applies_to_scope": "facilities",
+      "applies_to": "All buildings with enclosed parking.",
+      "source_section": "9-5 Parking ventilation",
+      "limits": [
+        { "parameter_key": "parking_co_concentration", "parameter_label": "Carbon monoxide concentration in enclosed parking area", "unit": "ppm", "min_val": null, "max_val": 50.0, "min_inclusive": null, "max_inclusive": false, "display": "below fifty (50) parts per million (ppm)", "qualifier_rule": "bound", "source_page": 28, "source_quote": "\"Mechanical ventilation must be provided to ensure that the Carbon Monoxide (CO) concentration in the enclosed parking area is maintained below fifty (50) parts per million (ppm)\". 'below' is exclusive — a reading of exactly 50 ppm is NOT maintained below 50 and therefore fails.", "confidence": "high" },
+        { "parameter_key": "parking_outside_air_changes", "parameter_label": "Outside air changes per hour in enclosed parking", "unit": "air changes/hour", "min_val": 6.0, "max_val": null, "min_inclusive": true, "max_inclusive": null, "display": "a minimum of six (6) outside air changes per hour", "qualifier_rule": "bound", "source_page": 28, "source_quote": "\"- Providing a minimum of six (6) outside air changes per hour, or - Installing a variable volume ventilation system controlled in response to input.\" 'a minimum of' is inclusive. Note this is one of two alternative routes, so it is not unconditionally binding.", "confidence": "high" },
+        { "parameter_key": "parking_smoke_clearance_air_changes", "parameter_label": "Smoke-clearance ventilation capability", "unit": "air changes/hour", "min_val": 10.0, "max_val": null, "min_inclusive": true, "max_inclusive": null, "display": "ten (10) air changes per hour", "qualifier_rule": "bound", "source_page": 28, "source_quote": "\"Ventilation systems must be capable of providing ten (10) air changes per hour for smoke clearance purposes in case of a fire incident.\" Encoded as a floor: the system must be capable of at least this rate.", "confidence": "high" },
+        { "parameter_key": "parking_co_sensor_coverage_area", "parameter_label": "Floor area covered per CO sensor (maximum)", "unit": "m² per sensor", "min_val": null, "max_val": 400.0, "min_inclusive": null, "max_inclusive": true, "display": "a minimum of one CO sensor per four hundred square meters (400 m2) floor area of parking", "qualifier_rule": "bound", "source_page": 29, "source_quote": "\"CO monitoring equipment must be installed with a minimum of one CO sensor per four hundred square meters (400 m2) floor area of parking.\" Inverted for encoding: a minimum of one sensor per 400 m² is a maximum of 400 m² covered per sensor.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu119_parking_co_alarm_action_level",
+      "label": "GU119 §9-5(E) — Enclosed parking CO alarm (ACTION level, NOT a compliance limit)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Enclosed parking CO monitoring equipment. This is the level at which an audible alarm must sound — a management trigger, distinct from the 50 ppm compliance limit above.",
+      "source_section": "9-5 Parking ventilation, item E",
+      "limits": [
+        { "parameter_key": "parking_co_alarm_threshold", "parameter_label": "CO concentration at which the alarm must sound", "unit": "ppm", "min_val": 75.0, "max_val": null, "min_inclusive": true, "max_inclusive": null, "display": "reaches or exceeds seventy-five (75) ppm", "qualifier_rule": "bound", "source_page": 29, "source_quote": "\"Sound alarm triggers when the CO concentration reaches or exceeds seventy-five (75) ppm in, at least, five percent (5%) of the monitored locations.\" 'reaches or exceeds' is explicitly inclusive of 75. Encoded as the ALARM band (≥75), not as a pass band. Note the second condition — at least 5% of monitored locations — is a spatial rule this single-value model cannot express.", "confidence": "high" }
+        ,{ "parameter_key": "parking_co_alarm_location_fraction", "parameter_label": "Fraction of monitored locations that must be at or above the alarm threshold", "unit": "% of monitored locations", "min_val": 5.0, "max_val": null, "min_inclusive": true, "max_inclusive": null, "display": "at least, five percent (5%) of the monitored locations", "qualifier_rule": "bound", "source_page": 29, "source_quote": "\"...in, at least, five percent (5%) of the monitored locations.\" 'at least' is inclusive.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu119_environmental_tobacco_smoke",
+      "label": "GU119 §9-6 — Environmental tobacco smoke, smoking area setback",
+      "applies_to_scope": "facilities",
+      "applies_to": "Designated smoking areas at any premises where smoking is permitted.",
+      "source_section": "9-6 Environmental Tobacco Smoke, item C",
+      "limits": [
+        { "parameter_key": "smoking_area_setback_distance", "parameter_label": "Setback of designated smoking area from entrances, doors, operable windows and outdoor air intakes", "unit": "m", "min_val": 7.6, "max_val": null, "min_inclusive": true, "max_inclusive": null, "display": "at least twenty-five (25) feet (7.6m)", "qualifier_rule": "bound", "source_page": 29, "source_quote": "\"Smoking designated areas must be at least twenty-five (25) feet (7.6m) away from the building entrances of the building, doors and operable windows and ventilation system outdoor air intakes.\" 'at least' is inclusive.", "confidence": "high" }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "One-off, event-driven rather than recurring: triggered by completion of a new building, before occupancy. No repeat interval is stated.",
+      "applies_to": "New buildings, prior to occupancy.",
+      "source_quote": "\"Indoor air quality testing must be carried out prior to occupancy. The maximum limit for indoor air contaminants included in Table (1) must not be exceeded. A report which shows compliance with these requirements must be submitted to Dubai Municipality.\" (§9-8-3 A, page 31.) Note the framing on the same page: \"The buildings which optionally apply the following procedures will be awarded indoor air quality certificate by Dubai municipality\" — 'optionally'."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "'within six months after commencement of operation of the HVAC system' — a one-off deadline measured from commissioning, not a recurring six-monthly cycle. Modelled as 6 months for due-date purposes; do not roll it forward on satisfaction.",
+      "applies_to": "Whole-building HVAC audit after commissioning, by accredited competent persons.",
+      "source_quote": "\"An audit should be conducted by the Accredit competent persons within six months after commencement of operation of the HVAC system.\" (§9-7 Quality control, item 1, page 29.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 24,
+      "cadence_days": null,
+      "cadence_note": "Recurring. 'at least every 2 years' — 24 months is the maximum interval, so it is the correct due-date driver.",
+      "applies_to": "Buildings in normal operation — IAQ conformity audit against Tables 2, 3 and 4.",
+      "source_quote": "\"During the normal operation of a building, an audit should be conducted by the Accredit competent persons at least every 2 years to ensure that the indoor air quality is acceptable and conforms to the specifications listed in (Table 2, 3 & 4).\" (§9-7 Quality control, item 2, page 30.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 3,
+      "cadence_days": null,
+      "cadence_note": "Recurring. 'at least every Three months'.",
+      "applies_to": "The building and its HVAC system, for functions significant to indoor air quality.",
+      "source_quote": "\"The building and its HVAC system should be inspected at least every Three months or as need seasonally with regard to functions which are significant for the indoor air quality.\" (§9-4 Maintenance, item 3, page 27.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Recurring. 'at least every six months'.",
+      "applies_to": "Air-handling unit components (fans and dampers), and cooling coils and condensate pipes.",
+      "source_quote": "\"The components of air-handling units such as fans and dampers should be cleaned at least every six months...\" and \"Coils and condensate pipes should be cleaned at least every six months.\" (§9-4 Maintenance, items 5 and 6, pages 28.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 1,
+      "cadence_days": null,
+      "cadence_note": "Recurring. 'at least every one month'.",
+      "applies_to": "Condensate water trays.",
+      "source_quote": "\"The trays should be cleaned at least every one month and based on condition to ensure that contaminants do not build up.\" (§9-4 Maintenance, item 6, page 28.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "Recurring annually after an initial first-year check.",
+      "applies_to": "HVAC system airflow, temperature and humidity check and adjustment.",
+      "source_quote": "\"The HVAC system should be checked and adjusted to ensure correct airflow, temperature, and humidity after the first year of operation and at least every year thereafter.\" (§9-4 Maintenance, item 8, page 28.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Recurring. 'every six (6) months or according to manufacturer specification' — where the manufacturer specifies a shorter interval, that governs.",
+      "applies_to": "Enclosed-parking CO monitoring equipment calibration, by a calibration company certified by Dubai Municipality.",
+      "source_quote": "\"CO monitoring equipment must be checked and recalibrated every six (6) months or according to manufacturer specification by a specialized calibration company certified by Dubai Municipality. Test results and calibration certificates must be kept onsite and be readily available for inspection by DM staff.\" (§9-5 G, page 29.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "Recurring. 'at least annual calibration certificate'.",
+      "applies_to": "Air quality testing equipment calibration, from an external calibration facility accredited by DM.",
+      "source_quote": "\"Air quality testing equipment must have initial and periodical calibration certificate as per manufacturer requirement from an external calibration facility accredited by DM or at least annual calibration certificate.\" (§9-8-3 C page 32 and §9-8-4 B page 33.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "Recurring annually — an annual permit implies annual renewal.",
+      "applies_to": "Premises where smoking is permitted.",
+      "source_quote": "\"An annual permit is issued from the Health and Safety Department of Dubai Municipality for all places in which smoking is permitted after providing all required documents and drawings mentioned in the guide.\" (§9-6 D, page 29.)"
+    }
+  ]
+}

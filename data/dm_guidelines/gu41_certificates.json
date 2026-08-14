@@ -1,0 +1,178 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU41-GDM2",
+    "guideline_no": 41,
+    "title": "Technical Guidelines for Guarding of Dangerous Machinery",
+    "version": "V 3.0",
+    "issued_on": "2024-04-30",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/01/DM-HSD-GU41-GDM2_Guarding-of-Dangerous-Machinery_V3.-26-04-2024.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "module_kind = compliance per section 7.12 — GU41 sets several hard, measurable requirements (6 mm maximum work rest gap on grinding wheels, 6 mm maximum gap between disc-knife guard and material, 45 cm minimum clearance around self-acting machines, mandatory interlocks on centrifugal machines, mandatory fixed guards on power presses) and a stated 12-month examination interval for centrifugal machine cages. All are objectively verifiable, so COMPLIANT / NON-COMPLIANT is defensible. BUT THE PRIMITIVE IS WRONG FOR THIS GUIDELINE. GU41 is in the Phase 3 list yet it is not a certificate guideline: it names no accreditation body, requires no third party, issues no certificate, and states no certificate validity. Its single recurring examination — 12-monthly balance check of centrifugal cages, drums and baskets by 'a competent person' with competence left undefined — produces a record, not a certificate. The rest of the document is a guard-design specification checked by walking the shop floor. GU41 belongs to the section 4.6 checklist primitive (Phase 4), with one certificate-shaped row bolted on. Version V 3.0 and issue date 30/04/2024 come from the cover page and page footers; the filename fragment '26-04-2024' differs by four days and the portal record date 2025-01-30 is a CMS date — neither was used. Superseded issue date 05/01/2020. NOTE also the document's own gap: section 4-2 says 'Details on guard for different machines may be obtained from the Health and Safety Departmental' — that is a delegating clause for any machine type not enumerated in 4-3, and it delegates to a person, not to a published standard, so no module can resolve it automatically.",
+  "subjects": [
+    {
+      "asset_type": "dangerous machinery (general)",
+      "description": "Equipment, tools, or mechanical devices in the workplace that pose significant risks to worker safety due to factors such as moving parts, high-speed operation, heavy loads, or the potential for entanglement, crushing, or impact injuries. Hazard sources enumerated: point of operation, power transmission, in-running nip points or bites, shear points, flying chips and sparks, flying fragments due to operation and bursting.",
+      "source_page": 4,
+      "source_quote": "Dangerous machinery refers to equipment, tools, or mechanical devices in the workplace that pose significant risks to worker safety due to factors such as moving parts, high-speed operation, heavy loads, or the potential for entanglement, crushing, or impact injuries."
+    },
+    {
+      "asset_type": "circular saw",
+      "description": "Requires guarding of the blade below the machine table, a riving knife (spreader) for wood working, an adjustable guard on the crown above the table, and a push stick.",
+      "source_page": 6,
+      "source_quote": "The part of the saw blade which is below the machine table shall be guarded. Every circular sawing machine used in wood working shall be provided with a riving knife (spreader)."
+    },
+    {
+      "asset_type": "band saw machine",
+      "description": "Both sides of the pulleys/wheels shall be completely encased by sheet or expanded metal; all portions of the blade enclosed except the portion between bench table and top guide on a vertical machine, and the lower portion between pulleys for sawing wood/log on a trolley on rail.",
+      "source_page": 6,
+      "source_quote": "Both sides of the pulleys/wheels of horizontal/vertical band saw machines shall be completely encased by sheet or expanded metal."
+    },
+    {
+      "asset_type": "planing machine (wood working)",
+      "description": "Every planing machine for surfacing shall have a bridge guard covering the full length and breadth of the cutting slot in the bench.",
+      "source_page": 6,
+      "source_quote": "Every planning machine for surfacing shall be provided with a bridge guard capable of covering the full length and breadth of the cutting slot in the bench."
+    },
+    {
+      "asset_type": "revolving machinery",
+      "description": "Revolving cage, vessel, basket, flywheel, pulley, disc or wheel or similar appliance driven by power. The manufacturer's specified safe working peripheral speed shall not be exceeded.",
+      "source_page": 6,
+      "source_quote": "The safe working peripheral speed of every revolving cage, vessel, basket, flywheel, pulley, disc or wheel or similar appliance driven by power specified by the manufacturer shall not be exceeded."
+    },
+    {
+      "asset_type": "polishing and grinding machinery",
+      "description": "Shafts, pulleys and belts effectively guarded; grinding wheels not operated above the manufacturer's recommended speed; defective wheels not used; work rest adjusted close to the wheel; abrasive wheels fitted with a sheet metal guard securely attached to the machine frame or solid foundation to retain fragments on bursting.",
+      "source_page": 7,
+      "source_quote": "Grinding wheels shall be kept as true as practicable, and the work rest shall be kept adjusted close to wheels, leaving a maximum gap of 6 mm."
+    },
+    {
+      "asset_type": "centrifugal machine / extractor",
+      "description": "The only asset in GU41 carrying a periodic examination. Requires interlocking devices preventing lids opening while drums or baskets are in motion and preventing starting under power while lids are open (except during charging, ploughing and discharging at lower speed), a speed not exceeding the manufacturer's legibly stamped rating, and effective braking.",
+      "source_page": 7,
+      "source_quote": "The cages, drums or baskets shall be thoroughly examined by a competent person once in every 12 months to check their balance."
+    },
+    {
+      "asset_type": "power press",
+      "description": "Starting/stopping mechanism with a safety stop to prevent over-running or ram descent during tool setting; fixed guard enclosing the front and all sides of the tool/die; automatic, interlocking, two-hand-control or photo-electric light curtain guards as alternatives.",
+      "source_page": 7,
+      "source_quote": "Each press shall be provided with a fixed guard enclosing the front and all sides of the tool/die. The guard design shall prevent the possibility of a worker's hand or fingers reaching the danger zone."
+    },
+    {
+      "asset_type": "rubber mill",
+      "description": "Rolls positioned so the operator cannot contact the nip; horizontal safety trip rods or tight wire cables across front and rear which on being pulled or pushed instantly disconnect power and apply brakes or reverse the rolls.",
+      "source_page": 8,
+      "source_quote": "Horizontal safety trip rods or tight wire cables, across both front and rear, which when pulled or pushed, operate instantly to disconnect the power, and apply the brakes or to reverse the rolls."
+    },
+    {
+      "asset_type": "shears and guillotine machines",
+      "description": "Barrier metal guard at the front of the blade fastened to the machine frame; inclined guard at the back end; power-driven guillotine cutters additionally equipped with two-hand controls and an emergency device against brake failure; where two or more workers operate the same machine, each must use both hands simultaneously.",
+      "source_page": 8,
+      "source_quote": "A barrier metal guard at the front of the blade/knife, fastened to the machine frame shall be fixed to prevent any part of operator's body reaching the descending blade from above, below, sides or through the barrier guard."
+    },
+    {
+      "asset_type": "circular disc-type knife machine",
+      "description": "Machines for cutting metal, leather, paper or other material. Guards enclosing the knife edges, with a maximum gap between guard bottom and material, and the portion of the blade underneath the table covered.",
+      "source_page": 8,
+      "source_quote": "Circular disc-type knives on machines for cutting metal, leather, paper, or other material shall be provided with guards enclosing the knife edges."
+    },
+    {
+      "asset_type": "self-acting machine",
+      "description": "Installed leaving a minimum clearance from any fixed structure that is not part of the machine, to prevent trapping on outward or inward traverse.",
+      "source_page": 8,
+      "source_quote": "Self-acting machines shall be installed leaving a minimum distance of 45 cm. From any fixed structure which is not part of the machine, to prevent any person getting trapped in outward or inward traverse of the machine."
+    },
+    {
+      "asset_type": "calender / rolling machine",
+      "description": "Nip at the in-running side of the rolls guarded across the entire length of the nip, arranged to prevent fingers being pulled in between the rolls or between the guard and the rolls.",
+      "source_page": 9,
+      "source_quote": "The nip at the in-running side of the rolls shall be provided with a guard extending across the entire length of the nip and arranged to prevent the fingers of the workers from being pulled in between the rolls or between the guard and the rolls."
+    }
+  ],
+  "examinations": [
+    {
+      "examination_type": "thorough examination",
+      "applies_to": "Cages, drums or baskets of centrifugal machines / extractors — examined to check their balance",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "'once in every 12 months'. This is the ONLY periodic examination in GU41. No certificate is required or mentioned, so certificate_validity_months is null — GU41 produces an examination record, not a certificate.",
+      "trigger_event": null,
+      "examiner_competence": "'a competent person'. GU41 does NOT define competent person, names no accreditation body, and does not require EIAC accreditation or any third party — unlike GU48, GU67 and GU146.",
+      "certificate_validity_months": null,
+      "source_page": 7,
+      "source_quote": "The cages, drums or baskets shall be thoroughly examined by a competent person once in every 12 months to check their balance. In case balance at high speed is not observed, effective steps shall be taken to restore their balance before re-commissioning the machine.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "A centrifugal machine found out of balance — effective steps to restore balance must be taken before the machine is re-commissioned",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "balance at high speed not observed — before re-commissioning the machine",
+      "examiner_competence": "Not specified",
+      "certificate_validity_months": null,
+      "source_page": 7,
+      "source_quote": "In case balance at high speed is not observed, effective steps shall be taken to restore their balance before re-commissioning the machine.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Machines being selected, purchased, installed or put into use — inspection to identify the dangerous parts requiring guards",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on any interval. Stated in the Purpose section as a general duty ('Proper inspection of a machine should be done'), tied to selection, purchase, installation and use rather than to a clock.",
+      "trigger_event": "on selection, purchase, installation and use of machinery and equipment",
+      "examiner_competence": "Not specified; the duty sits with 'the management'",
+      "certificate_validity_months": null,
+      "source_page": 4,
+      "source_quote": "The management while selecting purchasing, installing, and making use of machinery and equipment should ensure that they are safe. Proper inspection of a machine should be done to identify the dangerous parts of machines requiring guards.",
+      "confidence": "medium"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "gu41_grinding_work_rest_gap",
+      "parameter_label": "Maximum gap between the work rest and the grinding wheel",
+      "unit": "mm",
+      "min_val": null,
+      "max_val": 6.0,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "maximum gap of 6 mm",
+      "qualifier_rule": "max",
+      "source_page": 7,
+      "source_quote": "Grinding wheels shall be kept as true as practicable, and the work rest shall be kept adjusted close to wheels, leaving a maximum gap of 6 mm.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "gu41_disc_knife_guard_gap",
+      "parameter_label": "Maximum gap between the bottom of a circular disc-type knife guard and the material",
+      "unit": "mm",
+      "min_val": null,
+      "max_val": 6.0,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "not to exceed 6 mm",
+      "qualifier_rule": "max",
+      "source_page": 8,
+      "source_quote": "The guard shall be adjusted so that the gap between the bottom of the guard and material is not to exceed 6 mm.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "gu41_self_acting_machine_clearance",
+      "parameter_label": "Minimum installation distance between a self-acting machine and any fixed structure that is not part of the machine",
+      "unit": "cm",
+      "min_val": 45.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "minimum 45 cm",
+      "qualifier_rule": "min",
+      "source_page": 8,
+      "source_quote": "Self-acting machines shall be installed leaving a minimum distance of 45 cm. From any fixed structure which is not part of the machine, to prevent any person getting trapped in outward or inward traverse of the machine.",
+      "confidence": "high"
+    }
+  ]
+}

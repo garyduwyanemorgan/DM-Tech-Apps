@@ -1,0 +1,4248 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU83-ECP2",
+    "guideline_no": 83,
+    "title": "Technical Guidelines for Consumer Products Dealing Establishments Compliance",
+    "version": "4.1",
+    "issued_on": "2025-06-09",
+    "superseded_issue_date": "2024-04-28",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2023/01/DM-HSD-GU83-ECP2-_Technical-Guidelines-for-Consumer-Products-Dealing-Establishments-Compliance_V4.1-002.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": {
+    "module_kind_justification": "GU83 is the strongest compliance module of this group. It states a fixed requirement set (14 annexes), assigns each requirement a risk class in the document itself, defines the required action per risk class (section 8), and defines a grading formula from A to F driven by counts of violations by class (section 9). A report can therefore legitimately say 'grade C, 2 Critical and 4 Major violations' and, where zero violations, that the establishment complies. This is a verdict the source document authorises.",
+    "verdict_caution": "The verdict GU83 authorises is a GRADE, not a binary. There is no 'COMPLIANT' band: grade A still tolerates 1 to 2 Minor violations. A report must emit the grade letter plus the violation counts, never a bare COMPLIANT/NON-COMPLIANT, because collapsing A-F to a binary invents a threshold DM did not set.",
+    "version_conflict": "The cover page and every page footer say Version # V 4.1, Issue Date 9th June 2025, Superseded Issue Date 28th April 2024. The Document History Log on page 2 tops out at version '3', dated 9th June 2025. The document therefore disagrees with itself about its own version number: the history log has no row for 4.0 or 4.1. The cover/footer value (4.1) is used here because it is the value stamped on all 35 pages, but this must be re-verified before the module is sold. The URL says V4.1 and happens to agree with the cover - that agreement is coincidence and was not relied on.",
+    "annex_cross_reference_error": "Section 10 of the body cites the wrong annex numbers, systematically off by one from Part E for everything after Annex 1. Section 10-3(I) sends toys to 'Annex 5', but Annex 5 is Noise control and toys are Annex 6. 10-3(II) sends food contact materials to Annex 6 (actually 7), 10-3(III) cosmetics to Annex 7 (actually 8), 10-3(IV) low voltage to Annex 8 (actually 9), 10-3(V) health supplements to Annex 9 (actually 10), 10-3(VI) detergents to Annex 10 (actually 11), 10-3(VII) biocides to Annex 11 (actually 12), 10-3(VIII) tobacco to Annex 12 (actually 13). 10-4 sends indoor air to 'Annex 2', but Annex 2 is Public Safety and indoor air is Annex 3. 10-2 cites 'Annex 1, Annex 13' for public and operational safety, where the actual public-safety annex is Annex 2. The extraction below binds each template to the ANNEX AS PRINTED IN PART E, whose own headings are unambiguous, and ignores section 10's pointers. Do not build applicability routing from section 10.",
+    "applicability_gap": "The document never states which annexes apply to which business activity. Part E is titled 'Business activity Annexes' and section 8 notes 'Each requirement violation assessed to its risk based on business activity type', but no activity-to-annex mapping is printed anywhere. A perfume shop is plainly not assessed against the swimming-pool or toys items, yet nothing in GU83 says so. applies_to on each template below is derived from the annex's own heading, NOT from a stated scope rule. Any activity-based filtering the app applies is the app's own judgement and must be labelled as such - this is the single largest content gap in GU83 and it must be resolved with DM before the module ships, because serving the wrong annex set changes the grade.",
+    "severity_enum": "The document uses a FOUR-level failure scale: Minor, Major, Critical, Catastrophic. The extraction schema's enum (critical|major|minor|unknown) has no slot for Catastrophic, and collapsing it into 'critical' would be a real error rather than a cosmetic one: under the section 9 formula ONE Catastrophic is grade F on its own, whereas it takes FIVE Criticals to reach F. The enum must be extended. failure_severity carries the extended value; source_risk_label carries the document's verbatim label in every case.",
+    "duplicates": "Annex 5 prints 'Noise source entertainment premise operating out from residential area.' twice and Annex 7 prints 'Not to deal in misleading or improper details of food contact materials.' twice. Both are flagged with duplicate_of. Scoring the duplicates independently double-counts one real failure and can move the grade down a band.",
+    "out_of_scale_severity": "Two Annex 5 items are labelled 'Low', which is not one of the four risk-assessment outcomes. They are set to failure_severity 'unknown' and cannot enter the grading formula.",
+    "numbering": "The annexes print requirements as unnumbered table rows. Item numbers below (A<annex>.<row>) are positional and assigned by this extraction. Item TEXT is verbatim including the document's own typographical errors ('inscects', 'Prsence', 'AvaiIability', 'driniking', 'belowacceptable', 'nad', 'disseased'), which are preserved deliberately so the attested wording matches the source.",
+    "response_type": "All items are recorded as yes_no_na. The document does not print a response format at all - it prints a requirement and a risk class, and an inspector records a violation or not. yes_no_na is the honest reading (many items are inapplicable to a given activity - see applicability_gap), but it is this extraction's inference, not the document's instruction."
+  },
+  "risk_module": {
+    "source_section": "8 Risk module",
+    "source_page": 12,
+    "matrix": {
+      "note": "Rows are 'Probability of repetition', columns are 'Severity of the potential risk'. The cell value is the RISK ASSESSMENT class used by section 9 grading.",
+      "cells": [
+        {
+          "probability": "Almost certain",
+          "severity": "Very Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Low",
+          "risk": "Major"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Medium",
+          "risk": "Critical"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "High",
+          "risk": "Catastrophic"
+        },
+        {
+          "probability": "Almost certain",
+          "severity": "Very High",
+          "risk": "Catastrophic"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Very Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Low",
+          "risk": "Major"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Medium",
+          "risk": "Critical"
+        },
+        {
+          "probability": "Likely",
+          "severity": "High",
+          "risk": "Critical"
+        },
+        {
+          "probability": "Likely",
+          "severity": "Very High",
+          "risk": "Catastrophic"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Very Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Low",
+          "risk": "Major"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Medium",
+          "risk": "Major"
+        },
+        {
+          "probability": "Possible",
+          "severity": "High",
+          "risk": "Critical"
+        },
+        {
+          "probability": "Possible",
+          "severity": "Very High",
+          "risk": "Critical"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Very Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Medium",
+          "risk": "Major"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "High",
+          "risk": "Major"
+        },
+        {
+          "probability": "Unlikely",
+          "severity": "Very High",
+          "risk": "Major"
+        },
+        {
+          "probability": "Very Unlikely",
+          "severity": "Very Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Very Unlikely",
+          "severity": "Low",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Very Unlikely",
+          "severity": "Medium",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Very Unlikely",
+          "severity": "High",
+          "risk": "Minor"
+        },
+        {
+          "probability": "Very Unlikely",
+          "severity": "Very High",
+          "risk": "Minor"
+        }
+      ]
+    },
+    "probability_indicators": [
+      {
+        "level": "Very Unlikely",
+        "description": "Not occurred before"
+      },
+      {
+        "level": "Unlikely",
+        "description": "Occurred outside Dubai"
+      },
+      {
+        "level": "Possible",
+        "description": "Occurred at least once in similar scope operations"
+      },
+      {
+        "level": "Likely",
+        "description": "Known at least once within business scope"
+      },
+      {
+        "level": "Almost certain",
+        "description": "Repeated in similar operations within scope"
+      }
+    ],
+    "severity_indicators": [
+      {
+        "level": "Very Low",
+        "description": "No environmental health risk"
+      },
+      {
+        "level": "Low",
+        "description": "Insignificant environmental health effect"
+      },
+      {
+        "level": "Medium",
+        "description": "Acute limited or temporary environmental health effect"
+      },
+      {
+        "level": "High",
+        "description": "Chronic or permanent environmental health effect"
+      },
+      {
+        "level": "Very High",
+        "description": "Widespread environmental health effect"
+      }
+    ],
+    "required_action": [
+      {
+        "risk_assessment": "Minor",
+        "action": "Operation, activity or mission could be ran/continued with current procedures."
+      },
+      {
+        "risk_assessment": "Major",
+        "action": "Operation, activity or mission could be ran/ continued with current procedures, with providing recommended corrections/other way of procedures implementation."
+      },
+      {
+        "risk_assessment": "Critical",
+        "action": "Operation, activity or mission must be ran/ continued with current procedures , by providing mandatory corrections/other way of procedures implementation during proposed period of time and monitoring action. Must stopped in case of non-commitment within period."
+      },
+      {
+        "risk_assessment": "Catastrophic",
+        "action": "Operation, activity or mission must be stopped until corrections obtained, with re-assessment before re-launching operation or activity."
+      }
+    ],
+    "note": "Each requirement violation assessed to its risk based on business activity type, and upon final findings grade of establishment estimated."
+  },
+  "grading": {
+    "source_section": "9 Score and grading",
+    "source_page": 13,
+    "source_quote": "Establishment's violations to the environmental health requirements shall affect overall grade as per below formulas settled as per management decisions: Where highest level of compliance score A grade, in descending order to grade F.",
+    "evaluation_order": "F first, then D, C, B, A - the first grade whose condition is satisfied wins. The document prints the table F-to-A and the bands are not mutually exclusive if read in the other direction.",
+    "grades": [
+      {
+        "grade": "F",
+        "conditions": [
+          "1 Catastrophic or more",
+          "5 Critical or more",
+          "7 Major or more",
+          "10 Minor or more"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "D",
+        "conditions": [
+          "3 TO 4 Critical",
+          "5 TO 6 Major",
+          "7 TO 9 Minor"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "C",
+        "conditions": [
+          "1 TO 2 Critical",
+          "3 TO 4 Major",
+          "5 TO 6 Minor"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "B",
+        "conditions": [
+          "0 Critical",
+          "0 Major",
+          "1 TO 3 Minor"
+        ],
+        "combinator": "and/or"
+      },
+      {
+        "grade": "A",
+        "conditions": [
+          "0 Critical",
+          "0 Major",
+          "1 TO 2 Minor"
+        ],
+        "combinator": "and/or"
+      }
+    ],
+    "unresolved": [
+      "There is no grade E. The document says grades run A to F but prints only A, B, C, D and F.",
+      "Grades A and B overlap and are not separable as printed: A is '0 Critical and/or 0 Major and/or 1 TO 2 Minor' and B is '0 Critical and/or 0 Major and/or 1 TO 3 Minor'. An establishment with 0 Critical, 0 Major and 2 Minor satisfies BOTH. Neither band mentions Catastrophic. A zero-violation establishment matches no band at all.",
+      "The combinator is printed as '&/or' throughout, which is not a decidable operator. Whether the bands are conjunctive or disjunctive changes the grade for most real inspections.",
+      "Because of the above, the grading formula MUST NOT be implemented as an automatic scorer without written clarification from DM. Emit the violation counts by class and, at most, a provisional grade clearly marked as derived. A wrong grade letter on a report is exactly the misrepresentation section 7.12 warns about."
+    ]
+  },
+  "checklist_templates": [
+    {
+      "key": "gu83_annex_01",
+      "label": "Annex 1: Public health and hygiene requirements .",
+      "applies_to": "Public health and hygiene",
+      "source_section": "Part E, Annex 1",
+      "source_pages": [
+        18,
+        19,
+        20
+      ],
+      "items": [
+        {
+          "item_no": "A1.1",
+          "text": "Availability of updated all staff list upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.2",
+          "text": "Availability of allowed areas of indoor smoking permit.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.3",
+          "text": "Providing valid occupational health certificates for employees and labors upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.4",
+          "text": "Providing valid environmental health related documents or No objection permits for premise and employees upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.5",
+          "text": "Availability of suitable sanitizing and disinfecting materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.6",
+          "text": "Availability of suitable cleaning materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.7",
+          "text": "Cleanliness and Sterilization of available instruments and equipments.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.8",
+          "text": "Provision of Sufficient and suitable Waste bin with cover for waste collection (Preferable pedal operated waste bins)",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.9",
+          "text": "Availability of suitable, sufficient and periodically cleaned bio-hazardous and general wastes including consumer products and furniture containers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.10",
+          "text": "Maintain premise general cleanliness and hygiene level inside all premise facilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.11",
+          "text": "Cleaned meshed windows to prevent entry of insects and rodents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.12",
+          "text": "Toilets & bathing facilities cleanliness.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.13",
+          "text": "Cleaned wash basins, Floors and walls",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.14",
+          "text": "Presence of an effective disposal of bio-hazardous and general waste materials including consumer products and furniture.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.15",
+          "text": "Reuse of empty chemicals and detergents containers by any means is not allowed with safe proper way of disposal.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.16",
+          "text": "Presence of valid disposal contract of bio-hazardous and general wastes including consumer products and furniture.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.17",
+          "text": "Presence of valid pest (e.g.: rodents and inscects) control operations contract.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.18",
+          "text": "Presence of an effective pest (e.g.: rodents and inscects) control operations.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.19",
+          "text": "Availability of sufficient suitable toilets & bathing facilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.20",
+          "text": "Absence of rodents and Insects or signs of the same.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.21",
+          "text": "Presence of cleaned drinking water supply and devices.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 18,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.22",
+          "text": "Presence of proper drainage system for activity waste.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.23",
+          "text": "The outlet from the machines shall be properly drained into gutter/ drain line.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.24",
+          "text": "Proper disposal of waste oil and refrigerant disposed .",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.25",
+          "text": "The drain line shall be covered at the same floor level without any difference in surface profile, elevation or made.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.26",
+          "text": "Availability of sufficient suitable hands and/or Hair wash basins.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.27",
+          "text": "Availabilty of sufficient suitable toilets & bathing facilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.28",
+          "text": "Availability of hot / cold water source.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.29",
+          "text": "Presence of proper healthcare services, installation and utilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.30",
+          "text": "Applications and declarations before certain types of work begins.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.31",
+          "text": "Premise notifications and reporting for incidences may affect Environmental health.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.32",
+          "text": "Healthy practices, use and treatment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.33",
+          "text": "Commitment and adherence to the Dubai Municipality environmental health practices, instructions, orders and circulars.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.34",
+          "text": "Premise compliance with smoking regulation.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.35",
+          "text": "Place No-smoking sign in a prominent visible and suitable place inside premise,and not allow smoking.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.36",
+          "text": "Cigarettes ashtrays shall be placed at a distance of 7.62 meters away from the entrances or the exit of the building.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.37",
+          "text": "Removal of cigarettes ashtrays from all sites or areas where smoking is prohibited.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.38",
+          "text": "The activity Halls/ Places shall be available and suitable.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.39",
+          "text": "Dressing/ changing room shall be available and suitable.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.40",
+          "text": "Shower/ changing room shall be available and suitable near swimming pool.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.41",
+          "text": "Availability of suitable sufficient waiting rooms and/or areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.42",
+          "text": "Availability of sufficient and suitable special guest services rooms and/or areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.43",
+          "text": "Presence of suitable, sufficient special facilities as per activity layout requirement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.44",
+          "text": "Suitability of building/premise construction and design specifications, with intended activity , as per environmental health requirements.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.45",
+          "text": "Availability of proper disposing gas, fumes and heat facilities as per activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.46",
+          "text": "Cooking at work site is not allowed unless permitted.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.47",
+          "text": "Tenancy contract availability from premise owner or operator.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 19,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.48",
+          "text": "Personal use of work site is not allowed unless permitted.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.49",
+          "text": "Temporary or permanent residing unless permitted.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.50",
+          "text": "Using approved devices as per license activity inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.51",
+          "text": "The presence of the pets / animals is not allowed unless permitted.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.52",
+          "text": "Compliance of premise activity, using or practice as per license or related permit issued.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.53",
+          "text": "Maintain personal hygiene and cleanliness level.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.54",
+          "text": "Providing approved workflow in quarantine cases upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.55",
+          "text": "Absence of workers have open wounds during the work",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.56",
+          "text": "Absence of workers have wounds, injuries or infected during the work, which may affect his/her health , or others health and safety",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A1.57",
+          "text": "Not providing services to skin disseased or infected customers inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 20,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_02",
+      "label": "Annex 2 : Public Safety requirements .",
+      "applies_to": "Public and operational safety",
+      "source_section": "Part E, Annex 2",
+      "source_pages": [
+        20,
+        21,
+        22,
+        23
+      ],
+      "items": [
+        {
+          "item_no": "A2.1",
+          "text": "Providing accredited safety conformity/certificate for pressure system and equipments.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.2",
+          "text": "Providing accredited safety conformity/certificate for personal protective equipments according to Dubai Municipality technical guidelines.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.3",
+          "text": "Moving parts of the lift gear for elevators are secured.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.4",
+          "text": "Providing accredited safety conformity/certificate for lifting system and equipments.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.5",
+          "text": "Premise walls, floors and ceilings made shall be from approved materials .",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.6",
+          "text": "Using proper tiles with facility operations.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.7",
+          "text": "All structural materials are fire resistant.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.8",
+          "text": "Sufficient number of separate steel shelves or rack ( elevated 20 cm above floor and 50 cm down ceiling )",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.9",
+          "text": "Chemicals used in laundry services shall be stored properly in a separate room and as per material safety data sheet.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.10",
+          "text": "Lift room is not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.11",
+          "text": "Electrical room is not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.12",
+          "text": "Pumps room is not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.13",
+          "text": "Fire fighting equipment cabinet is not used as storage area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.14",
+          "text": "Presence of calibrated thermometers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.15",
+          "text": "Presence of temperature log file for refrigerators or freezers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 20,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.16",
+          "text": "Presence of suitable sufficient cabinets,drawers and shelves.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.17",
+          "text": "Availability of proper storage mechanism of consumer products, tools and materials",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.18",
+          "text": "Not to deal in expired,spoiled or deteriorated consumer products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.19",
+          "text": "Prohibit sale and Displaying tobacco and related products deteriorated or expired or banned products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.20",
+          "text": "Presence of adequate non-smoking and warning signs all around flammable materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.21",
+          "text": "The chemicals drum / containers shall be properly labelled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.22",
+          "text": "Availability of product data sheets from the suppliers for all hazardous substances upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.23",
+          "text": "Proper securing (use and handling ) of liquified petroleum gas cylinders and flammable materials",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.24",
+          "text": "Providing valid safety related documents or No Objection permits upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.25",
+          "text": "Availability of sensors and devices calibration records.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.26",
+          "text": "Availability of valid sensors and devices accreditation certification.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.27",
+          "text": "Work permit in confined space is obtained.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.28",
+          "text": "Providing valid Fire extinguishers means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.29",
+          "text": "Additional stop bars/switches shall be provided for emergency stop.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.30",
+          "text": "Presence of proper first aid box and tools, according to Dubai Municipality technical guidelines.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.31",
+          "text": "Availability of proper entrances/exits.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.32",
+          "text": "Providing fire exit layout signs.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.33",
+          "text": "Rooms, corridors and outlets are equipped with Heat and/or Smoke detectors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.34",
+          "text": "Presence of fire alarm and main panel as per licensed activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.35",
+          "text": "Providing proper and adequate facilities for disposing gas, fumes and heat.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.36",
+          "text": "Presence of fire protection requirements completion certificate issued by Civil Defence Department.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.37",
+          "text": "Availabilty of applicable and well-known premise evacuation plan and safe assembly points.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.38",
+          "text": "Availability of adequate evacuation plan trials record as per licensed activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.39",
+          "text": "Assembly points used in emergency cases, not in parking areas, and found near to premise entrances for disabled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.40",
+          "text": "Free accessed staircases in emergency.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 21,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.41",
+          "text": "Provide layout, tools and controlling, precautionary and preventive system in emergency and fire cases, maintained by certified body as per U.A.E fire code guideline.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.42",
+          "text": "Commitment and adherence to the Dubai Municipality environmental health practices, instructions, orders and circulars.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.43",
+          "text": "Proper and approved advertisements inside built environment.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.44",
+          "text": "Presence of premise sign board with commercial name and required details.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.45",
+          "text": "Maintainance of electrical equipments and devices including non-electrical manual equipments.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.46",
+          "text": "Presence of proper maintenance level which may affect built environmental health.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.47",
+          "text": "Presence of Safety instructions and work site risks awareness materials and procedures.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.48",
+          "text": "AvaiIability of safety instructions, operational guidance signboards and tools adequately.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.49",
+          "text": "Workers occupational safety training.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.50",
+          "text": "Dealing in consumer products intended for sale only in Emirate of Dubai and as per activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.51",
+          "text": "Prohibited consumer products /handling of the medicines are not allowed.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.52",
+          "text": "Using building facilities safely with related persmission.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.53",
+          "text": "Safety requirements in permitted Kitchens and Food Preparation Areas, according to Dubai Municipality technical guidelines.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.54",
+          "text": "Suitable area size with number and size of machines and number of workers.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.55",
+          "text": "Keeping windows and balcony doors closed as per premise licensed activity.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.56",
+          "text": "licensed constructions/Wooden partitions.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.57",
+          "text": "Non-slippery, impermeable, friction and rust resistant floors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.58",
+          "text": "Presence of sufficient work/activity area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.59",
+          "text": "Proper and adequate lighting system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.60",
+          "text": "Allow and assist Dubai Municipality employee from performing duties.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.61",
+          "text": "Presence of management representative or acting manager, for example: Person in charge, Safety engineer ,Professional technician or health officer.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.62",
+          "text": "staff wearing suitable shoes during work",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.63",
+          "text": "Wearing proper uniform.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.64",
+          "text": "Presence of equipment and procedures quality Control or/and Assurance upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.65",
+          "text": "Submission of periodical test reports on Dubai Municipality - health and safety compliance portal.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 22,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.66",
+          "text": "Availability of self compliance monitoring program Audits and records upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.67",
+          "text": "Prsence of eyewash installations as per activity and in chemicals handling areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.68",
+          "text": "Presence of Suitable Furniture and in good conditions not affecting built environmental health.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.69",
+          "text": "Presence of safe tools and equipment in good and suitable operational conditions.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.70",
+          "text": "Following proper colour coding of water, steam, diesel or gas lines.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.71",
+          "text": "Presence of safe machines and devices in good and suitable operational conditions.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.72",
+          "text": "Presence of proper premise public and operational safety means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.73",
+          "text": "Presence of safe electrical circuts, wiring and approved electric system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.74",
+          "text": "Presence of covered and plugged electrical ends.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.75",
+          "text": "Presence of electrical sockets and plugs in good condition and in suitable location.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.76",
+          "text": "Avoiding heavy load on socket outlets.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.77",
+          "text": "Proper electrical isolation switches for each machine shall be provided and easily accessible.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A2.78",
+          "text": "ELCB ( Earth-Leakage Circuit Breaker ) shall be provided in all electrical circuits.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "catastrophic",
+          "source_risk_label": "Catastrophic",
+          "source_page": 23,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_03",
+      "label": "Annex 3: Indoor air quality requirements.",
+      "applies_to": "Indoor air system and quality indicators",
+      "source_section": "Part E, Annex 3",
+      "source_pages": [
+        23,
+        24
+      ],
+      "items": [
+        {
+          "item_no": "A3.1",
+          "text": "Good physical conditions and cleanliness of indoor air conditioning system components inside and outside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.2",
+          "text": "Absence of blockage or obstruction of ventilation system outdoor air inlet.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.3",
+          "text": "Effective periodical maintenance for indoor air conditioning system and its components shall be handled by specialized company.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.4",
+          "text": "Free indoor condensation or residues or signs of the same inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.5",
+          "text": "Presence of valid indoor air system maintenance contract.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.6",
+          "text": "Presence of records or log for indoor air conditioning system periodical maintenance and inspection.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.7",
+          "text": "Premises shall provide well designed effective mechanical ventilation air conditioning system - MVAC - , and fit premise nature and area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.8",
+          "text": "Suitability of ventilation system outdoor air inlet location from sources of contamination.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.9",
+          "text": "Presence of suitable dust filter system installed in the outdoor air intake.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 23,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.10",
+          "text": "Premise equipped with sufficient permanently working suction fans, and installed properly according to premise area and design.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.11",
+          "text": "Measurements of Indoor air pollutants concentrations within acceptable limits inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "Requires instrumented indoor-air measurement. The acceptable limits are NOT in GU83 - they live in GU119 / the built-environment guideline. Hybrid checklist+limit item."
+        },
+        {
+          "item_no": "A3.12",
+          "text": "Presence of exhaust system for air pollutants and heat release devices vented directly to outdoors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.13",
+          "text": "Cooling water systems and towers including its water tanks shall be provided with effective, suitable and auto controlled water treatment systems.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.14",
+          "text": "Presence of suitable ventilation mechanism in confined space within premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.15",
+          "text": "Presence of suitable ventilation mechanism in pump rooms.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.16",
+          "text": "Car parking area inside premise equipped with effective and proper mechanical ventilation system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.17",
+          "text": "Car parking area inside premise equipped with carbon monoxide gas release sensors.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.18",
+          "text": "Presence of proper and effective ventilation system at premise car parking area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.19",
+          "text": "Premise equipped with effective heating , ventilation air conditioning system - HVAC -, and installed properly according to premise area and design.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.20",
+          "text": "Premise equipped with effective mechanical ventilation air conditioning system - MVAC - , and installed properly according to premise area and design.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.21",
+          "text": "Proper and adequate natural, mechanical or industrial ventilation system inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.22",
+          "text": "Humidity comfort level.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "'Humidity comfort level' - a comfort range is a measurement, but no range is stated in GU83."
+        },
+        {
+          "item_no": "A3.23",
+          "text": "Heat comfort recommended level inside all premise facilities.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "'Heat comfort recommended level' - a measurement, but no range is stated in GU83."
+        },
+        {
+          "item_no": "A3.24",
+          "text": "Odorless fresh air.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.25",
+          "text": "Absence of sensual air pollutants of smoke and dust.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.26",
+          "text": "Quality of indoor air parameters and thermal comfort inside premise during sensual and physical inspection.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.27",
+          "text": "Materials used in air conditioning systems comply with applied standards.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.28",
+          "text": "Occupancy limit shall be considered as per approved layouts and issued permits.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 24,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A3.29",
+          "text": "Absence of undesired smell or smoke or dust in indoor air, or sensual signs of the same.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 24,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_04",
+      "label": "Annex 4 : Water system safety and quality requirements .",
+      "applies_to": "Water system safety and quality",
+      "source_section": "Part E, Annex 4",
+      "source_pages": [
+        25,
+        26
+      ],
+      "items": [
+        {
+          "item_no": "A4.1",
+          "text": "Providing accredited safety conformity/certificate for non-driniking water systems and tanks.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.2",
+          "text": "Presence of valid water system maintenance contract.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.3",
+          "text": "Water systems periodical maintenance shall be handled by Dubai Municipality approved company.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.4",
+          "text": "Presence of periodical maintenance record or log for water system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.5",
+          "text": "Presence of periodical testing results for water system.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.6",
+          "text": "Compliance of samples tested for chemical and microbiological contamination.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "Requires laboratory analysis of water samples (chemical and microbiological). Limits are NOT in GU83. Hybrid checklist+limit item, and per section 4.7 the analysis must come from a DM-accredited independent laboratory."
+        },
+        {
+          "item_no": "A4.7",
+          "text": "Water clarity and cleanliness in all premise water systems.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.8",
+          "text": "All fountains and other water supplied featured places or areas including its water tanks shall be provided with suitable water treatment systems.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.9",
+          "text": "Availability of Instructions boards around swimming pool area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.10",
+          "text": "Availabilty of No-Diving sign where mandatory.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.11",
+          "text": "Proper swimming pool water inlets and outlets installation.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.12",
+          "text": "Swimming pool construction and design permitted by Dubai Municipality.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.13",
+          "text": "Cleanliness of swimming pool accessories.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.14",
+          "text": "Swimming pool systems compliance with applied specifications and requirements.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.15",
+          "text": "Providing adequate depth marks around swimming pool.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.16",
+          "text": "Providing suitable lifeguard equipments.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.17",
+          "text": "Non operating swimming pool fencing, railing or any mean of isolating for kids safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.18",
+          "text": "Presence of qualified lifeguard in swimming areas.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.19",
+          "text": "Availability of manual breathing apparatus.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.20",
+          "text": "Shower heads and taps are clean.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.21",
+          "text": "Water systems and accessories are in good condition during visual inspection.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.22",
+          "text": "Water tanks compliance with applied specifications and requirements.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.23",
+          "text": "Closed and sealed drinking water tanks.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.24",
+          "text": "Opaque drinking water tanks and made,polished or painted from approved materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.25",
+          "text": "Easily cleaned drinking water tanks, periodically maintained and disinfected by licensed company.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.26",
+          "text": "Presence of person incharge for Legionella bacteria control program.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 25,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A4.27",
+          "text": "Availabilty of test kit for waters characteristics and records.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_05",
+      "label": "Annex 5: Noise control requirements .",
+      "applies_to": "Noise control",
+      "source_section": "Part E, Annex 5",
+      "source_pages": [
+        26
+      ],
+      "items": [
+        {
+          "item_no": "A5.1",
+          "text": "Acceptable noise level during all day time outside noise source premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "Requires a sound-level measurement. No dB limit is stated anywhere in GU83."
+        },
+        {
+          "item_no": "A5.2",
+          "text": "Stop noise source during approved sleeping time 10 PM to 6 AM in residential area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A5.3",
+          "text": "Control noise level belowacceptable daytime limit from 7AM to 8 PM.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "Requires a sound-level measurement against a daytime limit that GU83 does not state."
+        },
+        {
+          "item_no": "A5.4",
+          "text": "Control noise level below acceptable night time limit from 8PM to 7 AM.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high",
+          "requires_measurement": true,
+          "measurement_note": "Requires a sound-level measurement against a night-time limit that GU83 does not state."
+        },
+        {
+          "item_no": "A5.5",
+          "text": "Providing noise level technical report from certified body in the field of built-in environmental health",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A5.6",
+          "text": "Premise equipped with effective insulation system for operational noise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A5.7",
+          "text": "Providing sound system with control panel.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": "Low",
+          "source_page": 26,
+          "confidence": "high",
+          "severity_note": "The document prints the risk label 'Low' for this item. 'Low' is NOT one of the four risk-assessment outcomes defined in section 8 (Minor / Major / Critical / Catastrophic) - it belongs to the separate 'Severity of the potential risk' axis. It therefore has no place in the section 9 grading formula and cannot be scored. Left as 'unknown' rather than coerced to 'minor'."
+        },
+        {
+          "item_no": "A5.8",
+          "text": "Noise source entertainment premise operating out from residential area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A5.9",
+          "text": "Proper sound workstations design and layout by certified company.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A5.10",
+          "text": "Public pre-announcement of popular events and celebrations noise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "unknown",
+          "source_risk_label": "Low",
+          "source_page": 26,
+          "confidence": "high",
+          "severity_note": "The document prints the risk label 'Low' for this item. 'Low' is NOT one of the four risk-assessment outcomes defined in section 8 (Minor / Major / Critical / Catastrophic) - it belongs to the separate 'Severity of the potential risk' axis. It therefore has no place in the section 9 grading formula and cannot be scored. Left as 'unknown' rather than coerced to 'minor'."
+        },
+        {
+          "item_no": "A5.11",
+          "text": "Noise source entertainment premise operating out from residential area.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high",
+          "duplicate_of": "A5.8",
+          "duplicate_note": "Verbatim duplicate of an earlier item in the same annex. Retained because the document prints it twice; an engine must de-duplicate before scoring or a single real-world failure will be counted twice and can push the grade down a band."
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_06",
+      "label": "Annex 6: Toys requirements.",
+      "applies_to": "Toys",
+      "source_section": "Part E, Annex 6",
+      "source_pages": [
+        26,
+        27
+      ],
+      "items": [
+        {
+          "item_no": "A6.1",
+          "text": "Providing compliance certificates of toys safety upon request.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.2",
+          "text": "Dealing in registered toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.3",
+          "text": "Not to deal in fireworks, firecrackers or explosives.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.4",
+          "text": "Not to deal in banned, prohibited and testing failed toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.5",
+          "text": "Not to deal in toys manufactured like Tobacco or Tobacco related products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.6",
+          "text": "Toy shall be strong enough to withstand the normal behavior of the child.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.7",
+          "text": "Not to deal in toys with small magnetic parts or strong magnets.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.8",
+          "text": "Not to deal in toys with non-functional not essential glass parts.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.9",
+          "text": "Not to deal in toys with removable/detachable small mouth sized parts.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.10",
+          "text": "Not to deal in Projectile toys with removable suction cups or small projectiles.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.11",
+          "text": "Not to deal in stretching or expandable toys that increase more than 50% of the original size.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.12",
+          "text": "Not to deal in Toy with non-functional sharp edges or points.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 26,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.13",
+          "text": "Not to deal in toys with fur or hair not firmly fixed.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.14",
+          "text": "Not to deal in laser toys or products higher than acceptable class.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.15",
+          "text": "Covering toy heat sources.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.16",
+          "text": "Not to deal in Toys posing choking hazard for children under 3 years of age.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.17",
+          "text": "Not to deal in stuffed cloth Toys with weak stitching or seam openings that expel matrix out.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.18",
+          "text": "Not to deal in toys with long flexible part posing constitute strangulation hazard.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.19",
+          "text": "Not to deal in toys with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.20",
+          "text": "Not to deal in a toy which may harm or transfer disease by direct contact, or hazardous to user and others safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.21",
+          "text": "Toy or its accessories physical compliance as per visual inspection.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.22",
+          "text": "Toy product's label shall comply with applied Emirates standards and specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.23",
+          "text": "Presence of adequate toy label information, such as minimum age of user, warning and safety instructions in Arabic and English languages.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.24",
+          "text": "Presence of - Gulf Specification Organization - GSO mark comply with specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.25",
+          "text": "Presence of - Not suitable for 3 years old - graphical warning symbol comply with specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.26",
+          "text": "Not to deal in misleading or improper details of toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.27",
+          "text": "Brand or product name shall be complied and declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.28",
+          "text": "Country of origin information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.29",
+          "text": "Manufacturer details shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.30",
+          "text": "Total weight, size or volume information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.31",
+          "text": "Instructions of use, daily dosages and warnings information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.32",
+          "text": "Storage conditions information shall be comply and declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.33",
+          "text": "Barcode shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.34",
+          "text": "Model numbers information shall be comply and properly declared for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A6.35",
+          "text": "Claims and illustrations, pictures or language which are inconsistent / not comply with the prevailing social customs and values for toys.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 27,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_07",
+      "label": "Annex 7: Food contact material requirements",
+      "applies_to": "Food contact materials",
+      "source_section": "Part E, Annex 7",
+      "source_pages": [
+        28
+      ],
+      "items": [
+        {
+          "item_no": "A7.1",
+          "text": "Not to deal in misleading or improper details of food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.2",
+          "text": "Not to deal in food contact materials may harm or transfer disease by direct contact, or hazardous to user and others safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.3",
+          "text": "Brand or product name shall be complied and declared for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.4",
+          "text": "Country of origin information shall be comply and properly declared for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.5",
+          "text": "Manufacturer details shall be comply and properly declared for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.6",
+          "text": "Total weight, size or volume information shall be comply and properly declared for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.7",
+          "text": "Storage conditions information shall be complied and declared for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.8",
+          "text": "Claims and illustrations, pictures or language shall be consistent / comply with the prevailing social customs and values for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.9",
+          "text": "Ingredients information not properly declared / not comply for food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.10",
+          "text": "Not to deal in a food contact materials with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.11",
+          "text": "Food contact materials product's label shall comply with applied Emirates standards and specifications",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.12",
+          "text": "Dealing in registered food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A7.13",
+          "text": "Not to deal in misleading or improper details of food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high",
+          "duplicate_of": "A7.1",
+          "duplicate_note": "Verbatim duplicate of an earlier item in the same annex. Retained because the document prints it twice; an engine must de-duplicate before scoring or a single real-world failure will be counted twice and can push the grade down a band."
+        },
+        {
+          "item_no": "A7.14",
+          "text": "Not to deal in banned, illegal and testing failed food contact materials.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 28,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_08",
+      "label": "Annex 8: Cosmetics, personal care product, and perfumes requirements",
+      "applies_to": "Cosmetics, personal care products and perfumes",
+      "source_section": "Part E, Annex 8",
+      "source_pages": [
+        28,
+        29
+      ],
+      "items": [
+        {
+          "item_no": "A8.1",
+          "text": "Not to deal in banned, illegal and testing failed cosmetics, personal care or perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.2",
+          "text": "Not to deal in misleading or improper details of personal care, cosmetic and perfume product by any display means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.3",
+          "text": "Dealing in registered consumer products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.4",
+          "text": "Not to deal in misleading or improper details of cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.5",
+          "text": "Not to deal in cosmetics, personal care and perfumery products may harm or transfer disease by direct contact, or hazardous to user and others safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 28,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.6",
+          "text": "Brand or product name shall be complied and declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.7",
+          "text": "Country of origin information shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.8",
+          "text": "Manufacturer details shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.9",
+          "text": "Total weight, size or volume information shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.10",
+          "text": "Instructions of use, daily dosages and warnings information shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.11",
+          "text": "Storage conditions information shall be comply and declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.12",
+          "text": "Barcode shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.13",
+          "text": "Batch/lot numbers information shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.14",
+          "text": "Validity information, Production, expiry dates and Period after opening information shall be comply and properly declared for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.15",
+          "text": "Claims and illustrations, pictures or language shall be consistent / comply with the prevailing social customs and values for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.16",
+          "text": "Ingredients information not properly declared / not comply for cosmetics, personal care and perfumery products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.17",
+          "text": "Not to deal in a cosmetic, personal care and perfumery product with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A8.18",
+          "text": "Personal care, cosmetic and perfume product's label shall comply with applied Emirates standards and specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_09",
+      "label": "Annex 9: Low Voltage electrical devices requirements.",
+      "applies_to": "Low voltage electrical devices",
+      "source_section": "Part E, Annex 9",
+      "source_pages": [
+        29,
+        30,
+        31
+      ],
+      "items": [
+        {
+          "item_no": "A9.1",
+          "text": "Dealing in low voltage electrical device comply with U.A.E specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.2",
+          "text": "Water Heater shall to comply with UAE.S / GSO/ IEC 60335-2-21: 2007 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 29,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.3",
+          "text": "Extension Cords and Adaptors shall to comply with UAE.S / GSO / IEC 60884-1: 2007.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.4",
+          "text": "Electric Irons shall to comply with UAE.S / IEC 60335-2-3: 2002 5th Ed specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.5",
+          "text": "Microwave Ovens shall to comply with UAE.S / GSO / IEC 60335-2-25: 2007 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.6",
+          "text": "Washing Machines and Clothes Dryers shall to comply with UAE.S / GSO / IEC 60335-2-4: 2007 + A1:2004 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.7",
+          "text": "Electric Stove shall to comply with UAE.S / IEC 60335-2-9:2004 Ed. 5.1 (for portable appliances) specifications.IEC 60335-2-6: 2002 5th Ed. (for stationary appliances) specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.8",
+          "text": "Refrigerators, Chillers and Freezers shall to comply with UAE S. / IEC 60335-2-24: 2002 6th Ed specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.9",
+          "text": "Room Air Conditioners shall to comply with UAE S. / IEC 60335-2-40:2005 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.10",
+          "text": "Household Cooking Appliances shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-9, UAE.S 60335-2-13 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.11",
+          "text": "Electromechanical Kitchen Appliances shall to comply with UAE.S 60335-1, UAE.S 60335-2-14 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.12",
+          "text": "Vacuum Cleaners shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-2 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.13",
+          "text": "Fans & Fan Systems including Air-purifiers shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-80, UAE.S 60335-2-65 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.14",
+          "text": "Appliances for Heating Liquids shall to comply with UAE.S IEC 60335-1 UAE.S 60335-2-15 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.15",
+          "text": "Grass Shears/Trimmers shall to comply with UAE.S IEC 60335-1, UAE.S 60335-2-91, UAE.S 60335-2-94 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.16",
+          "text": "Gas Powered Ovens & Cooking Ranges shall to comply with UAE.S GSO 1050:2011; UAE.GSO 1049:2011 specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.17",
+          "text": "Not to deal in misleading or improper details of electrical devices.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.18",
+          "text": "Not to deal in electrical devices which may harm or transfer disease by direct contact, or hazardous to user and others safety.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.19",
+          "text": "Brand or product name shall be comply and declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.20",
+          "text": "Country of origin information shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 30,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.21",
+          "text": "Manufacturer details shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.22",
+          "text": "Total weight, size or volume information shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.23",
+          "text": "Presence of manual of the Instructions of use in arabic and english nad properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.24",
+          "text": "Storage conditions information shall be comply and declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.25",
+          "text": "Barcode shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.26",
+          "text": "Model numbers information shall be comply and properly declared for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.27",
+          "text": "Claims and illustrations, pictures or language which are inconsistent / not comply with the prevailing social customs and values for electrical device.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.28",
+          "text": "Not to deal in electric toys or devices not comply with applied specifications and standards.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.29",
+          "text": "Dealing in low voltage electrical device shall be marked to ensure safe usage.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.30",
+          "text": "Not to deal in banned, prohibited and testing failed low voltage electrical devices",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A9.31",
+          "text": "Not to deal in misleading or improper details of low voltage electrical device by any mean.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_10",
+      "label": "Annex 10: Health Supplements requirements",
+      "applies_to": "Health supplements",
+      "source_section": "Part E, Annex 10",
+      "source_pages": [
+        31,
+        32
+      ],
+      "items": [
+        {
+          "item_no": "A10.1",
+          "text": "Dealing in registered health supplements.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.2",
+          "text": "Not to deal in misleading or improper details of health supplements by any display means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.3",
+          "text": "Not to deal in banned, prohibited and testing failed health supplements.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.4",
+          "text": "Not to deal in misleading or improper details of health supplements.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.5",
+          "text": "Brand or product name shall be comply and declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.6",
+          "text": "Country of origin information shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.7",
+          "text": "Manufacturer details shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.8",
+          "text": "Total weight, size or volume information shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.9",
+          "text": "Instructions of use, daily dosages and warnings information shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.10",
+          "text": "Storage conditions information shall be comply and declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.11",
+          "text": "Barcode shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.12",
+          "text": "Batch/lot numbers information shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 31,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.13",
+          "text": "Validity information, Production,expiry dates and Period after opening information shall be comply and properly declared for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.14",
+          "text": "Claims and illustrations, pictures or language which are inconsistent / not comply with the prevailing social customs and values for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.15",
+          "text": "Ingredients information not properly declared / not comply for health supplement.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.16",
+          "text": "Not to deal in a health supplement with removable stickers,temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A10.17",
+          "text": "Health supplement product's label shall comply with applied Emirates standards and specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_11",
+      "label": "Annex 11: Household detergent product requirements .",
+      "applies_to": "Household detergent products",
+      "source_section": "Part E, Annex 11",
+      "source_pages": [
+        32
+      ],
+      "items": [
+        {
+          "item_no": "A11.1",
+          "text": "Detergent product's label shall comply with applied Emirates standards and specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.2",
+          "text": "Not to deal in misleading or improper details of detergents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.3",
+          "text": "Brand or product name shall be comply and declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.4",
+          "text": "Country of origin information shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.5",
+          "text": "Manufacturer details shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.6",
+          "text": "Total weight, size or volume information shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.7",
+          "text": "Instructions of use and warnings information shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.8",
+          "text": "Storage conditions information shall be comply and declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.9",
+          "text": "Barcode shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.10",
+          "text": "Batch/lot numbers information shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.11",
+          "text": "Validity information, Production,expiry dates and Period after opening information shall be comply and properly declared for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.12",
+          "text": "Claims and illustrations, pictures or language which are inconsistent / not comply with the prevailing social customs and values for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.13",
+          "text": "Ingredients information not properly declared / not comply for detergent.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.14",
+          "text": "Not to deal in a detergent with removable stickers,temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.15",
+          "text": "Not to deal in banned, prohibited and testing failed detergents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.16",
+          "text": "Not to deal in misleading or improper details of detergents by any display means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 32,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A11.17",
+          "text": "Dealing in registered detergents.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 32,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_12",
+      "label": "Annex 12: Biocide products requirements .",
+      "applies_to": "Biocide products",
+      "source_section": "Part E, Annex 12",
+      "source_pages": [
+        33
+      ],
+      "items": [
+        {
+          "item_no": "A12.1",
+          "text": "Not to deal in misleading or improper details of biocides.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.2",
+          "text": "Brand or product name shall be comply and declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.3",
+          "text": "Country of origin information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.4",
+          "text": "Manufacturer details shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.5",
+          "text": "Total weight, size or volume information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.6",
+          "text": "Instructions of use and warnings information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.7",
+          "text": "Storage conditions information shall be comply and declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.8",
+          "text": "Barcode shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.9",
+          "text": "Batch/lot numbers information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.10",
+          "text": "Validity information, Production, expiry dates and Period after opening information shall be comply and properly declared for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.11",
+          "text": "Claims and illustrations, pictures or language which are inconsistent / not comply with the prevailing social customs and values for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.12",
+          "text": "Ingredients information not properly declared / not comply for biocide.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.13",
+          "text": "Not to deal in a biocide with removable stickers, temporary label or unlabeled.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.14",
+          "text": "Biocide product's label shall comply with applied Emirates standards and specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.15",
+          "text": "Dealing in registered biocides.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.16",
+          "text": "Not to deal in banned, prohibited and testing failed biocides.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A12.17",
+          "text": "Not to deal in misleading or improper details of biocides by any display means.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_13",
+      "label": "Annex 13: Tobacco products requirements.",
+      "applies_to": "Tobacco products",
+      "source_section": "Part E, Annex 13",
+      "source_pages": [
+        33
+      ],
+      "items": [
+        {
+          "item_no": "A13.1",
+          "text": "Dealing in registered tobacco and related products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A13.2",
+          "text": "Sale and Displaying tobacco and related products comply with Emirates standards and specifications.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 33,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A13.3",
+          "text": "Not to deal in banned, prohibited and testing failed tobacco and related products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 33,
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu83_annex_14",
+      "label": "Annex 14: Tobacco products and premise control requirements.",
+      "applies_to": "Tobacco products and premise control",
+      "source_section": "Part E, Annex 14",
+      "source_pages": [
+        34
+      ],
+      "items": [
+        {
+          "item_no": "A14.1",
+          "text": "Prohibit sale and Displaying tobacco and related products within health, sport and education entities, and worship buildings or its property.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.2",
+          "text": "Prohibit sale and Displaying tobacco and related product within 100 meters distance from worship buildings or its property.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.3",
+          "text": "Prohibit sale and Displaying tobacco and related products within 150 meters distance from nurseries, schools, institutes and universities outer entrances.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.4",
+          "text": "Providing valid permit for displaying and selling tobacco and related products.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.5",
+          "text": "Place clear permit copy in a prominent place inside premise.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "minor",
+          "source_risk_label": "Minor",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.6",
+          "text": "Prohibit sale and Displaying tobacco and related products via internet or any electronic means .",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.7",
+          "text": "Commitment to not advertise or promote tobacco and its products, and/or displaying free samples.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.8",
+          "text": "Prohibit sale and Displaying tobacco and related products near foodstuff or sport tools and cloth or sanitary and children products is prohibited.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.9",
+          "text": "Prohibit sale and Displaying tobacco and related products near cashiers or shall be as far as possible.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.10",
+          "text": "Prohibit sale and Displaying tobacco and related products during events or in festival activities without permit from concerned authority.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.11",
+          "text": "Prohibit sale and Displaying tobacco and related products for person under 18 years old.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.12",
+          "text": "Prohibit the presence and or of sale for persons under 18 years in tobacco and related products specialized premises .",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "critical",
+          "source_risk_label": "Critical",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.13",
+          "text": "Availability of proper security system for in and out monitoring and assure of no entrance to person under 18 years in tobacco and related products specialized premises .",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        },
+        {
+          "item_no": "A14.14",
+          "text": "Not exceeding allowed working hours ( From 10 AM To 12 AM ) for seeling and serve tobacco and related products, without permit from concerned authority.",
+          "response_type": "yes_no_na",
+          "is_mandatory": true,
+          "failure_severity": "major",
+          "source_risk_label": "Major",
+          "source_page": 34,
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Routine inspection frequency is set by the establishment's own grade, but the document does not print the grade-to-frequency mapping. No cadence can be encoded from GU83 alone.",
+      "trigger_event": null,
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Routine: scheduled visit based on premise grade."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "remarks detected upon previous findings risk",
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Follow-Up: scheduled visit according to remarks detected upon previous findings risk."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "incidence received / complaint",
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Complaint: Enforced unexpected visit scheduled upon incidences received."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "management decision, memo or case investigation",
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Management Order: Enforced expected visit scheduled upon management decisions, memos or during case investigation."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Unscheduled by design; no cadence.",
+      "trigger_event": "quality issues or field status changes",
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Random: Non-Forced unexpected inspection according to quality issues, or could be determined on the status and changes in the field."
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No sampling frequency stated.",
+      "trigger_event": "scheduled sampling visit",
+      "applies_to": "Consumer products, non-drinking water and indoor air",
+      "source_quote": "Sampling: Enforced expected visit scheduled specifically for consumer products and/or non-drinking water and/or indoor air sample site measurement and collection for the purpose of testing and determine environmental health conditions, however, it may processed in conjunction with previous types of visits."
+    },
+    {
+      "obligation_type": "self_inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Self-inspection is named as a monitoring mode but no frequency is given.",
+      "trigger_event": null,
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Notification and case investigation with establishment remotely via self-inspection or during investigation visit."
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Periodical' is stated but the period is not. This is an Annex 2 checklist item (Minor) as well as an obligation.",
+      "trigger_event": null,
+      "applies_to": "Consumer products dealing establishments",
+      "source_quote": "Submission of periodical test reports on Dubai Municipality - health and safety compliance portal."
+    },
+    {
+      "obligation_type": "appeal_window",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "A grace period exists for disputing a report but its length is declared in the issued report, not in the guideline. Cannot be encoded from GU83.",
+      "trigger_event": "issue of an inspection report",
+      "applies_to": "Dubai Municipality customers",
+      "source_quote": "Disputing and review process has guaranteed for Dubai Municipality customer within declared grace period declared in report issued"
+    }
+  ],
+  "references": [
+    "Local Order No. (11) of 2003 Concerning Public Health and Safety of the Society in the Emirate of Dubai.",
+    "Administrative order No. (30) Of 2007 concerning the issuance of the Executive Regulation of Local Order No. (11) of 2003 Concerning Public Health and Safety of the Society in the Emirate of Dubai.",
+    "Federal Law No.15 of 2009 on Tobacco Control.",
+    "Cabinet Decision no. (24) of 2013 concerning the Executive Regulation of Federal Law no. 15 of 2009 concerning tobacco control.",
+    "DM-HSD-GU29-TGHS2_Technical Guidelines for Health Supplement",
+    "DM-HSD-GU30-TGD2_Technical Guidelines for Detergents",
+    "DM-HSD-GU82-BIO2_Technical Guidelines for Biocides",
+    "DM-HSD-GU39-CSE2_Technical Guidelines for Confined Spaces Entry",
+    "DM-HSD-GU41-GDM2_Guarding of Dangerous Machinery",
+    "DM-HSD-GU46-KFPA2_Technical Guidelines for Occupational Health and Safety in Kitchen & Food Areas",
+    "DM-HSD-GU53-LPGC2_Technical Guidelines for Liquefied Petroleum Gas Cylinders",
+    "DM-HSD-GU73-SUL2_Technical Guidelines for Safe Use of Ladders",
+    "DM-HSD-GU74-MAT2_Technical Guidelines for Mobile Access Towers"
+  ]
+}

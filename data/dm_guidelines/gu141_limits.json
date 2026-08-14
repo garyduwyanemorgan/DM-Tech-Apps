@@ -1,0 +1,242 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU141-IAQI2",
+    "guideline_no": 141,
+    "title": "Environmental Indoor Air Quality Index (EIAQI)",
+    "version": "V1",
+    "issued_on": "2025-02-14",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/10/Environmental-Indoor-Air-Quality-Index-V_1-004.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu141_pollutant_breakpoints_good",
+      "label": "GU141 EIAQI pollutant breakpoints — Good (sub-index 0-50, Green)",
+      "applies_to_scope": "facilities",
+      "applies_to": "All buildings and facilities in Dubai, especially those with IoT-based or smart IAQ monitoring, EXCLUDING medical healthcare facilities with special requirements. Band: Good. NOT a pass/fail limit — a classification band feeding the EIAQI sub-index calculation.",
+      "source_section": "7-4 Pollutant Breakpoints, Table NO.2",
+      "limits": [
+        { "parameter_key": "pm2_5", "parameter_label": "Particulate Matter (PM₂.₅)", "unit": "µg/m³", "min_val": 0.0, "max_val": 12.0, "min_inclusive": true, "max_inclusive": true, "display": "0-12", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Particulate Matter (PM₂.₅) (µg/m³)': '0-12'. Column order confirmed by word x-coordinates on the page.", "confidence": "high" },
+        { "parameter_key": "pm10", "parameter_label": "Particulate Matter (PM₁₀)", "unit": "µg/m³", "min_val": 0.0, "max_val": 50.0, "min_inclusive": true, "max_inclusive": true, "display": "0-50", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Particulate Matter (PM₁₀) (µg/m³)': '0-50'.", "confidence": "high" },
+        { "parameter_key": "co2", "parameter_label": "Carbon Dioxide (CO₂)", "unit": "ppm", "min_val": 400.0, "max_val": 600.0, "min_inclusive": true, "max_inclusive": true, "display": "400-600", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Carbon Dioxide (CO₂) (ppm)': '400-600'. Note the band starts at 400, not 0 — a reading below 400 ppm falls in no band.", "confidence": "high" },
+        { "parameter_key": "co", "parameter_label": "Carbon Monoxide (CO)", "unit": "ppm", "min_val": 0.0, "max_val": 4.0, "min_inclusive": true, "max_inclusive": true, "display": "0-4", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Carbon Monoxide (CO) (ppm)': '0-4'.", "confidence": "high" },
+        { "parameter_key": "tvoc", "parameter_label": "Volatile Organic Compounds (VOCs)", "unit": "mg/m³", "min_val": 0.0, "max_val": 0.3, "min_inclusive": true, "max_inclusive": true, "display": "0-0.3", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Volatile Organic Compounds (VOCs) (mg/m³)': '0-0.3'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde", "parameter_label": "Formaldehyde (HCHO)", "unit": "µg/m³", "min_val": 0.0, "max_val": 50.0, "min_inclusive": true, "max_inclusive": true, "display": "0-50", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Formaldehyde (HCHO) (µg/m³)': '0-50'.", "confidence": "high" },
+        { "parameter_key": "no2", "parameter_label": "Nitrogen Dioxide (NO₂)", "unit": "ppb", "min_val": 0.0, "max_val": 50.0, "min_inclusive": true, "max_inclusive": true, "display": "0-50", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Nitrogen Dioxide (NO₂) (ppb)': '0-50'.", "confidence": "high" },
+        { "parameter_key": "o3", "parameter_label": "Ozone (O₃)", "unit": "ppb", "min_val": 0.0, "max_val": 50.0, "min_inclusive": true, "max_inclusive": true, "display": "0-50", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Good', column 'Ozone (O₃) (ppb)': '0-50'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_pollutant_breakpoints_moderate",
+      "label": "GU141 EIAQI pollutant breakpoints — Moderate (sub-index 51-100, Yellow)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Band: Moderate. Classification band, not a pass/fail limit.",
+      "source_section": "7-4 Pollutant Breakpoints, Table NO.2",
+      "limits": [
+        { "parameter_key": "pm2_5", "parameter_label": "Particulate Matter (PM₂.₅)", "unit": "µg/m³", "min_val": 12.1, "max_val": 35.0, "min_inclusive": true, "max_inclusive": true, "display": "12.1-35", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', PM₂.₅ column: '12.1-35'. Note the discontinuity with the Good band ending at 12 — a value of 12.05 falls in no band.", "confidence": "high" },
+        { "parameter_key": "pm10", "parameter_label": "Particulate Matter (PM₁₀)", "unit": "µg/m³", "min_val": 51.0, "max_val": 100.0, "min_inclusive": true, "max_inclusive": true, "display": "51-100", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', PM₁₀ column: '51-100'.", "confidence": "high" },
+        { "parameter_key": "co2", "parameter_label": "Carbon Dioxide (CO₂)", "unit": "ppm", "min_val": 601.0, "max_val": 1000.0, "min_inclusive": true, "max_inclusive": true, "display": "601-1000", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', CO₂ column: '601-1000'.", "confidence": "high" },
+        { "parameter_key": "co", "parameter_label": "Carbon Monoxide (CO)", "unit": "ppm", "min_val": 4.1, "max_val": 9.0, "min_inclusive": true, "max_inclusive": true, "display": "4.1-9", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', CO column: '4.1-9'.", "confidence": "high" },
+        { "parameter_key": "tvoc", "parameter_label": "Volatile Organic Compounds (VOCs)", "unit": "mg/m³", "min_val": 0.31, "max_val": 0.6, "min_inclusive": true, "max_inclusive": true, "display": "0.31-0.6", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', VOCs column: '0.31-0.6'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde", "parameter_label": "Formaldehyde (HCHO)", "unit": "µg/m³", "min_val": 51.0, "max_val": 80.0, "min_inclusive": true, "max_inclusive": true, "display": "51-80", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', HCHO column: '51-80'.", "confidence": "high" },
+        { "parameter_key": "no2", "parameter_label": "Nitrogen Dioxide (NO₂)", "unit": "ppb", "min_val": 51.0, "max_val": 100.0, "min_inclusive": true, "max_inclusive": true, "display": "51-100", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', NO₂ column: '51-100'.", "confidence": "high" },
+        { "parameter_key": "o3", "parameter_label": "Ozone (O₃)", "unit": "ppb", "min_val": 51.0, "max_val": 100.0, "min_inclusive": true, "max_inclusive": true, "display": "51-100", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Moderate', O₃ column: '51-100'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_pollutant_breakpoints_unhealthy_sensitive",
+      "label": "GU141 EIAQI pollutant breakpoints — Unhealthy for Sensitive Groups (sub-index 101-150, Orange)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Band: Unhealthy for Sensitive Groups. Classification band, not a pass/fail limit.",
+      "source_section": "7-4 Pollutant Breakpoints, Table NO.2",
+      "limits": [
+        { "parameter_key": "pm2_5", "parameter_label": "Particulate Matter (PM₂.₅)", "unit": "µg/m³", "min_val": 35.1, "max_val": 55.0, "min_inclusive": true, "max_inclusive": true, "display": "35.1-55", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', PM₂.₅ column: '35.1-55'.", "confidence": "high" },
+        { "parameter_key": "pm10", "parameter_label": "Particulate Matter (PM₁₀)", "unit": "µg/m³", "min_val": 101.0, "max_val": 150.0, "min_inclusive": true, "max_inclusive": true, "display": "101-150", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', PM₁₀ column: '101-150'.", "confidence": "high" },
+        { "parameter_key": "co2", "parameter_label": "Carbon Dioxide (CO₂)", "unit": "ppm", "min_val": 1001.0, "max_val": 1500.0, "min_inclusive": true, "max_inclusive": true, "display": "1001-1500", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', CO₂ column: '1001-1500'.", "confidence": "high" },
+        { "parameter_key": "co", "parameter_label": "Carbon Monoxide (CO)", "unit": "ppm", "min_val": 9.1, "max_val": 15.0, "min_inclusive": true, "max_inclusive": true, "display": "9.1-15", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', CO column: '9.1-15'.", "confidence": "high" },
+        { "parameter_key": "tvoc", "parameter_label": "Volatile Organic Compounds (VOCs)", "unit": "mg/m³", "min_val": 0.61, "max_val": 1.0, "min_inclusive": true, "max_inclusive": true, "display": "0.61-1", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', VOCs column: '0.61-1'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde", "parameter_label": "Formaldehyde (HCHO)", "unit": "µg/m³", "min_val": 81.0, "max_val": 100.0, "min_inclusive": true, "max_inclusive": true, "display": "81-100", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', HCHO column: '81-100'.", "confidence": "high" },
+        { "parameter_key": "no2", "parameter_label": "Nitrogen Dioxide (NO₂)", "unit": "ppb", "min_val": 101.0, "max_val": 150.0, "min_inclusive": true, "max_inclusive": true, "display": "101-150", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', NO₂ column: '101-150'.", "confidence": "high" },
+        { "parameter_key": "o3", "parameter_label": "Ozone (O₃)", "unit": "ppb", "min_val": 101.0, "max_val": 150.0, "min_inclusive": true, "max_inclusive": true, "display": "101-150", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy for Sensitive Groups', O₃ column: '101-150'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_pollutant_breakpoints_unhealthy",
+      "label": "GU141 EIAQI pollutant breakpoints — Unhealthy (sub-index 151-200, Red)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Band: Unhealthy. Classification band, not a pass/fail limit.",
+      "source_section": "7-4 Pollutant Breakpoints, Table NO.2",
+      "limits": [
+        { "parameter_key": "pm2_5", "parameter_label": "Particulate Matter (PM₂.₅)", "unit": "µg/m³", "min_val": 55.1, "max_val": 150.0, "min_inclusive": true, "max_inclusive": true, "display": "55.1-150", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', PM₂.₅ column: '55.1-150'.", "confidence": "high" },
+        { "parameter_key": "pm10", "parameter_label": "Particulate Matter (PM₁₀)", "unit": "µg/m³", "min_val": 151.0, "max_val": 250.0, "min_inclusive": true, "max_inclusive": true, "display": "151-250", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', PM₁₀ column: '151-250'.", "confidence": "high" },
+        { "parameter_key": "co2", "parameter_label": "Carbon Dioxide (CO₂)", "unit": "ppm", "min_val": 1501.0, "max_val": 2500.0, "min_inclusive": true, "max_inclusive": true, "display": "1501-2500", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', CO₂ column: '1501-2500'.", "confidence": "high" },
+        { "parameter_key": "co", "parameter_label": "Carbon Monoxide (CO)", "unit": "ppm", "min_val": 15.1, "max_val": 30.0, "min_inclusive": true, "max_inclusive": true, "display": "15.1-30", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', CO column: '15.1-30'.", "confidence": "high" },
+        { "parameter_key": "tvoc", "parameter_label": "Volatile Organic Compounds (VOCs)", "unit": "mg/m³", "min_val": 1.1, "max_val": 1.5, "min_inclusive": true, "max_inclusive": true, "display": "1.1-1.5", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', VOCs column: '1.1-1.5'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde", "parameter_label": "Formaldehyde (HCHO)", "unit": "µg/m³", "min_val": 101.0, "max_val": 300.0, "min_inclusive": true, "max_inclusive": true, "display": "101-300", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', HCHO column: '101-300'.", "confidence": "high" },
+        { "parameter_key": "no2", "parameter_label": "Nitrogen Dioxide (NO₂)", "unit": "ppb", "min_val": 151.0, "max_val": 200.0, "min_inclusive": true, "max_inclusive": true, "display": "151-200", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', NO₂ column: '151-200'.", "confidence": "high" },
+        { "parameter_key": "o3", "parameter_label": "Ozone (O₃)", "unit": "ppb", "min_val": 151.0, "max_val": 200.0, "min_inclusive": true, "max_inclusive": true, "display": "151-200", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Unhealthy', O₃ column: '151-200'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_pollutant_breakpoints_very_unhealthy",
+      "label": "GU141 EIAQI pollutant breakpoints — Very Unhealthy (sub-index 201-300, Purple)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Band: Very Unhealthy. Classification band, not a pass/fail limit.",
+      "source_section": "7-4 Pollutant Breakpoints, Table NO.2",
+      "limits": [
+        { "parameter_key": "pm2_5", "parameter_label": "Particulate Matter (PM₂.₅)", "unit": "µg/m³", "min_val": 150.1, "max_val": 250.0, "min_inclusive": true, "max_inclusive": true, "display": "150.1-250", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', PM₂.₅ column: '150.1-250'.", "confidence": "high" },
+        { "parameter_key": "pm10", "parameter_label": "Particulate Matter (PM₁₀)", "unit": "µg/m³", "min_val": 251.0, "max_val": 350.0, "min_inclusive": true, "max_inclusive": true, "display": "251-350", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', PM₁₀ column: '251-350'.", "confidence": "high" },
+        { "parameter_key": "co2", "parameter_label": "Carbon Dioxide (CO₂)", "unit": "ppm", "min_val": 2501.0, "max_val": 5000.0, "min_inclusive": true, "max_inclusive": true, "display": "2501-5000", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', CO₂ column: '2501-5000'.", "confidence": "high" },
+        { "parameter_key": "co", "parameter_label": "Carbon Monoxide (CO)", "unit": "ppm", "min_val": 30.1, "max_val": 50.0, "min_inclusive": true, "max_inclusive": true, "display": "30.1-50", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', CO column: '30.1-50'.", "confidence": "high" },
+        { "parameter_key": "tvoc", "parameter_label": "Volatile Organic Compounds (VOCs)", "unit": "mg/m³", "min_val": 1.51, "max_val": 2.0, "min_inclusive": true, "max_inclusive": true, "display": "1.51-2", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', VOCs column: '1.51-2'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde", "parameter_label": "Formaldehyde (HCHO)", "unit": "µg/m³", "min_val": 301.0, "max_val": 500.0, "min_inclusive": true, "max_inclusive": true, "display": "301-500", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', HCHO column: '301-500'.", "confidence": "high" },
+        { "parameter_key": "no2", "parameter_label": "Nitrogen Dioxide (NO₂)", "unit": "ppb", "min_val": 201.0, "max_val": 300.0, "min_inclusive": true, "max_inclusive": true, "display": "201-300", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', NO₂ column: '201-300'.", "confidence": "high" },
+        { "parameter_key": "o3", "parameter_label": "Ozone (O₃)", "unit": "ppb", "min_val": 201.0, "max_val": 300.0, "min_inclusive": true, "max_inclusive": true, "display": "201-300", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Very Unhealthy', O₃ column: '201-300'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_pollutant_breakpoints_hazardous",
+      "label": "GU141 EIAQI pollutant breakpoints — Hazardous (sub-index 301-500, Maroon)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Band: Hazardous. Classification band, not a pass/fail limit. This is the only row using explicit '>' notation.",
+      "source_section": "7-4 Pollutant Breakpoints, Table NO.2",
+      "limits": [
+        { "parameter_key": "pm2_5", "parameter_label": "Particulate Matter (PM₂.₅)", "unit": "µg/m³", "min_val": 250.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">250", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', PM₂.₅ column: '>250'. The '>' glyph is printed and is exclusive.", "confidence": "high" },
+        { "parameter_key": "pm10", "parameter_label": "Particulate Matter (PM₁₀)", "unit": "µg/m³", "min_val": 350.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">350", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', PM₁₀ column: '>350'.", "confidence": "high" },
+        { "parameter_key": "co2", "parameter_label": "Carbon Dioxide (CO₂)", "unit": "ppm", "min_val": 5000.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">5000", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', CO₂ column: '>5000'.", "confidence": "high" },
+        { "parameter_key": "co", "parameter_label": "Carbon Monoxide (CO)", "unit": "ppm", "min_val": 50.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">50", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', CO column: '>50'.", "confidence": "high" },
+        { "parameter_key": "tvoc", "parameter_label": "Volatile Organic Compounds (VOCs)", "unit": "mg/m³", "min_val": 2.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">2", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', VOCs column: '>2'.", "confidence": "high" },
+        { "parameter_key": "formaldehyde", "parameter_label": "Formaldehyde (HCHO)", "unit": "µg/m³", "min_val": 500.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">500", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', HCHO column: '>500'.", "confidence": "high" },
+        { "parameter_key": "no2", "parameter_label": "Nitrogen Dioxide (NO₂)", "unit": "ppb", "min_val": 300.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">300", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', NO₂ column: '>300'.", "confidence": "high" },
+        { "parameter_key": "o3", "parameter_label": "Ozone (O₃)", "unit": "ppb", "min_val": 300.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">300", "qualifier_rule": "bound", "source_page": 10, "source_quote": "Table NO.2 row 'Hazardous', O₃ column: '>300'.", "confidence": "high" }
+      ]
+    },
+
+    {
+      "key": "gu141_thermal_comfort_comfortable",
+      "label": "GU141 thermal comfort breakpoints — Comfortable (sub-index 0-50)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Thermal comfort band: Comfortable. Classification band feeding the Thermal Comfort Index (TCI), not a pass/fail limit.",
+      "source_section": "7-5 Thermal Comfort Breakpoints, Table NO.3",
+      "limits": [
+        { "parameter_key": "temperature", "parameter_label": "Temperature", "unit": "°C", "min_val": 22.0, "max_val": 25.5, "min_inclusive": true, "max_inclusive": true, "display": "22 – 25.5", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(0-50) Comfortable', Temperature (°C) column: '22 – 25.5'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity", "parameter_label": "Relative Humidity", "unit": "%RH", "min_val": 40.0, "max_val": 60.0, "min_inclusive": true, "max_inclusive": true, "display": "40 – 60", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(0-50) Comfortable', Relative Humidity (%RH) column: '40 – 60'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_thermal_comfort_slight_discomfort",
+      "label": "GU141 thermal comfort breakpoints — Slight discomfort (sub-index 51-100)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Thermal comfort band: Slight discomfort. Each band is TWO disjoint intervals (one below and one above the comfortable band); they are modelled as separate limits rather than collapsed into one range.",
+      "source_section": "7-5 Thermal Comfort Breakpoints, Table NO.3",
+      "limits": [
+        { "parameter_key": "temperature_lower_interval", "parameter_label": "Temperature — lower interval of band", "unit": "°C", "min_val": 20.0, "max_val": 21.9, "min_inclusive": true, "max_inclusive": true, "display": "20-21.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(51-100) Slight discomfort', Temperature column: '20-21.9 or 26-28'. Split into two limits because the band is not a single interval.", "confidence": "high" },
+        { "parameter_key": "temperature_upper_interval", "parameter_label": "Temperature — upper interval of band", "unit": "°C", "min_val": 26.0, "max_val": 28.0, "min_inclusive": true, "max_inclusive": true, "display": "26-28", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(51-100) Slight discomfort', Temperature column: '20-21.9 or 26-28'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_lower_interval", "parameter_label": "Relative Humidity — lower interval of band", "unit": "%RH", "min_val": 35.0, "max_val": 39.9, "min_inclusive": true, "max_inclusive": true, "display": "35-39.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(51-100) Slight discomfort', Relative Humidity column: '35-39.9 or 60.1-65'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_upper_interval", "parameter_label": "Relative Humidity — upper interval of band", "unit": "%RH", "min_val": 60.1, "max_val": 65.0, "min_inclusive": true, "max_inclusive": true, "display": "60.1-65", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(51-100) Slight discomfort', Relative Humidity column: '35-39.9 or 60.1-65'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_thermal_comfort_discomfort",
+      "label": "GU141 thermal comfort breakpoints — Discomfort (sub-index 101-150)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Thermal comfort band: discomfort. Two disjoint intervals per parameter.",
+      "source_section": "7-5 Thermal Comfort Breakpoints, Table NO.3",
+      "limits": [
+        { "parameter_key": "temperature_lower_interval", "parameter_label": "Temperature — lower interval of band", "unit": "°C", "min_val": 18.0, "max_val": 19.9, "min_inclusive": true, "max_inclusive": true, "display": "18-19.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(101-150) discomfort', Temperature column: '18-19.9 or 28.1-30'.", "confidence": "high" },
+        { "parameter_key": "temperature_upper_interval", "parameter_label": "Temperature — upper interval of band", "unit": "°C", "min_val": 28.1, "max_val": 30.0, "min_inclusive": true, "max_inclusive": true, "display": "28.1-30", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(101-150) discomfort', Temperature column: '18-19.9 or 28.1-30'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_lower_interval", "parameter_label": "Relative Humidity — lower interval of band", "unit": "%RH", "min_val": 30.0, "max_val": 34.9, "min_inclusive": true, "max_inclusive": true, "display": "30-34.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(101-150) discomfort', Relative Humidity column: '30-34.9 or 65.1-70'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_upper_interval", "parameter_label": "Relative Humidity — upper interval of band", "unit": "%RH", "min_val": 65.1, "max_val": 70.0, "min_inclusive": true, "max_inclusive": true, "display": "65.1-70", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(101-150) discomfort', Relative Humidity column: '30-34.9 or 65.1-70'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_thermal_comfort_significant_thermal_stress",
+      "label": "GU141 thermal comfort breakpoints — Significant thermal stress (sub-index 151-200)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Thermal comfort band: Significant thermal stress. Two disjoint intervals per parameter.",
+      "source_section": "7-5 Thermal Comfort Breakpoints, Table NO.3",
+      "limits": [
+        { "parameter_key": "temperature_lower_interval", "parameter_label": "Temperature — lower interval of band", "unit": "°C", "min_val": 16.0, "max_val": 17.9, "min_inclusive": true, "max_inclusive": true, "display": "16-17.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(151-200) Significant thermal stress', Temperature column: '16-17.9 or 30.1-32'.", "confidence": "high" },
+        { "parameter_key": "temperature_upper_interval", "parameter_label": "Temperature — upper interval of band", "unit": "°C", "min_val": 30.1, "max_val": 32.0, "min_inclusive": true, "max_inclusive": true, "display": "30.1-32", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(151-200) Significant thermal stress', Temperature column: '16-17.9 or 30.1-32'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_lower_interval", "parameter_label": "Relative Humidity — lower interval of band", "unit": "%RH", "min_val": 25.0, "max_val": 29.9, "min_inclusive": true, "max_inclusive": true, "display": "25-29.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(151-200) Significant thermal stress', Relative Humidity column: '25-29.9 or 70.1-75'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_upper_interval", "parameter_label": "Relative Humidity — upper interval of band", "unit": "%RH", "min_val": 70.1, "max_val": 75.0, "min_inclusive": true, "max_inclusive": true, "display": "70.1-75", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(151-200) Significant thermal stress', Relative Humidity column: '25-29.9 or 70.1-75'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_thermal_comfort_severe_discomfort",
+      "label": "GU141 thermal comfort breakpoints — Severe discomfort (sub-index 201-300)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Thermal comfort band: Severe discomfort. Two disjoint intervals per parameter.",
+      "source_section": "7-5 Thermal Comfort Breakpoints, Table NO.3",
+      "limits": [
+        { "parameter_key": "temperature_lower_interval", "parameter_label": "Temperature — lower interval of band", "unit": "°C", "min_val": 14.0, "max_val": 15.9, "min_inclusive": true, "max_inclusive": true, "display": "14-15.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(201-300) Severe discomfort', Temperature column: '14-15.9 or 32.1-34'.", "confidence": "high" },
+        { "parameter_key": "temperature_upper_interval", "parameter_label": "Temperature — upper interval of band", "unit": "°C", "min_val": 32.1, "max_val": 34.0, "min_inclusive": true, "max_inclusive": true, "display": "32.1-34", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(201-300) Severe discomfort', Temperature column: '14-15.9 or 32.1-34'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_lower_interval", "parameter_label": "Relative Humidity — lower interval of band", "unit": "%RH", "min_val": 20.0, "max_val": 24.9, "min_inclusive": true, "max_inclusive": true, "display": "20-24.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(201-300) Severe discomfort', Relative Humidity column: '20-24.9 or 75.1-80'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_upper_interval", "parameter_label": "Relative Humidity — upper interval of band", "unit": "%RH", "min_val": 75.1, "max_val": 80.0, "min_inclusive": true, "max_inclusive": true, "display": "75.1-80", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(201-300) Severe discomfort', Relative Humidity column: '20-24.9 or 75.1-80'.", "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu141_thermal_comfort_extreme_discomfort",
+      "label": "GU141 thermal comfort breakpoints — Extreme discomfort (sub-index 301-500)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Thermal comfort band: Extreme discomfort. Open-ended on both sides; uses explicit '<' and '>' glyphs.",
+      "source_section": "7-5 Thermal Comfort Breakpoints, Table NO.3",
+      "limits": [
+        { "parameter_key": "temperature_lower_interval", "parameter_label": "Temperature — lower open interval of band", "unit": "°C", "min_val": null, "max_val": 15.9, "min_inclusive": null, "max_inclusive": false, "display": "<15.9", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(301 -500) Extreme discomfort', Temperature column: '<15.9 or >34'. The '<' glyph is printed and is exclusive; 15.9 itself belongs to the Severe discomfort band above.", "confidence": "high" },
+        { "parameter_key": "temperature_upper_interval", "parameter_label": "Temperature — upper open interval of band", "unit": "°C", "min_val": 34.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">34", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(301 -500) Extreme discomfort', Temperature column: '<15.9 or >34'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_lower_interval", "parameter_label": "Relative Humidity — lower open interval of band", "unit": "%RH", "min_val": null, "max_val": 20.0, "min_inclusive": null, "max_inclusive": false, "display": "<20", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(301 -500) Extreme discomfort', Relative Humidity column: '<20 or >80'.", "confidence": "high" },
+        { "parameter_key": "relative_humidity_upper_interval", "parameter_label": "Relative Humidity — upper open interval of band", "unit": "%RH", "min_val": 80.0, "max_val": null, "min_inclusive": false, "max_inclusive": null, "display": ">80", "qualifier_rule": "bound", "source_page": 11, "source_quote": "Table NO.3 row '(301 -500) Extreme discomfort', Relative Humidity column: '<20 or >80'.", "confidence": "high" }
+      ]
+    },
+
+    {
+      "key": "gu141_eiaqi_score_categories",
+      "label": "GU141 EIAQI overall score categories (Table No.1)",
+      "applies_to_scope": "facilities",
+      "applies_to": "The composite EIAQI score itself, not a measured parameter. Six categories with colour codes. Recorded as reference; the document nowhere states which category constitutes compliance.",
+      "source_section": "7-3 Categorization of Overall EIAQI with Color Codes, Table No.1",
+      "limits": [
+        { "parameter_key": "eiaqi_score_good", "parameter_label": "EIAQI score — Good (Green)", "unit": "index", "min_val": 0.0, "max_val": 50.0, "min_inclusive": true, "max_inclusive": true, "display": "0-50", "qualifier_rule": "bound", "source_page": 9, "source_quote": "Table No.1: '0-50 | Good | Green | Indoor air quality is healthy, no risk.'", "confidence": "high" },
+        { "parameter_key": "eiaqi_score_moderate", "parameter_label": "EIAQI score — Moderate (Yellow)", "unit": "index", "min_val": 51.0, "max_val": 100.0, "min_inclusive": true, "max_inclusive": true, "display": "51-100", "qualifier_rule": "bound", "source_page": 9, "source_quote": "Table No.1: '51-100 | Moderate | Yellow | Air quality is acceptable, but some pollutants may pose a concern.'", "confidence": "high" },
+        { "parameter_key": "eiaqi_score_unhealthy_sensitive", "parameter_label": "EIAQI score — Unhealthy for Sensitive Groups (Orange)", "unit": "index", "min_val": 101.0, "max_val": 150.0, "min_inclusive": true, "max_inclusive": true, "display": "101-150", "qualifier_rule": "bound", "source_page": 9, "source_quote": "Table No.1: '101-150 | Unhealthy for Sensitive Groups | Orange | Individuals with respiratory conditions, children, elderly, may experience effects.'", "confidence": "high" },
+        { "parameter_key": "eiaqi_score_unhealthy", "parameter_label": "EIAQI score — Unhealthy (Red)", "unit": "index", "min_val": 151.0, "max_val": 200.0, "min_inclusive": true, "max_inclusive": true, "display": "151-200", "qualifier_rule": "bound", "source_page": 9, "source_quote": "Table No.1: '151-200 | Unhealthy | Red | Increased health risks, discomfort for occupants.'", "confidence": "high" },
+        { "parameter_key": "eiaqi_score_very_unhealthy", "parameter_label": "EIAQI score — Very Unhealthy (Purple)", "unit": "index", "min_val": 201.0, "max_val": 300.0, "min_inclusive": true, "max_inclusive": true, "display": "201-300", "qualifier_rule": "bound", "source_page": 9, "source_quote": "Table No.1: '201-300 | Very Unhealthy | Purple | Severe health effects; mitigation required.'", "confidence": "high" },
+        { "parameter_key": "eiaqi_score_hazardous", "parameter_label": "EIAQI score — Hazardous (Maroon)", "unit": "index", "min_val": 301.0, "max_val": 500.0, "min_inclusive": true, "max_inclusive": true, "display": "301-500", "qualifier_rule": "bound", "source_page": 9, "source_quote": "Table No.1: '301-500 | Hazardous | Maroon | Dangerous indoor air quality; immediate intervention needed.'", "confidence": "high" }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Not periodic at all — the document requires CONTINUOUS real-time monitoring, so there is no interval to age against. This obligation cannot go 'overdue' in the usual sense; the failure mode is a monitoring outage or a gap in the data feed, which is a different alert and needs modelling as such.",
+      "applies_to": "All buildings and facilities in scope — continuous real-time IAQ monitoring, not a periodic sample.",
+      "source_quote": "\"Indoor air quality parameters shall be monitored continuously using IoT-enabled or any smart sensors that provide real-time data transmission.\" (Appendix-1, General Requirements, item 1, page 16.) Continuous monitoring has no cadence in months or days."
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "These are AVERAGING WINDOWS (1-hour, 8-hour, 24-hour), not recurrence intervals for an obligation. Deliberately not mapped onto cadence_days — doing so would make the engine expect a fresh submission every hour, which the document does not require.",
+      "applies_to": "Exposure averaging windows required for assessment and reporting.",
+      "source_quote": "\"1-hour averaging for immediate risk assessment and compliance with short-term exposure limits (STELs). 8-hour and 24-hour averaging for long-term IAQ trend analysis and regulatory compliance.\" (Appendix-1, item 2, page 16.) Also §7-2-1: \"Sampling duration: Continuous real-time monitoring or periodic sampling over a minimum of 8 hours to capture variations.\" (page 9)."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "THE DOCUMENT IS SILENT on frequency — it says 'routine calibration and performance validation' and stops there. Contrast GU119, which does fix six-monthly for parking CO sensors and at least annual for air quality testing equipment; if a client is entitled to both modules, the GU119 cadence is the defensible one to apply to shared equipment.",
+      "applies_to": "Calibration and performance validation of all IAQ monitoring devices and sensors.",
+      "source_quote": "\"All IAQ monitoring devices and sensors shall be: Calibrated and certified in accordance with ISO 17025. Subject to routine calibration and performance validation by accredited laboratories or authorized service providers.\" (Appendix-1, item 4, page 17.) 'Routine' is not quantified — no cadence is stated."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "THE DOCUMENT NAMES THREE INTERVALS AT ONCE — 'hourly, daily, monthly' — and does not say which applies to whom, so no single cadence can be derived. If this is sold, the interval must be agreed with the client and stored as a client-specific value. The five-year retention period in the same clause is a separate, unambiguous requirement and should be modelled as retention, not cadence.",
+      "applies_to": "Automatic generation and submission of IAQ compliance reports.",
+      "source_quote": "\"IAQ compliance reports must be automatically generated at predefined intervals (hourly, daily, monthly) and submitted to the relevant regulatory authority for oversight and enforcement when required.\" (Appendix-1, item 5, page 17.) Three intervals are named together, so no single cadence is encodable. Same item: \"IAQ monitoring data shall be securely stored for a minimum period of five (5) years to ensure regulatory auditability.\""
+    }
+  ]
+}

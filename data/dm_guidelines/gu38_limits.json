@@ -1,0 +1,347 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU38-MHSW2",
+    "guideline_no": 38,
+    "title": "Technical Guidelines for Management of Heat Stress at Work",
+    "version": "V 3.0",
+    "issued_on": "2024-05-09",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/07/DM-HSD-GU38-MHSW2_Technical-Guidelines-for-Management-of-Heat-Stress-at-Work_V3.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu38_heat_index_action_band_low",
+      "label": "GU38 heat index ACTION band — Low risk (caution)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Any workplace in scope. Heat index up to 34 ºC. Control approach: basic heat safety and planning.",
+      "source_section": "Section printed as '6 Heat Index, Risk Level and Control Approach' (numbered 4.2 in the table of contents)",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (air temperature combined with relative humidity)",
+          "unit": "°C",
+          "min_val": null,
+          "max_val": 34.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "Up to 34 ºC",
+          "qualifier_rule": "bound",
+          "source_page": 7,
+          "source_quote": "Heat Index | Risk Level | Control Approach — 'Up to 34 ºC | Low risk (caution) | Basic heat safety and planning'. 'Up to' is read as inclusive of 34.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_heat_index_action_band_moderate",
+      "label": "GU38 heat index ACTION band — Moderate",
+      "applies_to_scope": "facilities",
+      "applies_to": "Any workplace in scope. Heat index 35 to 39 ºC. Control approach: implement planned controls and create awareness.",
+      "source_section": "Section printed as '6 Heat Index, Risk Level and Control Approach'",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (air temperature combined with relative humidity)",
+          "unit": "°C",
+          "min_val": 35.0,
+          "max_val": 39.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "35 to 39 ºC",
+          "qualifier_rule": "bound",
+          "source_page": 7,
+          "source_quote": "'35 to 39 ºC | Moderate | Implement planned controls and create awareness'. 'X to Y' is read as inclusive of both endpoints.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_heat_index_action_band_high",
+      "label": "GU38 heat index ACTION band — High",
+      "applies_to_scope": "facilities",
+      "applies_to": "Any workplace in scope. Heat index 40 to 45 ºC. Control approach: additional controls as planned with more awareness.",
+      "source_section": "Section printed as '6 Heat Index, Risk Level and Control Approach'",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (air temperature combined with relative humidity)",
+          "unit": "°C",
+          "min_val": 40.0,
+          "max_val": 45.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "40 to 45 ºC",
+          "qualifier_rule": "bound",
+          "source_page": 7,
+          "source_quote": "'40 to 45 ºC | High | Additional controls as planned with more awareness'.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_heat_index_action_band_very_high",
+      "label": "GU38 heat index ACTION band — Very high",
+      "applies_to_scope": "facilities",
+      "applies_to": "Any workplace in scope. Heat index 46 ºC and above. Control approach: enhanced controls as planned with enhanced awareness control.",
+      "source_section": "Section printed as '6 Heat Index, Risk Level and Control Approach'",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (air temperature combined with relative humidity)",
+          "unit": "°C",
+          "min_val": 46.0,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "46 ºC and above",
+          "qualifier_rule": "bound",
+          "source_page": 7,
+          "source_quote": "'46 ºC and above | Very high | Enhanced controls as planned with enhanced awareness control'. 'and above' is read as inclusive of 46.",
+          "confidence": "high"
+        }
+      ]
+    },
+
+    {
+      "key": "gu38_annex_a_legend_no_discomfort",
+      "label": "GU38 Annex A heat index legend — No discomfort",
+      "applies_to_scope": "facilities",
+      "applies_to": "Annex A heat index chart legend. Up to 29 ºC: no discomfort.",
+      "source_section": "ANNEX A: HEAT INDEX — Legend",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (Annex A chart value)",
+          "unit": "°C",
+          "min_val": null,
+          "max_val": 29.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "Up to 29˚C",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "Legend: 'Up to 29˚C  No discomfort'.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_annex_a_legend_slight_discomfort",
+      "label": "GU38 Annex A heat index legend — Slight discomfort sensation",
+      "applies_to_scope": "facilities",
+      "applies_to": "Annex A heat index chart legend. From 30 to 34 ºC: slight discomfort sensation.",
+      "source_section": "ANNEX A: HEAT INDEX — Legend",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (Annex A chart value)",
+          "unit": "°C",
+          "min_val": 30.0,
+          "max_val": 34.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "From 30 to 34˚C",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "Legend: 'From 30 to 34˚C  Slight discomfort sensation'.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_annex_a_legend_strong_discomfort",
+      "label": "GU38 Annex A heat index legend — Strong discomfort (limit heaviest physical activities)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Annex A heat index chart legend. From 35 to 39 ºC: strong discomfort; caution, limit the heaviest physical activities.",
+      "source_section": "ANNEX A: HEAT INDEX — Legend",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (Annex A chart value)",
+          "unit": "°C",
+          "min_val": 35.0,
+          "max_val": 39.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "From 35 to 39˚C",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "Legend: 'From 35 to 39˚C  Strong discomfort. Caution: limit the heaviest physical activities'.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_annex_a_legend_strong_indisposition",
+      "label": "GU38 Annex A heat index legend — Strong indisposition (avoid efforts)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Annex A heat index chart legend. From 40 to 45 ºC: strong indisposition sensation; danger, avoid efforts.",
+      "source_section": "ANNEX A: HEAT INDEX — Legend",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (Annex A chart value)",
+          "unit": "°C",
+          "min_val": 40.0,
+          "max_val": 45.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "From 40 to 45˚C",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "Legend: 'From 40 to 45˚C  Strong indisposition sensation. Danger: Avoid efforts'.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_annex_a_legend_stop_activities",
+      "label": "GU38 Annex A heat index legend — Danger, stop all physical activities",
+      "applies_to_scope": "facilities",
+      "applies_to": "Annex A heat index chart legend. From 46 to 53 ºC: danger, stop all physical activities.",
+      "source_section": "ANNEX A: HEAT INDEX — Legend",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (Annex A chart value)",
+          "unit": "°C",
+          "min_val": 46.0,
+          "max_val": 53.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "From 46 to 53˚C",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "Legend: 'From 46 to 53˚C  Danger: stop all physical activities'.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu38_annex_a_legend_death_danger",
+      "label": "GU38 Annex A heat index legend — Death danger, imminent heat stroke",
+      "applies_to_scope": "facilities",
+      "applies_to": "Annex A heat index chart legend. Over 54 ºC: death danger, imminent heat stroke.",
+      "source_section": "ANNEX A: HEAT INDEX — Legend",
+      "limits": [
+        {
+          "parameter_key": "heat_index",
+          "parameter_label": "Heat index (Annex A chart value)",
+          "unit": "°C",
+          "min_val": 54.0,
+          "max_val": null,
+          "min_inclusive": false,
+          "max_inclusive": null,
+          "display": "Over 54˚C",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "Legend: 'Over 54˚C  Death danger: imminent heat stroke'. 'Over' is exclusive; note that a value of exactly 54 ºC therefore falls in no legend band (the band below ends at 53).",
+          "confidence": "high"
+        }
+      ]
+    },
+
+    {
+      "key": "gu38_core_body_temperature",
+      "label": "GU38 core body temperature ceiling during work/rest cycling",
+      "applies_to_scope": "facilities",
+      "applies_to": "Workers cycling between work and rest in hot environments; measured on the person, not the environment.",
+      "source_section": "Section printed as '7 Controls to reduce effects of heat stress...' — sub-heading 'Work and rest scheduling'",
+      "limits": [
+        {
+          "parameter_key": "core_body_temperature_acclimatized",
+          "parameter_label": "Core body temperature — acclimatized workers",
+          "unit": "°C",
+          "min_val": null,
+          "max_val": 38.5,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "less than or equal to 38.5 ºC",
+          "qualifier_rule": "bound",
+          "source_page": 9,
+          "source_quote": "\"Worker should spend the rest periods of the cycle in a cool place ... to maintain the core body temperature within the acceptable limits that is, less than or equal to 38.5 ºC for acclimatized and less than or equal to 38 ºC for acclimatized workers.\" 'less than or equal to' is explicitly inclusive.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "core_body_temperature_second_worker_category",
+          "parameter_label": "Core body temperature — second worker category (category NOT determinable from the document text)",
+          "unit": "°C",
+          "min_val": null,
+          "max_val": 38.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "less than or equal to 38 ºC",
+          "qualifier_rule": "bound",
+          "source_page": 9,
+          "source_quote": "\"...less than or equal to 38.5 ºC for acclimatized and less than or equal to 38 ºC for acclimatized workers.\" AMBIGUITY: the published sentence says 'acclimatized' for BOTH categories, so the document does not state which group the 38 ºC ceiling applies to. The numeric value 38.0 and its inclusivity are printed and certain; the population it governs is not. Deliberately NOT recorded as 'un-acclimatized' — that would be an inference, not the document.",
+          "confidence": "low"
+        }
+      ]
+    },
+    {
+      "key": "gu38_break_area_temperature_differential",
+      "label": "GU38 break-area to work-area temperature differential",
+      "applies_to_scope": "facilities",
+      "applies_to": "Shaded break/recovery area relative to the work area at the same site.",
+      "source_section": "Section printed as '7 Controls to reduce effects of heat stress...' — sub-heading 'Shelter/Shade'",
+      "limits": [
+        {
+          "parameter_key": "break_area_temperature_differential",
+          "parameter_label": "Temperature difference between work area and break area",
+          "unit": "°C",
+          "min_val": 10.0,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "10-15 ºC difference",
+          "qualifier_rule": "bound",
+          "source_page": 9,
+          "source_quote": "\"As mentioned above, a 10-15 ºC difference in temperature needs to be maintained between the work area and the break area.\" Modelled as a LOWER bound of 10 ºC only: the document requires a difference to be maintained, and does not state that exceeding 15 ºC is a breach, so 15 is not encoded as a ceiling. Inclusivity of the 10 ºC floor taken from the range notation '10-15'.",
+          "confidence": "medium"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "cadence_note": "Daily. The checklist heading fixes the frequency explicitly ('Each Day'), so this is the one GU38 obligation that can drive a due/overdue engine on its own terms. Caveat: the document frames use of Annex B as recommended rather than mandatory.",
+      "applies_to": "Daily pre-work application of the Annex B heat stress checklist by the employer, at every site performing work in hot conditions.",
+      "source_quote": "\"Heat Stress Checklist: Check This Guide Before Starting Work Each Day\" (ANNEX B, page 16). The recommendation to use it is at page 13: \"employers are recommended to use summary checklist (refer to Annex B) to ensure required preparedness prior to start of the work in hot weather.\""
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "cadence_note": "The document offers 'daily or monthly' as alternatives. Encoded at the DAILY end (1 day) because that is the interval the same Annex fixes for the checklist this row sits inside, and because the stricter of two offered intervals is the safe default for an alerting engine. A client operating the monthly variant should override to cadence_days 30 / cadence_months 1. This is a product decision, not a reading of the document — the document does not choose.",
+      "applies_to": "Supervision check: periodic inspections where work is performed near heat-related sources.",
+      "source_quote": "\"Have you conducted periodic inspections daily or monthly?\" (ANNEX B: HEAT STRESS CHECKLIST, row 'Supervision', page 16.)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "THE DOCUMENT IS SILENT on frequency. It says 'periodic' and nothing more, and the verb is 'may', so neither a cadence nor an obligation to act can be derived. Left null deliberately — do not fill this in without a source. If this is sold as a monitored obligation, the cadence must come from the client's own H&S plan, recorded as a client-specific override.",
+      "applies_to": "Verification/audit of heat stress programme implementation across the employer's work premises.",
+      "source_quote": "\"Organizations may conduct periodic inspections / audits to verify the implementation of heat stress program in their work premises.\" (Section printed as '10 Monitoring', page 13.) Note 'may' — permissive, not mandatory."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "THE DOCUMENT IS SILENT on a repeat interval. It is an event-driven precondition — screening happens before a worker is placed in a hot environment — not a recurring cycle. No re-screening frequency is stated anywhere in GU38.",
+      "applies_to": "Medical screening of workers prior to employing them for work in a hot environment.",
+      "source_quote": "\"Accordingly, employers shall ensure medical screening of the workers prior to employing them for working in hot environment and maintain records of such screening.\" (Section printed as '7 Controls...', sub-heading 'Medical Screening of employees', page 11.) 'shall' — this is the only mandatory recurring-evidence obligation in GU38, and it attaches to a person, not an asset."
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "THE DOCUMENT IS SILENT on a fixed interval; it offers 'biyearly or yearly as suitable for the organization', i.e. it explicitly delegates the choice to the employer. Left null rather than guessing which.",
+      "applies_to": "Refresher heat stress training in industries where hot work is routine; plus special sessions before the summer season.",
+      "source_quote": "\"...refresher training to be imparted periodically to keep the heat stress management awareness during workers employment in the organization. The periodicity of the training could be biyearly or yearly as suitable for the organization.\" (Section printed as '8 Training and Awareness', page 12.) Also: \"Special training sessions to be conducted prior to the start of the summer season and shall be periodically repeated during the season.\""
+    }
+  ]
+}

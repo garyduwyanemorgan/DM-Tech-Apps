@@ -1,0 +1,116 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU101-VSC2",
+    "guideline_no": 10,
+    "title": "Technical Guidelines for Ventilation in School Classes",
+    "version": "V 1.0",
+    "issued_on": "2020-12-10",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2021/08/DM-HSD-GU101-VSC2_TECHNICAL-GUIDELINES-FOR-VENTILATION-IN-SCHOOL-CLASSES_-V1.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu10_classroom_occupancy",
+      "label": "GU10 — Classroom occupancy and space allocation (DM regulation)",
+      "applies_to_scope": "facilities",
+      "applies_to": "All spaces intended for students' occupancy, excluding single-family houses, multi-family structures of three stories or fewer above grade, vehicles and school buses. These are counted/measured values, not instrument readings.",
+      "source_section": "5. Ventilation criteria in school classes",
+      "limits": [
+        {
+          "parameter_key": "floor_area_per_student",
+          "parameter_label": "Floor area allocated to each student within the classroom",
+          "unit": "m²/student",
+          "min_val": 1.0,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "not less than (1) square meter",
+          "qualifier_rule": "bound",
+          "source_page": 4,
+          "source_quote": "\"As to the DM regulation for classes in schools, Area of not less than (1) square meter shall be allocated to each student within the classroom\". 'not less than' is inclusive, and 'shall' makes this mandatory.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "students_per_class_kindergarten",
+          "parameter_label": "Number of students per class — Kindergarten",
+          "unit": "students",
+          "min_val": null,
+          "max_val": 25.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "should not exceed (25) students for Kindergarten classes",
+          "qualifier_rule": "bound",
+          "source_page": 4,
+          "source_quote": "\"...and number of students per class should not exceed (25) students for Kindergarten classes\". 'should not exceed' is inclusive of 25. Note 'should', not 'shall' — advisory wording in the same sentence as the mandatory 'shall' area rule.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "students_per_class_other_stages",
+          "parameter_label": "Number of students per class — stages other than Kindergarten",
+          "unit": "students",
+          "min_val": null,
+          "max_val": 30.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "not exceeding (30) students for the other stages",
+          "qualifier_rule": "bound",
+          "source_page": 4,
+          "source_quote": "\"...and not exceeding (30) students for the other stages.\" 'not exceeding' is inclusive of 30.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu10_classroom_ventilation_rate",
+      "label": "GU10 — Classroom fresh air / ventilation rate (attributed to ASHRAE 62.1)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Classrooms, by student age band. The document attributes these figures to ASHRAE Standard 62.1 and states they vary with room area, so they are not a fixed pass/fail threshold for an arbitrary classroom.",
+      "source_section": "5. Ventilation criteria in school classes",
+      "limits": [
+        {
+          "parameter_key": "fresh_air_supply_kindergarten",
+          "parameter_label": "Fresh air / ventilation rate supplied to kindergarten classes (ages 5-8)",
+          "unit": "CFM",
+          "min_val": 295.0,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "should not be less than 295 CFM",
+          "qualifier_rule": "bound",
+          "source_page": 4,
+          "source_quote": "\"According to the ASHRAE Standards 62.1 For (Ventilation for Acceptable Indoor Air Quality), the amount of the fresh air and ventilation rates that should be suppling to the kindergarten classes (ages 5-8) should not be less than 295 CFM.\" 'not less than' is inclusive. CAVEAT recorded in the same section: \"In addition, this amount of the flow rate of ventilation is changeable according to the area size (m2)\" — so 295 CFM is not an area-independent floor.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "fresh_air_supply_other_stages",
+          "parameter_label": "Fresh air / ventilation rate supplied to classes for other stages (ages 9 plus)",
+          "unit": "CFM",
+          "min_val": 345.0,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "should not be less than 345 CFM",
+          "qualifier_rule": "bound",
+          "source_page": 4,
+          "source_quote": "\"Moreover, for the other stages (ages 9 plus) classes should not be less than 345 CFM.\" Same area-dependency caveat as the kindergarten figure.",
+          "confidence": "medium"
+        }
+      ]
+    }
+  ],
+  "obligations": [],
+  "unencodable_requirements": [
+    {
+      "requirement": "Breathing zone outdoor airflow",
+      "source_page": 4,
+      "source_quote": "\"The outdoor airflow required in the breathing zone (classrooms) of the available space or spaces in a ventilation zone shall be not less than the value determined in accordance with ASHRAE Standards 62.1.\"",
+      "why_unencodable": "The binding number is delegated wholesale to ASHRAE 62.1, which the guideline does not reproduce. No limit is printed, so none is recorded. Judging this requires a licensed copy of ASHRAE 62.1 and the per-zone calculation (occupant density x Rp + floor area x Ra), which is a calculation, not a table lookup."
+    },
+    {
+      "requirement": "Ventilation Rate Procedure",
+      "source_page": 4,
+      "source_quote": "\"The prescriptive design procedure presented as Authorized regulation, in which outdoor air intake rates are determined based on space type/application, occupancy level, and floor area, shall be permitted to be used for any zone or system.\"",
+      "why_unencodable": "Names a procedure, not a threshold."
+    }
+  ]
+}

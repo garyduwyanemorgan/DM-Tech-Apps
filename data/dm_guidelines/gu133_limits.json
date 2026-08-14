@@ -1,0 +1,62 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU133-EWS2",
+    "guideline_no": 133,
+    "title": "Technical Guideline for Water System Safety in Emergency Situations",
+    "version": "V.1",
+    "issued_on": "2025-03-25",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/08/DM-HSD-GU133-EWS2-Technical-Guideline-for-Water-System-Safety-in-Emergency-Situations-V_1-002.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu133_tank_disinfection_process",
+      "label": "GU133 post-emergency tank and network disinfection — chlorine dose during the hold period",
+      "applies_to_scope": "facilities",
+      "applies_to": "PROCESS CONTROL ONLY — the chlorine concentration to be held inside a water tank or internal distribution network DURING a post-emergency cleaning and disinfection operation. This is NOT an acceptance limit for a routine potable-water sample and must never be applied to one: GU133 states no numeric acceptance limits at all, deferring those to GU17 and GU44 (see obligations and the accompanying notes file).",
+      "source_section": "11. Safety procedures for water systems after an emergency occurs — A. Cleaning and disinfecting of tanks; B. Cleaning and disinfection of the internal network",
+      "limits": [
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Chlorine concentration during disinfection hold",
+          "unit": "ppm",
+          "min_val": 1.0,
+          "max_val": 2.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "between 1-2 ppm",
+          "qualifier_rule": "bound",
+          "source_page": 11,
+          "source_quote": "Step 7 of 'A. Cleaning and disinfecting of tanks': 'Water and chlorine solution should be kept in the tank for at least 4-6 hours, with the chlorine concentration in the water being between 1-2 ppm during this period.' Step 5 on the same page reads 'Prepare a chlorine solution at a concentration of 1 - 2 ppm', and step 3 of section B (p12) repeats 'Prepare chlorine solutions at a concentration of 1 -2 ppm.' The endpoints carry no operator glyph; 'between 1-2 ppm' is read as inclusive.",
+          "confidence": "medium"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on any recurring cadence. This obligation is event-triggered — it falls due when a tank is cleaned and disinfected after an emergency, not on a clock. Both cadence fields are null deliberately; a periodic obligation must not be synthesised for it.",
+      "applies_to": "EVENT-TRIGGERED, not periodic — a water tank that has been cleaned and disinfected following an emergency. A sample must be taken and analysed by an accredited laboratory before the tank returns to service. No recurring cadence is stated anywhere in GU133.",
+      "source_quote": "p11, step 10 of 'A. Cleaning and disinfecting of tanks': 'Take a water sample from the tank and send it for analysis to an accredited laboratory to ensure its quality, compliance with standards, and absence of contaminants.'"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on any recurring cadence. Event-triggered on disinfection of the internal network after an emergency. Both cadence fields null deliberately.",
+      "applies_to": "EVENT-TRIGGERED — an internal water distribution network that has been disinfected following an emergency. Samples must be taken from various points of use and analysed by an accredited laboratory before the network is restarted.",
+      "source_quote": "p12, step 7 of 'B. Cleaning and disinfection of the internal network': 'Take water samples from various points of use to be analyzed in an accredited laboratory to ensure water quality and compliance with standards, confirming it is free from contaminants.' followed by step 8: 'Restart the network after ensuring the water quality.'"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on any recurring cadence. Event-triggered on suspected or confirmed contamination during an emergency. Both cadence fields null deliberately.",
+      "applies_to": "EVENT-TRIGGERED — during an emergency, before contaminated or alternative water is used. The laboratory must be accredited by the Emirates International Accreditation Center (EIAC), which is directly relevant to the §4.7 laboratories registry.",
+      "source_quote": "p10, section 10: 'Test water quality by an accredited laboratory to ensure it is free from contaminants before use.' p12: 'Water quality testing in laboratories accredited by the Emirates International Accreditation Center. In case of water systems contamination during emergencies, water quality tests must be conducted to ensure safety and suitability for use as described in Appendix 4.'"
+    }
+  ]
+}

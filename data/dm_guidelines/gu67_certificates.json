@@ -1,0 +1,131 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU67-MEWP2",
+    "guideline_no": 67,
+    "title": "Technical Guidelines for Mobile Elevated Work Platforms (MEWP)",
+    "version": "V 2.0",
+    "issued_on": "2024-09-06",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2021/05/DM-HSD_GU67_MEWP2_Technical-Guidelines-for-Mobile-Elevated-Work-Platforms_V2.0.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "module_kind = compliance per section 7.12, but narrowly. Most of GU67 is guidance written in 'should' language (risk assessment, SSW, PPE selection, ground conditions) which yields no verdict. Two clauses are hard and checkable: section 4-16 'all MEWPs are inspected every six months by an EIAC accredited third party company', and section 4-13 requiring modifications to be inspected and certified by an EIAC accredited third party. The 15 m / 9 m overhead-line clearances in 4-8 are stated as a mandatory minimum ('must always be kept') and are genuine numeric limits. A report may claim COMPLIANT / NON-COMPLIANT on the six-monthly inspection and on the clearance distances only; it must not render a verdict on the advisory sections. NOTE the issue date and version are from the cover page and footers: V 2.0, issued 06/09/2024, superseding 11/01/2021. The source URL sits under an /uploads/2021/05/ path and the catalogue portal record date is 2026-07-27 — both are wrong as edition dates and neither was used.",
+  "subjects": [
+    {
+      "asset_type": "mobile elevated work platform (MEWP)",
+      "description": "All types of mobile elevated work platform used by establishments in the Emirate of Dubai, such as man lift and scissor lift. Annex A divides MEWPs into Group A / Group B and Type 1 / Type 2 / Type 3; the body text also names Static Boom (1B), Mobile Boom (3B), Static Vertical (1A), Mobile Vertical (3A) and Push Around Vertical (PAV) categories.",
+      "source_page": 5,
+      "source_quote": "This technical guideline shall apply to all establishments using mobile elevated work platforms (MEWP's) at their work in the Emirate of Dubai."
+    },
+    {
+      "asset_type": "boom-type MEWP",
+      "description": "Boom-type platforms — Static Booms (1B) and Mobile Booms (3B). Carry a fall-restraint requirement that vertical lifts do not.",
+      "source_page": 15,
+      "source_quote": "When working from a boom type MEWP, it is strongly recommended that a full body harness with an adjustable restraint lanyard be used to provide fall restraint. ... This includes Static Booms (1B) and Mobile Booms (3B) categories."
+    },
+    {
+      "asset_type": "vertical lift MEWP",
+      "description": "Static Vertical (1A), Mobile Vertical (3A) and Push Around Vertical (PAV) categories.",
+      "source_page": 15,
+      "source_quote": "It is not normally recommended for personnel working in a vertical lift to wear personal fall protection equipment (PFPE), other than in exceptional circumstances where a risk assessment deems it necessary. This includes Static Vertical (1A), Mobile Vertical (3A) and Push Around Vertical (PAV) categories."
+    }
+  ],
+  "examinations": [
+    {
+      "examination_type": "inspection",
+      "applies_to": "All MEWPs",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Interval is explicit. The document states no certificate validity period and does not in fact use the word 'certificate' for this inspection, so certificate_validity_months is null — do not infer 6 months from the interval.",
+      "trigger_event": null,
+      "examiner_competence": "An EIAC accredited third party company",
+      "certificate_validity_months": null,
+      "source_page": 19,
+      "source_quote": "Ensure that all MEWP's are inspected every six months by an EIAC accredited third party company.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Any MEWP to which additional devices or equipment have been fitted, or which has otherwise been modified",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "modification of the MEWP / fitting of additional devices or equipment",
+      "examiner_competence": "An EIAC accredited third party company",
+      "certificate_validity_months": null,
+      "source_page": 16,
+      "source_quote": "Ensure that the modifications done to the MEWP will be inspected and certified by an EIAC accredited third party company.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "The entire equipment — platform or cage, power source, all working parts, the structure and the vehicle mounting where applicable",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Not a scheduled interval: this is a per-use duty, discharged before and after every use. Recorded as a trigger_event rather than a cadence.",
+      "trigger_event": "before use and after use",
+      "examiner_competence": "Not specified beyond doing it in conjunction with the manufacturer's manual. Rescuers 'should check the emergency lowering functions with the operator during the daily pre-use checks' (p17), which implies the operator carries out the pre-use check.",
+      "certificate_validity_months": null,
+      "source_page": 19,
+      "source_quote": "Ensure to inspect the entire equipment both before and after use which includes the platform or cage, power source, all working parts, the structure and the vehicle mounting (where applicable) in conjunction with the manufacturer's manual.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "PERSON, not plant: MEWP operator training. All MEWP operators shall undergo training meeting an internationally recognised standard or equivalent; all training shall be repeated at least every two years.",
+      "cadence_months": 24,
+      "cadence_days": null,
+      "cadence_note": "'every two years as a minimum' — 24 months is a maximum interval, not a fixed one; organisations may set a shorter periodicity.",
+      "trigger_event": null,
+      "examiner_competence": "Training providers must be able to demonstrate that their training activity — facilities, equipment, instructor qualifications and CPD, instructor/trainee ratio and course content — is subject to independent assessment and ongoing audits based on ISO 18878. Note GU67 does NOT require EIAC accreditation for operator certification, unlike GU48 requirement 10.",
+      "certificate_validity_months": null,
+      "source_page": 17,
+      "source_quote": "All training shall be repeated every two years as a minimum. However, organizations can have better periodicity to ensure staff knowledge is up to date at all times considering changes.",
+      "confidence": "high"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "mewp_clearance_overhead_lines_steel_towers",
+      "parameter_label": "Minimum safe distance between overhead lines mounted on steel towers and the closest point of a fully extended MEWP",
+      "unit": "m",
+      "min_val": 15.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "15 metres minimum",
+      "qualifier_rule": "min",
+      "source_page": 12,
+      "source_quote": "A minimum safe distance must always be kept between the overhead lines and the closest point of the MEWP when fully extended. This distance is 15 meters with overhead lines mounted on steel towers and 9 meters with lines mounted on poles of wood, concrete or steel. Also, refer to the existing safe distance requirements of DEWA or any concerned authority where work is conducted. The stricter requirement shall be followed.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "mewp_clearance_overhead_lines_poles",
+      "parameter_label": "Minimum safe distance between overhead lines mounted on poles of wood, concrete or steel and the closest point of a fully extended MEWP",
+      "unit": "m",
+      "min_val": 9.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "9 metres minimum",
+      "qualifier_rule": "min",
+      "source_page": 12,
+      "source_quote": "This distance is 15 meters with overhead lines mounted on steel towers and 9 meters with lines mounted on poles of wood, concrete or steel. ... These distances are measured horizontally at ground level from a position vertically below the outermost conductor at the tower or pole position.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "mewp_training_record_retention",
+      "parameter_label": "Minimum retention period for records of training, induction and toolbox talks",
+      "unit": "years",
+      "min_val": 5.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "at least 5 years",
+      "qualifier_rule": "min",
+      "source_page": 16,
+      "source_quote": "Records of any training including induction and toolbox talks shall be properly kept for at least five (5) years and be made readily available to DM OHS inspectors and other regulatory agencies for review",
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU80-PRSPS2",
+    "guideline_no": 80,
+    "title": "Private Swimming Pools Safety Guidelines",
+    "version": "V 1.0",
+    "issued_on": "2020-01-14",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2022/03/DM-HSD-GU80_PRSPS2_Private-Swimming-Pools-Safety-Guidelines_V1-1.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu80_private_pool_water",
+      "label": "GU80 private swimming pool — water quality parameters",
+      "applies_to_scope": "facilities",
+      "applies_to": "Private swimming pools in the Emirate of Dubai. Table 1 is not qualified by pool type, disinfectant or water temperature — unlike GU81 Table 5, this table gives a single set of values for all private pools.",
+      "source_section": "G. Water Quality Requirements, Table 1: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Free Chlorine",
+          "unit": "mg/liter",
+          "min_val": 1.0,
+          "max_val": 2.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "1 to 2 mg/liter",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1 'Pool Water Standard Quality Parameters': 'Free Chlorine | 1 to 2 mg/liter'. Column heading is 'Acceptable Range'. The endpoints carry no operator glyph; 'X to Y' under an 'Acceptable Range' heading is read as inclusive of both endpoints. GU80 differs from GU81 here: it states a closed range rather than a 'Min.' floor.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "bromine",
+          "parameter_label": "Bromine",
+          "unit": "mg/liter",
+          "min_val": 2.0,
+          "max_val": 4.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "2 to 4 mg/liter",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1: 'Bromine | 2 to 4 mg/liter' under the heading 'Acceptable Range'. No operator glyph; read as inclusive. Free chlorine and bromine are alternative disinfectants — only the one in use is judged.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.4,
+          "max_val": 7.6,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.4 to 7.6",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1: 'pH | 7.4 to 7.6' under the heading 'Acceptable Range'. No operator glyph; read as inclusive. NOTE this is NARROWER than the GU81 public-pool range (7.2 - 7.6 / 7.2 - 7.8) — do not carry one across to the other.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "ppm",
+          "min_val": 70.0,
+          "max_val": 100.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "70 to 100 ppm",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1: 'Total Alkalinity | 70 to 100 ppm'. No operator glyph; read as inclusive. NOTE the unit is ppm here and mg/l in GU81, and the range is much narrower than GU81's 60 - 200 mg/l.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "calcium_hardness",
+          "parameter_label": "Calcium Hardness",
+          "unit": "ppm",
+          "min_val": 100.0,
+          "max_val": 500.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "100 to 500 ppm",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1: 'Calcium Hardness | 100 to 500 ppm'. No operator glyph; read as inclusive.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "saturation_index",
+          "parameter_label": "Saturation Index",
+          "unit": null,
+          "min_val": -0.5,
+          "max_val": 0.5,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "-0.5 to 0.5",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1: 'Saturation Index | -0.5 to 0.5'. No operator glyph; read as inclusive.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "cyanuric_acid",
+          "parameter_label": "Cyanuric Acid",
+          "unit": "mg/liter",
+          "min_val": 20.0,
+          "max_val": 60.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "20 to 60 mg/liter",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 1: 'Cyanuric Acid | 20 to 60 mg/liter'. No operator glyph; read as inclusive. NOTE this differs from GU81's 30 - 50 mg/l.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "key": "gu80_private_pool_microbiological",
+      "label": "GU80 private swimming pool — microbiological parameters",
+      "applies_to_scope": "facilities",
+      "applies_to": "Private swimming pool water in the Emirate of Dubai.",
+      "source_section": "G. Water Quality Requirements, Table 2: Maximum Allowable Microbiological Parameters",
+      "limits": [
+        {
+          "parameter_key": "total_coliforms",
+          "parameter_label": "Total Coliforms",
+          "unit": "mpn/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 mpn/100 ml",
+          "qualifier_rule": "detect_fails",
+          "source_page": 19,
+          "source_quote": "Table 2 'Maximum Allowable Microbiological Parameters': 'Total Coliforms | 0 mpn/100 ml'. An acceptable range of zero under a 'Maximum Allowable' heading means any detection breaches; qualifier_rule detect_fails so 'Absent' / 'Not Detected' / '<1' passes and any quantified value fails, rather than treating a non-detect as a measured zero.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "fecal_coliforms",
+          "parameter_label": "Fecal Coliforms",
+          "unit": "mpn/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 mpn/100 ml",
+          "qualifier_rule": "detect_fails",
+          "source_page": 19,
+          "source_quote": "Table 2: 'Fecal Coliforms | 0 mpn/100 ml'.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "heterotrophic_plate_count",
+          "parameter_label": "Heterotrophic Plate Count",
+          "unit": "cfu/ml",
+          "min_val": null,
+          "max_val": 1000.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "1000 cfu/ml",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "Table 2: 'Heterotrophic Plate Count | 1000 cfu/ml'. No operator glyph in the cell; inclusivity taken from the table heading 'Maximum Allowable Microbiological Parameters', under which 1000 is itself allowable.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "pseudomonas_aeruginosa",
+          "parameter_label": "Ps. Aeroginosa",
+          "unit": "cfu/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 cfu/100 ml",
+          "qualifier_rule": "detect_fails",
+          "source_page": 19,
+          "source_quote": "Table 2: 'Ps. Aeroginosa | 0 cfu/100 ml'. The document's spelling 'Ps. Aeroginosa' is retained in parameter_label; parameter_key is normalised to pseudomonas_aeruginosa to match GU81.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "fecal_streptococci",
+          "parameter_label": "Fecal Streptococci",
+          "unit": "cfu/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 cfu/100 ml",
+          "qualifier_rule": "detect_fails",
+          "source_page": 19,
+          "source_quote": "Table 2: 'Fecal Streptococci | 0 cfu/100 ml'.",
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "cadence_note": "Document states an explicit daily cadence: 'tested daily (before use)'. Encoded as cadence_days 1, tied to use.",
+      "applies_to": "Private swimming pool water — pH, chlorine and temperature. Tested before use each day; readings recorded in a logbook.",
+      "source_quote": "p19, G. Water Quality Requirements: 'Water quality shall be tested daily (before use) for pH, chlorine and temperature levels.' and 'All readings shall be recorded in a logbook.'"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": 15,
+      "cadence_note": "Document states an explicit cadence: 'for every 15 days'. Encoded as cadence_days 15.",
+      "applies_to": "Private swimming pool water — calcium hardness, alkalinity, saturation index and cyanuric acid.",
+      "source_quote": "p19, G. Water Quality Requirements: 'Pool water shall also be tested for calcium hardness, alkalinity, saturation index and cyanuric acid for every 15 days.'"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": 2,
+      "cadence_days": null,
+      "cadence_note": "Document states an explicit cadence: 'for every two months'. Encoded as cadence_months 2. No grace period is stated anywhere in GU80.",
+      "applies_to": "Private swimming pool water — microbiological parameters (Table 2). This is the laboratory-evidenced obligation.",
+      "source_quote": "p19, G. Water Quality Requirements: 'Pool water shall be tested for microbiological parameters for every two months.'"
+    }
+  ]
+}

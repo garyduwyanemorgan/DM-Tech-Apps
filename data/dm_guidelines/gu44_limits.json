@@ -1,0 +1,1327 @@
+{
+  "_provenance": {
+    "status": "UNVERIFIED — machine-extracted, requires human check against the cited page before any limit here is seeded, sold, or shown to a client",
+    "extracted_on": "2026-08-14",
+    "extracted_from": "PDF downloaded from the source_url below; SHA-256 recorded in gu44_notes.md. Text layer via pdftotext -layout; every table below was ALSO rendered to image at 170 dpi and read visually, because the text layer collapses table columns and silently reorders rowspan cells.",
+    "method_note": "No limit in this file was reconstructed from memory or from any secondary source. Where the document is ambiguous the inclusivity flag is null rather than guessed. Where the document contradicts itself both readings are recorded verbatim and the parameter is flagged blocked_for_sale.",
+    "page_numbers": "Printed page numbers, which are identical to PDF page indices (page 1 = PDF page 1, 42 pages total)."
+  },
+  "standard": {
+    "code": "DM-HSD-GU44-LCWS2",
+    "title": "Technical Guidelines for Legionella Control in Water System",
+    "version": "V.6",
+    "issued_on": "2025-08-19",
+    "superseded_issue_on": "2024-12-17",
+    "issuer": "Dubai Municipality — Health & Safety Department (Environmental Health Section)",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2022/10/DM-HSD-GU44-LCWS2_Technical-Guidelines-for-Legionella-Control-in-Water-System_V6-002.pdf",
+    "language": "en",
+    "page_count": 42,
+    "source_quote": "Document Title: Technical Guidelines for Legionella Control in Water System | Document Code: DM-HSD-GU44-LCWS2 | Version #: V.6 | Issue Date: 19th August 2025 | Superseded Issue Date: 17th December 2024",
+    "source_page": 1
+  },
+  "specification_sets": [
+    {
+      "key": "gu44_cooling_water_system",
+      "label": "GU44 — Cooling water system (cooling tower and evaporative condenser)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Cooling water system (cooling tower and evaporative condenser)",
+      "source_section": "Table (3) Limit reference of microbial contamination, row 1; corroborated by §14-1",
+      "source_page": 24,
+      "set_type": "compliance_limit",
+      "limits": [
+        {
+          "parameter_key": "legionella",
+          "parameter_label": "Legionella",
+          "unit": "cfu/l",
+          "min_val": null,
+          "max_val": 1000,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "Not exceed 1000 cfu/l",
+          "qualifier_rule": "bound",
+          "source_page": 24,
+          "source_quote": "Table (3), row 1, Microorganism 'Legionella', Limit Reference cell: 'Not exceed 1000 cfu/l'. Corroborated on the same page by §14-1: 'Legionella bacteria count should not exceed 1000 cfu/liter.' 'Not exceed' / 'should not exceed' is INCLUSIVE — a result of exactly 1000 cfu/l does not exceed 1000 and therefore passes. qualifier_rule = bound rather than detect_fails because the document explicitly treats detected-but-low Legionella as acceptable: Table (4) p25 assigns '100 cfu/l or less' the action 'Continue with routine maintenance and inspection', so mere presence is not the breach.",
+          "confidence": "high",
+          "cross_reference_warning": "A result of EXACTLY 1000 cfu/l is COMPLIANT against this limit but is simultaneously MANDATORILY REPORTABLE to Dubai Municipality within 24 hours under §19 p31 ('presence of 1000 or more colony forming units of Legionella per liter ... must submit the report to Dubai Municipality within 24 hours'), while §18 p30 requires emergency decontamination only at 'More than 1000 cfu/liter'. Compliant, reportable, and not requiring decontamination, all at the same number. See gu44_notes.md."
+        },
+        {
+          "parameter_key": "aerobic_bacterial_count",
+          "parameter_label": "Aerobic bacterial count",
+          "unit": "cfu/ml",
+          "min_val": null,
+          "max_val": 10000,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "Not exceed 10000 cfu/ml",
+          "qualifier_rule": "bound",
+          "source_page": 24,
+          "source_quote": "CONFLICTING NOTATION ON THE SAME PAGE — inclusivity deliberately left null, not guessed. Reading A, Table (3) row 1: 'Not exceed 10000 cfu/ml' — 'not exceed' is INCLUSIVE, so exactly 10000 passes. Reading B, §14-1 first sub-bullet on the same page 24: 'Total Bacteria Count (TBC) should be below 10000 cfu/ml of water sample.' — 'below' is EXCLUSIVE, so exactly 10000 fails. The next §14-1 bullet, 'Concentrations above 10000 cfu/ml indicate that conditions in the system are favoring bacterial multiplication', and Table (4) p25, which triggers review only at '>10000 cfu/ml', both lean toward INCLUSIVE, but the document never states it. A human must adjudicate before this parameter is seeded — spec_limits.max_inclusive is NOT NULL with no default precisely so this cannot be smuggled in.",
+          "confidence": "low",
+          "blocked_for_sale": true,
+          "alternate_reading": {
+            "display": "should be below 10000 cfu/ml",
+            "max_val": 10000,
+            "max_inclusive": false,
+            "source_section": "§14-1 Cooling water system (cooling tower and evaporator condenser)",
+            "source_page": 24,
+            "source_quote": "Total Bacteria Count (TBC) should be below 10000 cfu/ml of water sample. However, this may not be practical in all circumstances."
+          }
+        }
+      ]
+    },
+    {
+      "key": "gu44_hot_warm_cold_water_system",
+      "label": "GU44 — Hot, warm and cold water system",
+      "applies_to_scope": "facilities",
+      "applies_to": "Hot, warm and cold water system.",
+      "source_section": "Table (3) Limit reference of microbial contamination, row 2; corroborated by §14-3",
+      "source_page": 24,
+      "set_type": "compliance_limit",
+      "limits": [
+        {
+          "parameter_key": "legionella",
+          "parameter_label": "Legionella",
+          "unit": "cfu/l",
+          "min_val": null,
+          "max_val": 1000,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "Not exceed 1000 cfu/l",
+          "qualifier_rule": "bound",
+          "source_page": 24,
+          "source_quote": "Table (3), row 2, Microorganism 'Legionella', Limit Reference cell: 'Not exceed 1000 cfu/l'. Corroborated by §14-3 p25: 'Legionella bacteria count should not exceed 1000 cfu/litre.' 'Not exceed' is INCLUSIVE. qualifier_rule = bound, not detect_fails: Table (5) p26 assigns action only from '>100 cfu/l' upward, so a detected value at or below 100 cfu/l is not itself a breach of this limit.",
+          "confidence": "high",
+          "cross_reference_warning": "Same exactly-1000 collision as the cooling-tower Legionella limit: compliant under Table (3), mandatorily reportable within 24 hours under §19 p31. Note also Table (5) p26 leaves a band gap — 'Not detected' then '>100 cfu/l and up to 1000 cfu/l' — so a detected result of 1 to 100 cfu/l inclusive is assigned no action level at all."
+        },
+        {
+          "parameter_key": "total_bacterial_count",
+          "parameter_label": "Total bacterial count",
+          "unit": "cfu/ml",
+          "min_val": null,
+          "max_val": 500,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "500 cfu/ml",
+          "qualifier_rule": "unassessable",
+          "source_page": 24,
+          "source_quote": "Table (3), row 2, Microorganism 'Total bacterial count', Limit Reference cell reads exactly '500 cfu/ml' — a bare number with NO operator and no comparative word. Verified visually on the rendered page, not inferred from the text layer. The only elaboration, §14-3 p25, is advisory rather than mandatory: 'Total Bacteria Count (TBC) in excess of 500 cfu/ml may indicate that maintenance practices are not satisfactory.' — 'may indicate' does not state a pass/fail rule, and 'in excess of' would make it exclusive if it were one. There is genuinely no basis in the document to decide whether 500 passes or fails, or indeed whether this is a compliance limit at all rather than an indicator. max_inclusive is null and qualifier_rule is 'unassessable' on purpose.",
+          "confidence": "low",
+          "blocked_for_sale": true
+        }
+      ]
+    },
+    {
+      "key": "gu44_fountain_spa_water_system",
+      "label": "GU44 — Fountain, waterfall, evaporative coolers, misters, air washers, humidifiers, spa pool, whirlpool spas, Jacuzzi, spa baths",
+      "applies_to_scope": "facilities",
+      "applies_to": "Fountain, waterfall system, evaporative air coolers, misters, air washers, humidifiers, spa pool, whirlpool spas, Jacuzzi, spa baths",
+      "source_section": "Table (3) row 3 and §14-4 — THESE TWO DISAGREE BY A FACTOR OF 1000. See conflicts[0].",
+      "source_page": 24,
+      "set_type": "compliance_limit",
+      "unsellable_reason": "The document sets two irreconcilable Legionella limits for this system type. Not sellable as a module until a human adjudicates, ideally with DM.",
+      "limits": [
+        {
+          "parameter_key": "legionella",
+          "parameter_label": "Legionella",
+          "unit": "cfu/l",
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": null,
+          "qualifier_rule": "unassessable",
+          "source_page": 24,
+          "source_quote": "IRRECONCILABLE — no single value recorded, deliberately. Reading A, Table (3) p24 row 3, Limit Reference cell: 'Less than 1000 cfu/l' — EXCLUSIVE, max 1000, qualifier_rule would be 'bound'. Reading B, §14-4 p26 first bullet: 'Legionella bacteria should be less than 1 cfu/liter. (not detected)' — EXCLUSIVE, max 1, and the parenthetical '(not detected)' makes any detection whatsoever the breach, so qualifier_rule would be 'detect_fails'. These differ by 1000x AND change the rule for judging a qualified lab result. Picking either one silently would produce exactly the confident wrong verdict this build exists to prevent, so max_val is left null and the parameter is unassessable until adjudicated. Note also that Table (3) rows 1 and 2 use the phrase 'Not exceed' while row 3 alone uses 'Less than', which suggests row 3 was edited independently and may be the stale cell.",
+          "confidence": "low",
+          "blocked_for_sale": true,
+          "alternate_readings": [
+            {
+              "label": "Reading A — Table (3)",
+              "display": "Less than 1000 cfu/l",
+              "unit": "cfu/l",
+              "max_val": 1000,
+              "max_inclusive": false,
+              "qualifier_rule": "bound",
+              "source_section": "Table (3): Limit reference of microbial contamination, row 3",
+              "source_page": 24,
+              "source_quote": "Less than 1000 cfu/l"
+            },
+            {
+              "label": "Reading B — §14-4",
+              "display": "less than 1 cfu/liter. (not detected)",
+              "unit": "cfu/liter",
+              "max_val": 1,
+              "max_inclusive": false,
+              "qualifier_rule": "detect_fails",
+              "source_section": "§14-4 Fountain, waterfall system, evaporative air coolers, misters, air washers, humidifiers, spa pool, whirlpool spas, Jacuzzi, spa baths",
+              "source_page": 26,
+              "source_quote": "Legionella bacteria should be less than 1 cfu/liter. (not detected)"
+            }
+          ]
+        },
+        {
+          "parameter_key": "total_bacterial_count",
+          "parameter_label": "Total bacterial count",
+          "unit": "cfu/ml",
+          "min_val": null,
+          "max_val": 500,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "500 cfu/ml",
+          "qualifier_rule": "unassessable",
+          "source_page": 24,
+          "source_quote": "Table (3), row 3, Microorganism 'Total bacterial count', Limit Reference cell reads exactly '500 cfu/ml' — bare number, no operator, verified on the rendered page. §14-4 p26 repeats the advisory form word for word from §14-3: 'Total Bacteria Count (TBC) in excess of 500 cfu/ml may indicate that maintenance practices are not satisfactory.' No basis to set inclusivity; no basis to treat it as pass/fail at all.",
+          "confidence": "low",
+          "blocked_for_sale": true
+        }
+      ]
+    },
+    {
+      "key": "gu44_hot_warm_cold_water_temperature",
+      "label": "GU44 — Hot, warm and cold water system operating temperatures",
+      "applies_to_scope": "facilities",
+      "applies_to": "Hot, warm and cold water system — storage, distribution and outlet temperatures. These are operational control parameters recorded on the daily record sheet in Schedule (1) p38, NOT parameters a laboratory certificate would carry.",
+      "source_section": "§9 Legionella Control Methods (Temperature), §12-1, §16, §20-2",
+      "source_page": 15,
+      "set_type": "compliance_limit",
+      "limits": [
+        {
+          "parameter_key": "hot_water_storage_temperature",
+          "parameter_label": "Hot water storage temperature",
+          "unit": "°C",
+          "min_val": 60,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "Store hot water at a minimum temperature of 60 °C (140 °F)",
+          "qualifier_rule": "bound",
+          "source_page": 28,
+          "source_quote": "§16 p28: 'Store hot water at a minimum temperature of 60 °C (140 °F) and deliver to the taps at a minimum temperature of 50 °C (122 °F),'. 'Minimum temperature of 60' is INCLUSIVE — 60.0 °C satisfies it. Corroborated by §20-2 p33: 'hot water storage shall maintained at minimum temperature 60°C'.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "hot_water_outlet_temperature",
+          "parameter_label": "Hot water delivery temperature at taps",
+          "unit": "°C",
+          "min_val": 50,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "deliver to the taps at a minimum temperature of 50 °C (122 °F)",
+          "qualifier_rule": "bound",
+          "source_page": 28,
+          "source_quote": "§16 p28: 'deliver to the taps at a minimum temperature of 50 °C (122 °F)'. INCLUSIVE. §9 p15 states the same threshold with a dwell condition that is not repeated elsewhere: 'It is recommended that hot water should be stored at 60 °C and distributed so that, after one minute of running, a temperature of at least 50 °C is attainable at outlets.' — 'at least 50' is also INCLUSIVE. The 'after one minute of running' qualifier is a measurement method, not a second limit.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "hot_water_circulating_temperature_range",
+          "parameter_label": "Hot water circulating temperature throughout the system",
+          "unit": "°C",
+          "min_val": 50,
+          "max_val": 60,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "50°C - 60°C",
+          "qualifier_rule": "bound",
+          "source_page": 33,
+          "source_quote": "§20-2 p33: 'Premise shall maintain hot water hot and circulating at all times: 50°C - 60°C throughout the entire hot water system'. A hyphenated range with NO inclusivity glyph on either endpoint. §12-1 p19 gives the same range in the same operator-free form: 'It should be maintained at temperatures (50 - 60 °C)'. Conventionally such a range includes its endpoints, but the document does not say so, and the 60 °C endpoint sits in tension with the 60 °C MINIMUM required for storage by §16 p28 — under a 50-60 range, 60 °C is the top of band; under §16 it is the floor. Both flags left null.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "cold_water_temperature",
+          "parameter_label": "Cold water storage and distribution temperature",
+          "unit": "°C",
+          "min_val": null,
+          "max_val": 20,
+          "min_inclusive": null,
+          "max_inclusive": false,
+          "display": "below 20 °C (68 °F)",
+          "qualifier_rule": "bound",
+          "source_page": 28,
+          "source_quote": "§16 p28: 'Store and distribute the cold domestic water below 20 °C (68 °F)'. 'Below' is EXCLUSIVE — exactly 20.0 °C fails. Corroborated by §12-1 p19 ('cold water cold at all times: It should be maintained at temperatures below 20 °C') and §20-2 p33 ('It should be maintained at temperatures below 20°C throughout the system for all outlets'). Note §9 p15 states it differently as 'Cold water storage and distribution should be at 20 °C or below' — which is INCLUSIVE. Three sources say below, one says or below; encoded as exclusive (the majority and the stricter reading) but see conflicts[2].",
+          "confidence": "medium",
+          "alternate_reading": {
+            "display": "20 °C or below",
+            "max_val": 20,
+            "max_inclusive": true,
+            "source_section": "§9 Legionella Control Methods — Temperature",
+            "source_page": 15,
+            "source_quote": "Cold water storage and distribution should be at 20 °C or below."
+          }
+        },
+        {
+          "parameter_key": "calorifier_flow_temperature",
+          "parameter_label": "Calorifier flow temperature",
+          "unit": "°C",
+          "min_val": 60,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "as close to 60 °C as practicable without going below 60 °C",
+          "qualifier_rule": "bound",
+          "source_page": 33,
+          "source_quote": "§20-2 p33: 'The calorifier flow temperatures (thermostat settings should modulate as close to 60 °C as practicable without going below 60 °C)'. 'Without going below 60' is INCLUSIVE — 60.0 °C satisfies it.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "calorifier_return_temperature",
+          "parameter_label": "Calorifier return temperature",
+          "unit": "°C",
+          "min_val": 50,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "not below 50 °C",
+          "qualifier_rule": "bound",
+          "source_page": 33,
+          "source_quote": "§20-2 p33: 'the calorifier return temperatures (not below 50 °C)'. 'Not below 50' is INCLUSIVE — 50.0 °C satisfies it.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "thermal_flush_temperature",
+          "parameter_label": "Thermal flushing / disinfection water temperature",
+          "unit": "°C",
+          "min_val": 70,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "not less than 70 °C for 5 minutes",
+          "qualifier_rule": "bound",
+          "source_page": 28,
+          "source_quote": "§16 p28: 'Water system (hot, warm and cold water) must be flashed and cleaned at least every six months with water of not less than 70 °C for 5 minutes (or an equivalent temperature /time combination)'. 'Not less than 70' is INCLUSIVE. Same wording at §12-1 p19. CAVEAT: §18-2 p31 gives a contradictory parenthetical for the same operation — 'must be flushed with water of not less than 70 °C for 5 minutes (minimum of 60°C) measured at the outlets' — which states a 70 °C minimum and a 60 °C minimum in one sentence. See conflicts[3]. The '(or an equivalent temperature /time combination)' escape clause also means a lower temperature held longer can satisfy this, with no equivalence table given anywhere in the document.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "small_water_heater_temperature",
+          "parameter_label": "Water heater temperature (heaters no greater than 15 litres)",
+          "unit": "°C",
+          "min_val": null,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "kept close to 60 °C",
+          "qualifier_rule": "unassessable",
+          "source_page": 33,
+          "source_quote": "§20-2 p33: 'For the water heaters (no greater than 15 liters), the water temperatures should be kept close to 60 °C.' 'Close to' is not a bound in any direction and no tolerance is given. Recorded because it is a numeric requirement, but it cannot be judged. Retained here with null bounds; it therefore CANNOT be inserted into spec_limits, which requires min_val OR max_val to be non-null (spec_limits_bounded_check, migration 022 line 217). That constraint is doing its job — this does not belong in a specification set.",
+          "confidence": "high",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "legionella_growth_temperature_zone",
+          "parameter_label": "Temperature range supporting Legionella growth (risk-assessment factor, NOT a compliance limit)",
+          "unit": "°C",
+          "min_val": 20,
+          "max_val": 50,
+          "min_inclusive": false,
+          "max_inclusive": false,
+          "display": "above 20°C but below 50°C",
+          "qualifier_rule": "unassessable",
+          "source_page": 18,
+          "source_quote": "§11 Risk assessment p18: 'Areas which contain water at temperatures likely to support the growth of Legionella (i.e. above 20°C but below 50°C)'. 'Above' and 'below' are both EXCLUSIVE. This is a hazard-identification band for the risk assessment, NOT a pass/fail limit — being inside it is not a breach. Included for completeness and explicitly marked unassessable so it can never be wired to a verdict.",
+          "confidence": "high",
+          "is_compliance_limit": false
+        }
+      ]
+    },
+    {
+      "key": "gu44_domestic_water_disinfectant_residual",
+      "label": "GU44 — Domestic (potable) water disinfectant residuals",
+      "applies_to_scope": "facilities",
+      "applies_to": "Building domestic drinking water distribution system including all water tanks, hot and cold water system — continuous treatment residuals measured at terminal points",
+      "source_section": "§9 (Chlorination, Chlorine Dioxide), §20-2",
+      "source_page": 15,
+      "set_type": "compliance_limit",
+      "limits": [
+        {
+          "parameter_key": "free_chlorine_terminal",
+          "parameter_label": "Chlorine concentration at terminal points",
+          "unit": "mg/l",
+          "min_val": 0.2,
+          "max_val": 0.5,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "0.2-0.5mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 33,
+          "source_quote": "§20-2 p33: 'The premise shall be using a supplemental source of chorine (a chlorine automatic dosing system) at the water tank which connected directly with the main water supply in order to achieve a sufficient chlorine concentration at the terminal points (0.2-0.5mg/l).' A hyphenated range with NO inclusivity glyph. §9 p15 gives the same numbers in the equally operator-free form 'usually maintained at between 0.2 and 0.5 ppm (mg/l) at the point of delivery when used continuously in domestic system' — 'between X and Y' is classically ambiguous at the endpoints. Both flags null; not guessed.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "chlorine_dioxide",
+          "parameter_label": "Chlorine dioxide",
+          "unit": "mg/l",
+          "min_val": null,
+          "max_val": 0.5,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "should not exceed 0.5 mg/l as Chlorine dioxide",
+          "qualifier_rule": "bound",
+          "source_page": 16,
+          "source_quote": "§9 Chlorine Dioxide, p16: 'The maximum value of Chlorine dioxide in drinking water should not exceed 0.5 mg/l as Chlorine dioxide and this is often not enough to achieve control in colonized system.' 'Should not exceed' is INCLUSIVE. This is DM's own sentence, stated immediately after noting that WHO (2017) did not establish a health-based value for chlorine dioxide, so it is not a quoted third-party figure.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "chlorite",
+          "parameter_label": "Chlorite",
+          "unit": "ppm",
+          "min_val": null,
+          "max_val": 0.7,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "0.7 ppm",
+          "qualifier_rule": "bound",
+          "source_page": 16,
+          "source_quote": "§9 Chlorine Dioxide, p16: 'The World Health Organization Guidelines for Drinkingwater Quality (2017) indicate/ establish the health -based limit values are 0.7 ppm for both chlorite and chlorate.' PROVENANCE CAVEAT: GU44 attributes this to WHO 2017, it does not set it. No operator glyph is given, so inclusivity is null. The same paragraph explicitly weakens it: 'guidelines values for chlorite and chlorate are designated as provisional ... and difficulties in meeting the guidelines values must never be a reason for compromising adequate disinfection.'",
+          "confidence": "medium",
+          "provenance": "cited_from_WHO_2017_via_GU44_not_set_by_DM",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "chlorate",
+          "parameter_label": "Chlorate",
+          "unit": "ppm",
+          "min_val": null,
+          "max_val": 0.7,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "0.7 ppm",
+          "qualifier_rule": "bound",
+          "source_page": 16,
+          "source_quote": "Same sentence as chlorite, §9 p16: 'the health -based limit values are 0.7 ppm for both chlorite and chlorate.' Same WHO provenance caveat, same explicit 'provisional' weakening, same absence of any operator glyph.",
+          "confidence": "medium",
+          "provenance": "cited_from_WHO_2017_via_GU44_not_set_by_DM",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "total_chlorine",
+          "parameter_label": "Total chlorine",
+          "unit": "mg/l",
+          "min_val": null,
+          "max_val": 5.0,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "5.0 mg/l for total chlorine",
+          "qualifier_rule": "bound",
+          "source_page": 15,
+          "source_quote": "§9 Chlorination, p15: 'The World Health Organization Guidelines for Drinkingwater Quality (2017) indicate/ establish the health -based limit values is 5.0 mg/l for total chlorine, however at high levels chlorine is likely to cause corrosion with prolonged use'. Attributed to WHO, not set by DM. No operator glyph — inclusivity null.",
+          "confidence": "medium",
+          "provenance": "cited_from_WHO_2017_via_GU44_not_set_by_DM",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "copper_ion_ionization",
+          "parameter_label": "Copper ion concentration (ionization water treatment)",
+          "unit": "MG/L",
+          "min_val": 400,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "400 MG/L",
+          "qualifier_rule": "unassessable",
+          "source_page": 15,
+          "source_quote": "§9 Ionization, p15: 'The results of recent research have shown that where copper and silver ion concentrations can be maintained at 400 MG/L and 40 MG/L respectively, this technique, if properly managed, can be effective against legionella in both hot and cold water regimens.' DO NOT SELL OR SEED. Two independent problems. (1) The unit is almost certainly wrong by a factor of 1000 — the figure recognised in the source literature is 400 micrograms/L copper and 40 micrograms/L silver; 400 mg/L of copper in a potable system would be grossly toxic and far above any drinking-water standard. GU44 prints 'MG/L' in capitals. I have NOT corrected it — the value is recorded exactly as printed and flagged. (2) Even taken at face value this is an efficacy observation about a treatment technique ('research have shown that where ... can be maintained'), not a limit the premises must meet. Recorded for completeness only.",
+          "confidence": "low",
+          "blocked_for_sale": true,
+          "is_compliance_limit": false
+        },
+        {
+          "parameter_key": "silver_ion_ionization",
+          "parameter_label": "Silver ion concentration (ionization water treatment)",
+          "unit": "MG/L",
+          "min_val": 40,
+          "max_val": null,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "40 MG/L",
+          "qualifier_rule": "unassessable",
+          "source_page": 15,
+          "source_quote": "Same sentence as copper, §9 Ionization p15. Same suspected 1000x unit error and same efficacy-observation-not-limit objection. DO NOT SELL OR SEED.",
+          "confidence": "low",
+          "blocked_for_sale": true,
+          "is_compliance_limit": false
+        }
+      ]
+    },
+    {
+      "key": "gu44_spa_fountain_disinfectant_residual",
+      "label": "GU44 — Spa pool, Jacuzzi, fountain and water feature disinfectant residuals",
+      "applies_to_scope": "facilities",
+      "applies_to": "Spa Pool, Whirlpool Spas, Jacuzzi, Spa Baths (§20-3) and Fountains and water features (§20-5) — identical wording in both checklists",
+      "source_section": "§20-3 and §20-5",
+      "source_page": 34,
+      "set_type": "compliance_limit",
+      "limits": [
+        {
+          "parameter_key": "chlorine_residual",
+          "parameter_label": "Chlorine (continuous treatment)",
+          "unit": "mg/l",
+          "min_val": 1,
+          "max_val": 2,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "1-2mg/l chlorine",
+          "qualifier_rule": "bound",
+          "source_page": 34,
+          "source_quote": "§20-3 Spa Pool, Whirlpool Spas, Jacuzzi, Spa Baths Checklist p34: 'Continuously treated with 1-2mg/l chlorine or 2-3mg/l bromine.' §20-5 Fountains and water feature Checklist p34 repeats the identical sentence. Hyphenated range, NO inclusivity glyph on either endpoint — both flags null. Note this is an OR: chlorine or bromine, not both, so a compliance engine must not fail an asset for a missing chlorine residual when bromine is the biocide in use.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "bromine_residual",
+          "parameter_label": "Bromine (continuous treatment)",
+          "unit": "mg/l",
+          "min_val": 2,
+          "max_val": 3,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "2-3mg/l bromine",
+          "qualifier_rule": "bound",
+          "source_page": 34,
+          "source_quote": "Same sentence, §20-3 and §20-5 p34: 'Continuously treated with 1-2mg/l chlorine or 2-3mg/l bromine.' Hyphenated range, no glyph, both flags null. Alternative to chlorine, not additional to it.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "spa_water_replacement_fraction",
+          "parameter_label": "Daily water replacement",
+          "unit": "fraction of system volume per day",
+          "min_val": 0.5,
+          "max_val": null,
+          "min_inclusive": true,
+          "max_inclusive": null,
+          "display": "At least half of the water is replaced each day",
+          "qualifier_rule": "bound",
+          "source_page": 34,
+          "source_quote": "§20-3 p34: 'At least half of the water is replaced each day.' 'At least half' is INCLUSIVE at 0.5. Applies to spa pools/Jacuzzi only — this bullet does not appear in the §20-5 fountains checklist.",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu44_chlorine_disinfection_process",
+      "label": "GU44 — Chlorine-based disinfection process control (§18, §21)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Emergency and routine cleaning/disinfection operations on cooling towers, water tanks and internal distribution networks. Process control values, verified during the disinfection itself — not water-quality limits and not something a routine lab certificate reports.",
+      "source_section": "§18-1, §18-2, §21, §21-1, §21-2",
+      "source_page": 30,
+      "set_type": "process_control",
+      "limits": [
+        {
+          "parameter_key": "disinfection_ph_ceiling",
+          "parameter_label": "pH during chlorine-based disinfection",
+          "unit": "pH",
+          "min_val": null,
+          "max_val": 7.6,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "pH values exceeding 7.6 should be avoided",
+          "qualifier_rule": "bound",
+          "source_page": 35,
+          "source_quote": "§21 Chlorine-based disinfection p35: 'The effectiveness of chlorine as a disinfectant depends on pH, and pH values exceeding 7.6 should be avoided.' 'Exceeding' is EXCLUSIVE of the breach, therefore the limit itself is INCLUSIVE — pH exactly 7.6 is acceptable, 7.61 is not. This is the ONLY pH ceiling GU44 states, and it governs disinfection efficacy, not water quality generally. It is NOT comparable to the lagoon pH range 6.0-9.0 in core/constants.py.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "cooling_tower_emergency_free_chlorine_stage1",
+          "parameter_label": "Free chlorine residual — cooling tower emergency disinfection, stage 1",
+          "unit": "mg/L",
+          "min_val": 5,
+          "max_val": 10,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "free chlorine residual of 5-10 mg/L at pH 7.0-7.6",
+          "qualifier_rule": "bound",
+          "source_page": 30,
+          "source_quote": "§18-1 p30: 'Dose with sodium hypochlorite and circulate to maintain a free chlorine residual of 5-10 mg/L at pH 7.0-7.6, maintain these concentrations and monitor at 15 minute intervals for at least 60 minutes.' Hyphenated ranges throughout, no inclusivity glyph on any endpoint. The accompanying pH window 7.0-7.6 is equally operator-free.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "cooling_tower_emergency_free_chlorine_stage2",
+          "parameter_label": "Free chlorine residual — cooling tower emergency disinfection, stage 2 (after refill)",
+          "unit": "mg/L",
+          "min_val": 1,
+          "max_val": 5,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "free chlorine residual of at least 1-5 mg/L at pH 7.0-7.6",
+          "qualifier_rule": "bound",
+          "source_page": 30,
+          "source_quote": "§18-1 p30: 'Dose the circulating cooling water with sodium hypochlorite to maintain a free chlorine residual of at least 1-5 mg/L at pH 7.0-7.6 and monitor these concentrations at 15 minute intervals for at least 30 minutes.' The phrase 'at least 1-5 mg/L' is internally incoherent — 'at least' implies a floor, but a range is then given. Recorded verbatim; inclusivity null; do not attempt to normalise it.",
+          "confidence": "low",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "water_system_disinfection_free_chlorine",
+          "parameter_label": "Free chlorine residual — hot and cold water system disinfection",
+          "unit": "mg/l",
+          "min_val": 1,
+          "max_val": 2,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "minimum free chlorine residual of 1-2 mg/l for 1 hour",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "§18-2 p31: 'Hot and cold water system shall be Disinfected with chlorine sufficient to produce a minimum free chlorine residual of 1-2 mg/l for 1 hour (each outlet is allowed to flow for at least 5 minutes).' Identical wording at §16 p28 and §20-2 p33; §12-1 p19 gives 'minimum free chlorine residual of 1-2 mg/l at all outlets'. 'Minimum ... of 1-2' is again a floor-plus-range hybrid. No glyph; inclusivity null.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "tank_disinfection_chlorine_dose",
+          "parameter_label": "Chlorine solution concentration — water tank cleaning and disinfection",
+          "unit": "ppm",
+          "min_val": 50,
+          "max_val": 50,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "a chlorine solution at a concentration of 50 parts per million (ppm)",
+          "qualifier_rule": "bound",
+          "source_page": 36,
+          "source_quote": "§21-1 step 4, p36: 'Preparing Chlorine Solution: Prepare a chlorine solution at a concentration of 50 parts per million (ppm) using chlorine-based disinfectants according to the instructions on the packaging.' A single target value, not a range — encoded as min=max=50 inclusive. Corroborated by §20-2 p33: 'All water storage tanks shall be cleaned and disinfected with 50mg/l chlorine at least twice per year.' (note the unit differs, ppm vs mg/l, though for dilute aqueous solutions these are numerically equivalent).",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "tank_disinfection_maintained_chlorine",
+          "parameter_label": "Chlorine concentration maintained during tank disinfection dwell",
+          "unit": "ppm",
+          "min_val": 1,
+          "max_val": 2,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "maintained between 1-2 ppm",
+          "qualifier_rule": "bound",
+          "source_page": 37,
+          "source_quote": "§21-1 step 6, p37: 'Allow the water and chlorine solution to remain in the tank for at least 4-6 hours for disinfection. The chlorine concentration in the water should be maintained between 1-2 ppm during this period.' 'Between 1-2' — no glyph, endpoints ambiguous. Note the internal oddity that step 4 prepares a 50 ppm solution while step 6 requires 1-2 ppm to be maintained during the dwell; the document does not reconcile the two.",
+          "confidence": "low",
+          "blocked_for_sale": true
+        },
+        {
+          "parameter_key": "network_disinfection_chlorine_dose",
+          "parameter_label": "Chlorine solution concentration — internal distribution network disinfection",
+          "unit": "ppm",
+          "min_val": 1,
+          "max_val": 2,
+          "min_inclusive": null,
+          "max_inclusive": null,
+          "display": "a chlorine solution at a concentration of 1-2 parts per million (ppm)",
+          "qualifier_rule": "bound",
+          "source_page": 37,
+          "source_quote": "§21-2 step 3, p37: 'Prepare Chlorine Solution: Prepare a chlorine solution at a concentration of 1-2 parts per million (ppm) using chlorine-based disinfectants according to the instructions on the packaging.' Hyphenated range, no glyph.",
+          "confidence": "medium",
+          "blocked_for_sale": true
+        }
+      ]
+    }
+  ],
+  "action_levels": [
+    {
+      "key": "gu44_cooling_tower_action_levels",
+      "label": "Table (4) — Action levels following testing of cooling tower water",
+      "applies_to": "Cooling tower water",
+      "source_section": "Table (4), §14-2 Working levels after testing the water in the cooling tower",
+      "source_page": 25,
+      "note": "ACTION LEVELS, NOT COMPLIANCE LIMITS. These prescribe operational response, not pass/fail. They must never be merged with the Table (3) limits: the >10000 cfu/ml aerobic band triggers 'review dosing' while the Table (3) compliance limit is 'Not exceed 10000 cfu/ml', so a result of 12000 cfu/ml is simultaneously a Table (3) breach and a mid-tier Table (4) action. Both bands below are read from the rendered page image; the text layer collapses this table's columns.",
+      "bands": [
+        {
+          "aerobic_count_display": "< 5000 cfu/ml",
+          "aerobic_min_val": null,
+          "aerobic_max_val": 5000,
+          "aerobic_max_inclusive": false,
+          "legionella_display": "Not detected",
+          "legionella_min_val": null,
+          "legionella_max_val": null,
+          "action_required": "Acceptable",
+          "source_page": 25
+        },
+        {
+          "aerobic_count_display": ">5000 cfu/ml < 10000 cfu/ml",
+          "aerobic_min_val": 5000,
+          "aerobic_min_inclusive": false,
+          "aerobic_max_val": 10000,
+          "aerobic_max_inclusive": false,
+          "legionella_display": "100 cfu/l or less",
+          "legionella_min_val": null,
+          "legionella_max_val": 100,
+          "legionella_max_inclusive": true,
+          "action_required": "Continue with routine maintenance and inspection",
+          "source_page": 25
+        },
+        {
+          "aerobic_count_display": ">10000 cfu/ml < 100000 cfu/ml",
+          "aerobic_min_val": 10000,
+          "aerobic_min_inclusive": false,
+          "aerobic_max_val": 100000,
+          "aerobic_max_inclusive": false,
+          "legionella_display": "Between 100 cfu/l and 1000 cfu/l",
+          "legionella_min_val": 100,
+          "legionella_min_inclusive": null,
+          "legionella_max_val": 1000,
+          "legionella_max_inclusive": null,
+          "action_required": "Review dosing and biocide level, pH, etc. within target limit, review risk assessment and control measures; Resampling; If a similar count is found again, cleaning and disinfection for cooling tower should be done and resample cooling tower water; Implement remedial actions and monitoring till resampling water indicate the legionella count <100 cfu/l and Aerobic Count < 10000 cfu/ml",
+          "source_page": 25
+        },
+        {
+          "aerobic_count_display": "> 100000 cfu/ml",
+          "aerobic_min_val": 100000,
+          "aerobic_min_inclusive": false,
+          "aerobic_max_val": null,
+          "legionella_display": "More than 1000 cfu/l",
+          "legionella_min_val": 1000,
+          "legionella_min_inclusive": false,
+          "legionella_max_val": null,
+          "action_required": "Turn the tower off; An immediate cleaning and disinfection for cooling tower should be done and resample Cooling Tower water; Review risk assessment and control measures, review dosing and biocide level, pH, etc. within target limit; Add alternative biocide; Implement remedial actions; Turn the tower on if resampling water indicate the legionella count <100 cfu/l and Aerobic Count < 10000 cfu/ml",
+          "source_page": 25
+        }
+      ],
+      "band_gaps": "The aerobic bands use < and > exclusively on both sides, so the values EXACTLY 5000, EXACTLY 10000 and EXACTLY 100000 cfu/ml fall into NO band and are assigned no action. The Legionella bands overlap rather than gap: exactly 100 cfu/l satisfies both '100 cfu/l or less' and 'Between 100 cfu/l and 1000 cfu/l'. Any implementation must decide these cases and record that it did; the document does not."
+    },
+    {
+      "key": "gu44_hot_warm_cold_action_levels",
+      "label": "Table (5) — Action levels following legionella sampling in hot, warm and cold water system",
+      "applies_to": "Hot, warm and cold water system",
+      "source_section": "Table (5)",
+      "source_page": 26,
+      "note": "ACTION LEVELS, NOT COMPLIANCE LIMITS. Read from the rendered page image.",
+      "bands": [
+        {
+          "legionella_display": "Not detected",
+          "legionella_min_val": null,
+          "legionella_max_val": null,
+          "action_required": "Acceptable",
+          "source_page": 26
+        },
+        {
+          "legionella_display": ">100 cfu/l and up to 1000 cfu/l",
+          "legionella_min_val": 100,
+          "legionella_min_inclusive": false,
+          "legionella_max_val": 1000,
+          "legionella_max_inclusive": true,
+          "action_required": "Review risk assessment and control measures; Resampling; If a similar count is found again, cleaning and disinfection should be done and water re-sampling; Implement remedial actions and monitoring till water re-sampling indicate the legionella count <100 cfu/l",
+          "source_page": 26,
+          "note": "'>100' is EXCLUSIVE, 'up to 1000' is INCLUSIVE — the two ends of one band use opposite conventions in the same cell."
+        },
+        {
+          "legionella_display": ">1000 cfu/l",
+          "legionella_min_val": 1000,
+          "legionella_min_inclusive": false,
+          "legionella_max_val": null,
+          "action_required": "Immediate cleaning and disinfection of the whole system (hot, warm and cold water system) should be done and water re-sampling; Review risk assessment and control measures, temperature, review dosing and biocide level,etc. within target limit; Continue implementing remedial actions, disinfection for whole system, monitoring and resampling water till water results indicate the legionella count is less than 100 cfu/l",
+          "source_page": 26
+        }
+      ],
+      "band_gaps": "A DETECTED Legionella result of 1 to 100 cfu/l inclusive falls into no band — it is neither 'Not detected' nor '>100 cfu/l'. The document assigns it no action."
+    },
+    {
+      "key": "gu44_emergency_decontamination_trigger",
+      "label": "§18 — Emergency decontamination trigger",
+      "applies_to": "Warm water system; cooling tower",
+      "source_section": "§18 Emergency Decontamination",
+      "source_page": 30,
+      "note": "TRIGGER, NOT A COMPLIANCE LIMIT.",
+      "bands": [
+        {
+          "legionella_display": "More than 1000 cfu/liter for a warm water system.",
+          "legionella_min_val": 1000,
+          "legionella_min_inclusive": false,
+          "legionella_max_val": null,
+          "action_required": "Emergency decontamination is required",
+          "source_page": 30,
+          "source_quote": "Emergency decontamination is required if: ... a system is known to or suspected of containing Legionella populations of: - More than 1000 cfu/liter for a warm water system. - More than 1000 cfu/liter for a cooling tower."
+        },
+        {
+          "legionella_display": "More than 1000 cfu/liter for a cooling tower.",
+          "legionella_min_val": 1000,
+          "legionella_min_inclusive": false,
+          "legionella_max_val": null,
+          "action_required": "Emergency decontamination is required",
+          "source_page": 30
+        }
+      ]
+    },
+    {
+      "key": "gu44_mandatory_reporting_trigger",
+      "label": "§19 — Mandatory 24-hour reporting trigger to Dubai Municipality",
+      "applies_to": "Cooling water system; warm water system",
+      "source_section": "§19 General Provisions",
+      "source_page": 31,
+      "note": "REPORTING TRIGGER, NOT A COMPLIANCE LIMIT — and critically it is INCLUSIVE at 1000 where the §18 decontamination trigger is EXCLUSIVE at the same number.",
+      "bands": [
+        {
+          "legionella_display": "1000 or more colony forming units of Legionella per liter of water",
+          "legionella_min_val": 1000,
+          "legionella_min_inclusive": true,
+          "legionella_max_val": null,
+          "action_required": "The owner must submit the report to Dubai Municipality \\ health and safety department within 24 hours of receiving the report.",
+          "source_page": 31,
+          "source_quote": "If the owner of premises on which a cooling water system is installed receives a report of the results of microbiological testing of water taken from the system indicating the presence of 1000 or more colony forming units of Legionella per liter of water, he or she must submit the report to Dubai Municipality\\ health and safety department within 24 hours of receiving the report. [The identical provision is repeated in the next bullet for a warm water system.]"
+        }
+      ]
+    },
+    {
+      "key": "gu44_outbreak_reporting_trigger",
+      "label": "§17 — Confirmed legionellosis case reporting",
+      "applies_to": "Premises",
+      "source_section": "§17 Legionellosis Outbreak Measures /Emergency Plan",
+      "source_page": 29,
+      "note": "REPORTING TRIGGER. Case-based, not water-quality based.",
+      "bands": [
+        {
+          "legionella_display": "any confirmed cases of Legionellosis occurring in the premises",
+          "action_required": "The person in charge of the premises should immediately submit a report to Dubai Municipality \\ health and safety department within 24 hours",
+          "source_page": 29,
+          "source_quote": "The person in charge of the premises should immediately submit a report to Dubai Municipality \\ health and safety department within 24 hours if any confirmed cases of Legionellosis occurring in the premises. An outbreak is defined as two or more confirmed cases of legionellosis occurring in the same locality within a six-month period."
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "key": "legionella_sampling_all_systems",
+      "obligation_type": "sampling",
+      "applies_to": "ALL water system (except cooling water system) AND Cooling water — both quarterly",
+      "cadence_months": 3,
+      "cadence_days": null,
+      "display": "Quarterly",
+      "source_section": "Table (2) Monitoring recommended for good operating practice; Table (1) heading",
+      "source_page": 23,
+      "source_quote": "Table (2): Parameter 'Legionella' — Timing: ALL water system (except cooling water system) = 'Quarterly'; Cooling water = 'Quarterly'. Table (1) p22 title: 'Water system type, Components and minimum number of water samples in quarterly basis.' and its column header 'Number of water samples (minimum)/quarterly (every three month at least)'.",
+      "confidence": "high"
+    },
+    {
+      "key": "aerobic_count_sampling_non_cooling",
+      "obligation_type": "sampling",
+      "applies_to": "ALL water system (except cooling water system)",
+      "cadence_months": 3,
+      "cadence_days": null,
+      "display": "Quarterly",
+      "source_section": "Table (2)",
+      "source_page": 23,
+      "source_quote": "Table (2): Parameter 'Aerobic count' — Timing under 'ALL water system (except cooling water system)' = 'Quarterly'.",
+      "confidence": "high"
+    },
+    {
+      "key": "aerobic_count_sampling_cooling",
+      "obligation_type": "sampling",
+      "applies_to": "Cooling water system",
+      "cadence_months": 1,
+      "cadence_days": null,
+      "display": "Monthly",
+      "source_section": "Table (2)",
+      "source_page": 23,
+      "source_quote": "Table (2): Parameter 'Aerobic count' — Timing under 'Cooling water' = 'Monthly'. THIS IS THE ONE CADENCE THAT DIFFERS BY SYSTEM TYPE in Table (2): aerobic count is quarterly everywhere except cooling water, where it is monthly. Corroborated by §15 p27: 'The system is inspected and tested for total bacteria count (TBC) at least every month by a competent person'.",
+      "confidence": "high"
+    },
+    {
+      "key": "risk_assessment_review",
+      "obligation_type": "inspection",
+      "applies_to": "Water systems on the premises",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "display": "at least once a year",
+      "source_section": "§11 Risk assessment",
+      "source_page": 18,
+      "source_quote": "Conduct a periodic risk assessment of water systems at least once a year, based on the condition of the system and any changes or additions that may occur.",
+      "confidence": "high"
+    },
+    {
+      "key": "visual_inspection_water_system",
+      "obligation_type": "inspection",
+      "applies_to": "Water system generally",
+      "cadence_months": null,
+      "cadence_days": 7,
+      "display": "at least every week",
+      "source_section": "§12-1 Regular Maintenance Procedures",
+      "source_page": 19,
+      "source_quote": "Keep the water system clean to reduce the nutrients available for bacteria growth. Regular visual inspections should be made at least every week to avoid the build-up of dirt, organic matter or other debris.",
+      "confidence": "high"
+    },
+    {
+      "key": "outlet_flushing_unoccupied",
+      "obligation_type": "inspection",
+      "applies_to": "Taps and showers in guest rooms and other areas, if rooms are unoccupied",
+      "cadence_months": null,
+      "cadence_days": 7,
+      "display": "at least once a week if rooms are unoccupied, and always prior to occupation",
+      "source_section": "§12-1; repeated §20-2",
+      "source_page": 19,
+      "source_quote": "The premise shall have Flushing policy and run all taps and showers in guest rooms and other areas for several minutes to draw through water at least once a week if rooms are unoccupied, and always prior to occupation.",
+      "confidence": "high"
+    },
+    {
+      "key": "cooling_system_clean_disinfect",
+      "obligation_type": "inspection",
+      "applies_to": "All cooling water systems, including all associated tanks, pumps, pipes, water filters and fittings",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "display": "at least once every six (6) months and if legionella is detected in the system",
+      "source_section": "§12-1",
+      "source_page": 19,
+      "source_quote": "All cooling water systems, including all associated tanks, pumps, pipes, water filters and fittings, must be emptied, cleaned and disinfected at least once every six (6) months and if legionella is detected in the system. NOTE: §20-4 p34 states the same duty as 'at least twice a year', which is the same cadence differently worded. §15 p27 adds a condition-based trigger with no fixed cadence: 'If the system is shut down for more than four (4) days - is cleaned before it is restarted and is cleaned no more than 6 months after the last cleaning.'",
+      "confidence": "high"
+    },
+    {
+      "key": "storage_tank_calorifier_clean_disinfect",
+      "obligation_type": "inspection",
+      "applies_to": "All water storage tanks, water heaters (calorifiers), water filters",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "display": "at least twice a year and if legionella is detected in the system",
+      "source_section": "§12-1; repeated §16 and §20-2",
+      "source_page": 19,
+      "source_quote": "All water storage tanks, water heaters (calorifiers), water filters must be emptied, cleaned and disinfected at least twice a year and if legionella is detected in the system. Corroborated §16 p28 ('Clean and inspect hot water tanks regularly - at least twice year') and §20-2 p33 ('All water storage tanks shall be cleaned and disinfected with 50mg/l chlorine at least twice per year'; 'Water heaters (calorifiers) shall be kept Clean, drained and disinfected at least twice per year'). 'Twice a year' is encoded as 6 months; the document does not say the two occasions must be evenly spaced.",
+      "confidence": "high"
+    },
+    {
+      "key": "water_system_thermal_chlorine_disinfection",
+      "obligation_type": "inspection",
+      "applies_to": "Water system (hot, warm and cold water)",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "display": "at least every six month and if legionella is detected in the system",
+      "source_section": "§12-1; repeated §16",
+      "source_page": 19,
+      "source_quote": "Water system (hot, warm and cold water) must be flashed at least every six month and if legionella is detected in the system, with water of not less than 70 °C for 5 minutes (or an equivalent temperature /time combination) or treated with chlorine to provide minimum free chlorine residual of 1-2 mg/l at all outlets.",
+      "confidence": "high"
+    },
+    {
+      "key": "shower_head_tap_disinfection",
+      "obligation_type": "inspection",
+      "applies_to": "Shower heads and taps",
+      "cadence_months": 3,
+      "cadence_days": null,
+      "display": "at least quarterly and if legionella is detected in the system",
+      "source_section": "§12-1",
+      "source_page": 19,
+      "source_quote": "Shower heads and taps should be kept clean regularly and disinfected at least quarterly and if legionella is detected in the system.",
+      "confidence": "high"
+    },
+    {
+      "key": "water_filter_clean_disinfect",
+      "obligation_type": "inspection",
+      "applies_to": "All water filters",
+      "cadence_months": 1,
+      "cadence_days": null,
+      "display": "at least monthly",
+      "source_section": "§20-1 General Checklist",
+      "source_page": 32,
+      "source_quote": "All water filters shall be kept Clean and disinfected regularly, at least monthly, Water filters shall be changed periodically. CONFLICTS IN CADENCE with §12-1 p19, which groups 'water filters' with storage tanks and calorifiers at 'at least twice a year'. Monthly is the stricter of the two; the document does not reconcile them.",
+      "confidence": "medium"
+    },
+    {
+      "key": "water_tank_visual_inspection",
+      "obligation_type": "inspection",
+      "applies_to": "All water storage tanks",
+      "cadence_months": 1,
+      "cadence_days": null,
+      "display": "at least monthly",
+      "source_section": "§20-2",
+      "source_page": 33,
+      "source_quote": "All water storage tanks shall be kept clean and inspected at least monthly. Ensure that all coverings are intact and firmly in place.",
+      "confidence": "high"
+    },
+    {
+      "key": "cooling_water_treatment_system_inspection",
+      "obligation_type": "inspection",
+      "applies_to": "Cooling water system water treatment systems",
+      "cadence_months": 1,
+      "cadence_days": null,
+      "display": "at least once every month by a competent person",
+      "source_section": "§15 Inspecting and cleaning a cooling water system",
+      "source_page": 27,
+      "source_quote": "Water treatment systems are inspected at least once every month by a competent person to ensure the system is operating in the ways for which they were designed.",
+      "confidence": "high"
+    },
+    {
+      "key": "spa_fountain_biocide_ph_monitoring",
+      "obligation_type": "inspection",
+      "applies_to": "Spa Pool, Whirlpool Spas, Jacuzzi, Spa Baths (§20-3); Fountains and water features (§20-5)",
+      "cadence_months": null,
+      "cadence_days": 0.333,
+      "display": "at least three times per day",
+      "source_section": "§20-3 and §20-5",
+      "source_page": 34,
+      "source_quote": "Biocides concentrations levels and pH shall be monitored/recorded at least three times per day. (identical sentence in both §20-3 and §20-5). Cadence expressed as a fraction of a day because it is sub-daily; an implementation should model this as 3 occurrences per day rather than an interval.",
+      "confidence": "high"
+    },
+    {
+      "key": "spa_fountain_system_clean_disinfect",
+      "obligation_type": "inspection",
+      "applies_to": "Spa pools/Jacuzzi (§20-3); fountains and water features (§20-5)",
+      "cadence_months": null,
+      "cadence_days": 7,
+      "display": "once per week",
+      "source_section": "§20-3 and §20-5",
+      "source_page": 34,
+      "source_quote": "The whole system is cleaned and disinfected once per week. (identical sentence in both §20-3 and §20-5)",
+      "confidence": "high"
+    },
+    {
+      "key": "spa_sand_filter_backwash",
+      "obligation_type": "inspection",
+      "applies_to": "Spa Pool, Whirlpool Spas, Jacuzzi, Spa Baths",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "display": "Sand filters are backwashed daily",
+      "source_section": "§20-3",
+      "source_page": 34,
+      "source_quote": "Sand filters are backwashed daily.",
+      "confidence": "high"
+    },
+    {
+      "key": "spa_water_replacement",
+      "obligation_type": "inspection",
+      "applies_to": "Spa Pool, Whirlpool Spas, Jacuzzi, Spa Baths",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "display": "At least half of the water is replaced each day",
+      "source_section": "§20-3",
+      "source_page": 34,
+      "source_quote": "At least half of the water is replaced each day.",
+      "confidence": "high"
+    },
+    {
+      "key": "daily_disinfectant_temperature_records",
+      "obligation_type": "inspection",
+      "applies_to": "Hot and cold water system, cooling water system, fountains/water features, spas/Jacuzzi — Schedules (1) to (4)",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "display": "The form must be completed daily",
+      "source_section": "§22 Daily record templates, Schedules (1)-(4); §12-1, §20-1 to §20-5",
+      "source_page": 38,
+      "source_quote": "The form must be completed daily (footer of Schedules 1, 2, 3 and 4, pages 38-41). Corroborated by the recurring checklist bullet 'Daily records of all water treatment readings, such as temperature, pH, chlorine and biocides concentrations shall be kept and ensure they are checked regularly by the manager as being satisfactory.' Schedule (1) p38 requires at least 4 different locations/floors per day: column header 'Hot and cold water system outlets (shower/tap ) (at least 4 different locations,floors/day)'. The schedules themselves are blank pro-formas and carry NO target values or acceptance criteria.",
+      "confidence": "high"
+    },
+    {
+      "key": "records_submission_to_dm",
+      "obligation_type": "examination",
+      "applies_to": "All water treatment records and daily record forms",
+      "cadence_months": null,
+      "cadence_days": 14,
+      "display": "must be submited every two weeks to ehcinspection@dm.gov.ae",
+      "source_section": "§12-3 Records and manuals; footer of Schedules (1)-(4)",
+      "source_page": 20,
+      "source_quote": "All above records must be available for inspection by Dubai Municipality staff, and must be submited every two weeks to ehcinspection@dm.gov.ae [sic, 'submited']. Repeated in the footer of every daily record schedule, pages 38-41.",
+      "confidence": "high"
+    },
+    {
+      "key": "post_disinfection_verification_sampling",
+      "obligation_type": "sampling",
+      "applies_to": "Water tanks after cleaning/disinfection (§21-1); internal distribution networks after cleaning/disinfection (§21-2)",
+      "cadence_months": null,
+      "cadence_days": null,
+      "display": "at least 48 hours after refilling",
+      "source_section": "§21-1 step 9; §21-2 step 7",
+      "source_page": 37,
+      "source_quote": "§21-1 step 9 p37: 'Collect a water sample from the tank and send it to an accredited laboratory for analysis to confirm water quality and ensure no contamination remains, at least 48 hours after refilling.' §21-2 step 7 p37: '...at least 48 hours after the cleaning and disinfection process.' This is an EVENT-TRIGGERED delay, not a recurring cadence — cadence_months and cadence_days are both null on purpose. Modelling it as a 48-day or 2-day recurrence would be wrong.",
+      "confidence": "high",
+      "cadence_note": "Event-triggered, not periodic: the sample is due after a cleaning or disinfection event, so there is no cadence to state. The obligations table in DM_COMPLIANCE_SCOPING.md §4.3 models only cadence_months/cadence_days and cannot currently express this — see the trigger_event note added there."
+    },
+    {
+      "key": "legionellosis_case_report",
+      "obligation_type": "examination",
+      "applies_to": "Premises with any confirmed case of Legionellosis",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "display": "within 24 hours",
+      "source_section": "§17; §19",
+      "source_page": 29,
+      "source_quote": "§17 p29: 'The person in charge of the premises should immediately submit a report to Dubai Municipality \\ health and safety department within 24 hours if any confirmed cases of Legionellosis occurring in the premises.' §19 p31 imposes the same 24-hour deadline on receipt of a lab result of 1000 or more cfu/l. EVENT-TRIGGERED deadline, not a recurring cadence.",
+      "confidence": "high"
+    },
+    {
+      "key": "emergency_disinfection_monitoring_intervals",
+      "obligation_type": "inspection",
+      "applies_to": "Cooling tower during emergency disinfection",
+      "cadence_months": null,
+      "cadence_days": 0.0104,
+      "display": "monitor at 15 minute intervals for at least 60 minutes (stage 1) / at least 30 minutes (stage 2)",
+      "source_section": "§18-1",
+      "source_page": 30,
+      "source_quote": "'maintain these concentrations and monitor at 15 minute intervals for at least 60 minutes' (stage 1) and 'monitor these concentrations at 15 minute intervals for at least 30 minutes' (stage 2). Sub-daily, event-scoped; cadence_days is a nominal 15-minute conversion and should NOT be used to schedule anything.",
+      "confidence": "high"
+    }
+  ],
+  "sampling_plan": {
+    "note": "Table (1) p22 sets MINIMUM SAMPLE COUNTS per component, not limits. Reproduced because §4.3 obligations need it to know whether an arriving certificate actually discharges the obligation. Read from the text layer and cross-checked against the rendered page; the frequency for all rows is quarterly.",
+    "source_section": "Table (1): Water system type, Components and minimum number of water samples in quarterly basis",
+    "source_page": 22,
+    "cadence_months": 3,
+    "rows": [
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "Main water tank (which connected directly with water source)",
+        "minimum_samples": "1 sample"
+      },
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "Other water tank or cistern",
+        "minimum_samples": "1 Sample should be collected from each water storage tank with a water storage volume of over 1000 liters"
+      },
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "centralized water heater (calorifiers)",
+        "minimum_samples": "1 Sample should be collected from each centralized water heater (calorifiers)"
+      },
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "hot water tap",
+        "minimum_samples": "2 sample at least from different floors, rooms, locations"
+      },
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "cold water tap",
+        "minimum_samples": "2 sample at least from different floors, rooms, locations"
+      },
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "Shower",
+        "minimum_samples": "2 sample at least from different floors, rooms, locations"
+      },
+      {
+        "system_type": "hot, warm and cold water system",
+        "component": "water softener, filters",
+        "minimum_samples": "1 swab Sample from each softener, filters"
+      },
+      {
+        "system_type": "Cooling tower",
+        "component": "Make-up water tank",
+        "minimum_samples": "1 sample from each Make-up water tank"
+      },
+      {
+        "system_type": "Cooling tower",
+        "component": "Collection basin (an area below the tower where cooled water is collected)",
+        "minimum_samples": "1 sample from each Collection basin"
+      },
+      {
+        "system_type": "Fountains, water fall and water feature (indoor and outdoor)",
+        "component": "Collection basin",
+        "minimum_samples": "1 sample from each Collection basin"
+      },
+      {
+        "system_type": "Whirlpool spas, Jacuzzi",
+        "component": "Pool",
+        "minimum_samples": "1 sample from each Whirlpool spas, Jacuzzi Pool"
+      },
+      {
+        "system_type": "Irrigation system",
+        "component": "Storage water tank or cistern; Irrigation Water jet if available",
+        "minimum_samples": "1 sample from each Irrigation system Storage water tank or cistern; 1 sample from any Irrigation Water jet if available"
+      },
+      {
+        "system_type": "Others (Swimming and hydrotherapy pools, humidifier, etc.)",
+        "component": "Pool; Balance/storage tank",
+        "minimum_samples": "1 sample from each system"
+      }
+    ],
+    "investigation_addendum": {
+      "source_page": 22,
+      "source_quote": "Samples/swabs should be taken from selected Showers head and water filter in case of investigation or when adverse results follow up, (4 to 6 sets of samples at least should be taken from the backside of showers head and water filters after it has been removed)."
+    },
+    "coverage_gap_note": "Table (1) lists an Irrigation system and 'Others (Swimming and hydrotherapy pools, humidifier, etc.)' as system types requiring quarterly sampling, but Table (3) sets NO limit for either. A sample dutifully taken from an irrigation storage tank has nothing in GU44 to be judged against. resolve_limits must return None for those asset scopes — see scoping §7.4."
+  },
+  "methods_and_accreditation": {
+    "source_page": 23,
+    "detection_method": "The Testing for legionella bacteria must be detected by culture of viable organisms according to the international standard ISO 11731 (Enumeration of Legionella) (Latest version).",
+    "sampling_method": "The sampling method should be in accordance with BS 7592 (Sampling for Legionella bacteria in water system) (Latest version)",
+    "laboratory_accreditation": "The analysis of microbiological samples must be undertaken by a laboratory that is accredited by The Emirates International Accreditation Centre (EIAC) to perform the required testing.",
+    "note": "This is the §4.7 `laboratories` hook: GU44 makes EIAC accreditation a hard requirement for the evidence to count, stated twice (p23 and p31 §19). A certificate from a non-EIAC-accredited laboratory does not discharge the obligation, however good its numbers. The '(Latest version)' floating reference on both ISO 11731 and BS 7592 means the method citation cannot itself be edition-checked the way core/standards.py checks GU44."
+  },
+  "conflicts": [
+    {
+      "id": 0,
+      "severity": "blocking",
+      "parameter": "Legionella — fountain, waterfall, evaporative coolers, misters, air washers, humidifiers, spa pool, whirlpool spas, Jacuzzi, spa baths",
+      "summary": "The document sets two Legionella limits for the same system type that differ by a factor of 1000 AND imply different qualifier_rules.",
+      "reading_a": {
+        "source_section": "Table (3): Limit reference of microbial contamination, row 3",
+        "source_page": 24,
+        "source_quote": "Less than 1000 cfu/l",
+        "max_val": 1000,
+        "unit": "cfu/l",
+        "max_inclusive": false,
+        "qualifier_rule": "bound"
+      },
+      "reading_b": {
+        "source_section": "§14-4",
+        "source_page": 26,
+        "source_quote": "Legionella bacteria should be less than 1 cfu/liter. (not detected)",
+        "max_val": 1,
+        "unit": "cfu/liter",
+        "max_inclusive": false,
+        "qualifier_rule": "detect_fails"
+      },
+      "effect": "A spa result of 500 cfu/L is COMPLIANT under Table (3) and a BREACH under §14-4. A lab result of 'Not Detected' passes under both, but any quantified result at all fails under §14-4 while up to 999 cfu/L passes under Table (3). This is not a rounding disagreement; it is two different regulatory postures.",
+      "resolution_required": "Human adjudication, ideally a written clarification from DM Environmental Health Section. Until then the fountain/spa Legionella parameter is unassessable and the module is not sellable.",
+      "observation": "Table (3) rows 1 and 2 both use 'Not exceed'; row 3 alone uses 'Less than'. That inconsistency of phrasing within one table, combined with the §14-4 value being 1000x smaller, is consistent with row 3 being a stale cell that was not updated when §14-4 was tightened — but that is a hypothesis, not a finding, and must not be acted on."
+    },
+    {
+      "id": 1,
+      "severity": "blocking",
+      "parameter": "Aerobic bacterial count / Total Bacteria Count — cooling water system",
+      "summary": "Same value, opposite operator, on the same page.",
+      "reading_a": {
+        "source_section": "Table (3) row 1",
+        "source_page": 24,
+        "source_quote": "Not exceed 10000 cfu/ml",
+        "max_val": 10000,
+        "max_inclusive": true
+      },
+      "reading_b": {
+        "source_section": "§14-1",
+        "source_page": 24,
+        "source_quote": "Total Bacteria Count (TBC) should be below 10000 cfu/ml of water sample. However, this may not be practical in all circumstances.",
+        "max_val": 10000,
+        "max_inclusive": false
+      },
+      "effect": "A result of exactly 10000 cfu/ml passes under Table (3) and fails under §14-1. This is precisely the failure the min_inclusive/max_inclusive columns were added to prevent, and laboratories report round numbers like 10000 routinely.",
+      "resolution_required": "Adjudicate. Table (4) p25 triggers action only at '>10000 cfu/ml', which is weak evidence for the inclusive reading, but the guideline never states it.",
+      "note": "§14-1 also undercuts its own limit in the same sentence with 'However, this may not be practical in all circumstances', which is not language a pass/fail engine can act on."
+    },
+    {
+      "id": 2,
+      "severity": "material",
+      "parameter": "Cold water storage and distribution temperature",
+      "summary": "Three sections say 'below 20 °C' (exclusive); one says '20 °C or below' (inclusive).",
+      "reading_a": {
+        "source_section": "§16 (also §12-1 p19, §20-2 p33)",
+        "source_page": 28,
+        "source_quote": "Store and distribute the cold domestic water below 20 °C (68 °F)",
+        "max_val": 20,
+        "max_inclusive": false
+      },
+      "reading_b": {
+        "source_section": "§9 Legionella Control Methods — Temperature",
+        "source_page": 15,
+        "source_quote": "Cold water storage and distribution should be at 20 °C or below.",
+        "max_val": 20,
+        "max_inclusive": true
+      },
+      "effect": "A daily record showing exactly 20.0 °C is a breach under §16 and compliant under §9. Encoded as EXCLUSIVE (the three-to-one majority and the stricter reading) but flagged.",
+      "resolution_required": "Confirm with a human reviewer; low commercial risk since exactly 20.0 °C is uncommon in practice, but it will occur in rounded daily records."
+    },
+    {
+      "id": 3,
+      "severity": "material",
+      "parameter": "Thermal flush temperature for hot, warm and cold water system disinfection",
+      "summary": "One sentence states two different minimum temperatures for the same operation.",
+      "reading_a": {
+        "source_section": "§16 (also §12-1 p19)",
+        "source_page": 28,
+        "source_quote": "with water of not less than 70 °C for 5 minutes (or an equivalent temperature /time combination)",
+        "min_val": 70,
+        "min_inclusive": true
+      },
+      "reading_b": {
+        "source_section": "§18-2",
+        "source_page": 31,
+        "source_quote": "Water system (hot, warm and cold) must be flushed with water of not less than 70 °C for 5 minutes (minimum of 60°C) measured at the outlets.",
+        "min_val": 60,
+        "min_inclusive": true
+      },
+      "effect": "§18-2 requires 'not less than 70 °C' and '(minimum of 60°C)' in the same sentence. The most plausible intent — 70 °C at the source, 60 °C measured at the outlets — is a reading, not something the document states. Do not encode either as a bare limit without saying which measurement point it applies to.",
+      "resolution_required": "Adjudicate, and if encoded, split into two parameters with explicit measurement points."
+    },
+    {
+      "id": 4,
+      "severity": "material",
+      "parameter": "Legionella at exactly 1000 cfu/l — all systems",
+      "summary": "Compliant, mandatorily reportable, and not requiring decontamination, all at the same number.",
+      "reading_a": {
+        "source_section": "Table (3) rows 1 and 2; §14-1; §14-3",
+        "source_page": 24,
+        "source_quote": "Not exceed 1000 cfu/l",
+        "verdict_at_1000": "COMPLIANT — 1000 does not exceed 1000"
+      },
+      "reading_b": {
+        "source_section": "§19 General Provisions",
+        "source_page": 31,
+        "source_quote": "indicating the presence of 1000 or more colony forming units of Legionella per liter of water, he or she must submit the report to Dubai Municipality\\ health and safety department within 24 hours",
+        "verdict_at_1000": "MANDATORY 24-HOUR REPORT"
+      },
+      "reading_c": {
+        "source_section": "§18 Emergency Decontamination",
+        "source_page": 30,
+        "source_quote": "More than 1000 cfu/liter for a warm water system. / More than 1000 cfu/liter for a cooling tower.",
+        "verdict_at_1000": "NO emergency decontamination required — 1000 is not more than 1000"
+      },
+      "effect": "This is NOT a document error and must NOT be smoothed over. The three provisions are internally consistent and simply do different jobs: the compliance limit, the reporting trigger and the decontamination trigger have deliberately different inclusivity at the same number. The product must be able to report 'compliant, and reportable within 24 hours' simultaneously without that reading as a contradiction. Any design that treats the reporting trigger as a compliance limit will show a false breach at exactly 1000.",
+      "resolution_required": "No adjudication needed — design requirement. Keep action_levels and specification_sets separate in the schema, which §4.2/§4.3 already do."
+    },
+    {
+      "id": 5,
+      "severity": "material",
+      "parameter": "Water filter cleaning cadence",
+      "summary": "Monthly in §20-1, twice a year in §12-1.",
+      "reading_a": {
+        "source_section": "§20-1 General Checklist",
+        "source_page": 32,
+        "source_quote": "All water filters shall be kept Clean and disinfected regularly, at least monthly, Water filters shall be changed periodically.",
+        "cadence_months": 1
+      },
+      "reading_b": {
+        "source_section": "§12-1",
+        "source_page": 19,
+        "source_quote": "All water storage tanks, water heaters (calorifiers), water filters must be emptied, cleaned and disinfected at least twice a year and if legionella is detected in the system.",
+        "cadence_months": 6
+      },
+      "effect": "A 6-monthly filter clean satisfies §12-1 and breaches §20-1. Encoded both, monthly flagged as the stricter reading.",
+      "resolution_required": "Adjudicate before an overdue-obligation alert is raised on this basis; a false 'overdue' is as damaging as a false breach."
+    },
+    {
+      "id": 6,
+      "severity": "advisory",
+      "parameter": "Total bacterial count 500 cfu/ml — hot/warm/cold and fountain/spa",
+      "summary": "Stated as a bare number in Table (3) but only ever elaborated in advisory language.",
+      "reading_a": {
+        "source_section": "Table (3) rows 2 and 3",
+        "source_page": 24,
+        "source_quote": "500 cfu/ml",
+        "note": "No operator of any kind."
+      },
+      "reading_b": {
+        "source_section": "§14-3 p25 and §14-4 p26, identical wording",
+        "source_page": 25,
+        "source_quote": "Total Bacteria Count (TBC) in excess of 500 cfu/ml may indicate that maintenance practices are not satisfactory.",
+        "note": "'may indicate' is not a pass/fail rule."
+      },
+      "effect": "It is unclear whether 500 cfu/ml is a compliance limit at all, and if it is, whether 500 passes. Encoded with max_val 500, max_inclusive null, qualifier_rule 'unassessable'.",
+      "resolution_required": "Adjudicate. Note the asymmetry: the cooling-tower aerobic count IS given a firm 'Not exceed' in Table (3), so DM evidently distinguishes the two."
+    },
+    {
+      "id": 7,
+      "severity": "advisory",
+      "parameter": "Copper and silver ion concentrations (§9 Ionization)",
+      "summary": "Printed unit is very probably wrong by a factor of 1000.",
+      "reading_a": {
+        "source_section": "§9 Ionization",
+        "source_page": 15,
+        "source_quote": "where copper and silver ion concentrations can be maintained at 400 MG/L and 40 MG/L respectively",
+        "note": "Recorded exactly as printed. NOT corrected."
+      },
+      "effect": "400 mg/L copper in a potable water system would be grossly toxic and orders of magnitude above any drinking-water standard; the figure recognised in the underlying literature is in micrograms per litre. Encoding this as printed and judging a real result against it would produce nonsense in either direction.",
+      "resolution_required": "Do not seed. Do not silently correct. Raise with DM if the ionization parameter is ever needed."
+    },
+    {
+      "id": 8,
+      "severity": "advisory",
+      "parameter": "Action-level band boundaries, Tables (4) and (5)",
+      "summary": "The bands neither tile nor stay disjoint.",
+      "reading_a": {
+        "source_section": "Table (4)",
+        "source_page": 25,
+        "source_quote": "< 5000 cfu/ml / >5000 cfu/ml < 10000 cfu/ml / >10000 cfu/ml < 100000 cfu/ml / > 100000 cfu/ml",
+        "note": "Exactly 5000, 10000 and 100000 cfu/ml fall in no band. Legionella '100 cfu/l or less' and 'Between 100 cfu/l and 1000 cfu/l' both contain exactly 100."
+      },
+      "reading_b": {
+        "source_section": "Table (5)",
+        "source_page": 26,
+        "source_quote": "Not detected / >100 cfu/l and up to 1000 cfu/l / >1000 cfu/l",
+        "note": "A detected result of 1 to 100 cfu/l inclusive falls in no band. The middle band also mixes conventions within one cell: '>100' exclusive, 'up to 1000' inclusive."
+      },
+      "effect": "Any action-level engine must make a choice the document does not make. Whatever it chooses must be recorded as an implementation decision, not presented to a client as GU44's rule.",
+      "resolution_required": "Design decision plus explicit disclosure in the report footnote."
+    }
+  ]
+}

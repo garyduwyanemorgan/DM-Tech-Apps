@@ -1,0 +1,37 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU120-WF2",
+    "guideline_no": 120,
+    "title": "Safety Requirements for Water Features (Public Areas)",
+    "version": "V 2.0",
+    "issued_on": "2024-03-11",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/03/DM-HSD-GU120-WF2_Safety-Requirements-for-Water-Features-Public-Areas_V2.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu120_water_feature_depth",
+      "label": "GU120 water feature — maximum depth where unfenced",
+      "applies_to_scope": "facilities",
+      "applies_to": "Water features in public areas WITHOUT fences or protection, in open areas. Excludes public and private swimming pools (those are GU81 / GU80). This is a design/dimensional limit measured on site, NOT a laboratory-evidenced parameter — it is the only numeric limit in the whole of GU120.",
+      "source_section": "4-2 Design",
+      "limits": [
+        {
+          "parameter_key": "max_depth",
+          "parameter_label": "Water feature depth at its deepest point",
+          "unit": "cm",
+          "min_val": null,
+          "max_val": 50.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "must not exceed 50 cm at its deepest point",
+          "qualifier_rule": "bound",
+          "source_page": 5,
+          "source_quote": "4-2 Design: 'Water features without fences or protection (in open areas), depth should be kept as shallow as possible and must not exceed 50 cm at its deepest point.' 'must not exceed' is inclusive — 50 cm itself complies.",
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+  "obligations": []
+}

@@ -1,0 +1,261 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU137-RA2",
+    "guideline_no": 137,
+    "title": "Technical Guidelines for Health and Safety Risk Assessment",
+    "version": "1.0",
+    "issued_on": "2025-02-17",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/10/DM-HSD-GU137-RA2_Technical-Guideline-for-Health-and-Safety-Risk-Assessment_V1.pdf",
+    "language": "en"
+  },
+  "module_kind": "process",
+  "notes": {
+    "module_kind_justification": "GU137 sets NO checkpoints, NO limits and NO pass/fail criteria. It describes a five-step method (identify hazards, decide who might be harmed, evaluate and control, record, review) and supplies a blank register in Appendix A. Nothing in the document states what an acceptable risk level is, what a completed assessment must contain to be adequate, or when an establishment fails. Under section 7.12 that is a PROCESS module: a report may claim that a risk assessment was carried out, recorded and reviewed on the stated dates; it may NOT claim COMPLIANT/NON-COMPLIANT. The resolver must refuse a verdict for this module.",
+    "not_a_checklist": "This document is not a checklist guideline despite the catalogue's evidence_type 'checklist'. Appendix A is a RECORD/REGISTER template with columns, one row per identified hazard, an unbounded and site-specific row set. It is the inverse of a checklist: a checklist has a fixed item set and a variable response; this has a fixed column set and a variable row set. See checklist_group_notes.md.",
+    "numbering": "The document numbers none of its bullets and none of the Appendix A columns. Every item_no below is positional and assigned by this extraction, derived from the document's own section numbering (4-2, 4-3, ...) or from column order in Appendix A. Item TEXT is verbatim; item NUMBERS are ours. Do not present item numbers to an inspector as if DM issued them.",
+    "risk_matrix": "The 3x3 matrix on page 6 is introduced as 'an example of a 3x3 risk matrix' and is therefore NOT normative - the document does not mandate any particular matrix, scale or scoring. It is recorded here as reference_data, not as a limit table. Note it is asymmetric and not a product: High probability x Low impact = Low, while Medium probability x High impact = Medium, and the whole Low-probability row is Low regardless of impact. Any engine that computes risk_level as probability x severity will disagree with this matrix. Because the matrix is only an example, risk_level must be captured as the assessor entered it, never recomputed.",
+    "severity": "The document assigns no severity to any failure. Every failure_severity below is 'unknown'. It is not silence that can be filled in: there is no failure defined at all."
+  },
+  "reference_data": {
+    "risk_matrix_example": {
+      "status": "non_normative_example",
+      "source_page": 6,
+      "source_quote": "Below is an example of a 3x3 risk matrix:",
+      "axes": { "columns": "Impact (Low, Medium, High)", "rows": "Probability (Low, Medium, High)" },
+      "cells": [
+        { "probability": "High", "impact": "Low", "risk_level": "Low" },
+        { "probability": "High", "impact": "Medium", "risk_level": "Medium" },
+        { "probability": "High", "impact": "High", "risk_level": "High" },
+        { "probability": "Medium", "impact": "Low", "risk_level": "Low" },
+        { "probability": "Medium", "impact": "Medium", "risk_level": "Medium" },
+        { "probability": "Medium", "impact": "High", "risk_level": "Medium" },
+        { "probability": "Low", "impact": "Low", "risk_level": "Low" },
+        { "probability": "Low", "impact": "Medium", "risk_level": "Low" },
+        { "probability": "Low", "impact": "High", "risk_level": "Low" }
+      ],
+      "response_to_risk_level": {
+        "source_page": 6,
+        "source_quote": "Action taken as a result will vary between supervision (in lower risk activities) to complete halt of work (in case of unacceptable risk).",
+        "note": "The document never defines which matrix cell counts as 'unacceptable risk', so the halt-of-work trigger cannot be encoded as a rule."
+      }
+    },
+    "risk_assessment_steps": {
+      "source_page": 8,
+      "caption": "Risk assessment steps",
+      "steps": [
+        { "step": 1, "text": "Identify the Hazards" },
+        { "step": 2, "text": "Decided who might be harmed and how?" },
+        { "step": 3, "text": "Evaluate the risks and decide on the control measures" },
+        { "step": 4, "text": "Record your findings and implement them" },
+        { "step": 5, "text": "Review your assessment and update if needed" }
+      ]
+    }
+  },
+  "record_template": {
+    "key": "gu137_appendix_a_risk_assessment_register",
+    "label": "Appendix A: Basic Risk assessment template",
+    "applies_to": "All commercial and industrial establishments, public or government institutions, including infrastructure and construction related project sites in the emirate of Dubai",
+    "source_section": "Appendix A",
+    "source_page": 11,
+    "shape": "register",
+    "cardinality": "one row per identified hazard; row count is site-specific and unbounded",
+    "header_fields": [
+      { "key": "company_name", "label": "Company name:", "value_type": "text" },
+      { "key": "assessment_by", "label": "Assessment by:", "value_type": "text" },
+      { "key": "date_of_next_review", "label": "Date of next review:", "value_type": "date" },
+      { "key": "date_of_assessment", "label": "Date of assessment:", "value_type": "date" }
+    ],
+    "columns": [
+      { "ordinal": 1, "key": "hazards", "label": "Hazards", "value_type": "free_text" },
+      { "ordinal": 2, "key": "affected_persons", "label": "Affected Person(s)", "value_type": "free_text" },
+      { "ordinal": 3, "key": "current_controls", "label": "Current Controls", "value_type": "free_text" },
+      { "ordinal": 4, "key": "risk_probability", "label": "Risk Probability", "value_type": "rating", "scale_note": "Scale not fixed by the document; the page 6 example uses Low/Medium/High." },
+      { "ordinal": 5, "key": "risk_severity", "label": "Risk Severity", "value_type": "rating", "scale_note": "Scale not fixed by the document; the page 6 example labels this axis 'Impact' with Low/Medium/High. The column header says 'Severity' while the example matrix says 'Impact' - the document does not reconcile the two terms." },
+      { "ordinal": 6, "key": "risk_level", "label": "Risk Level", "value_type": "rating", "scale_note": "Assessor-entered. Must NOT be recomputed from probability x severity - see notes.risk_matrix." },
+      { "ordinal": 7, "key": "further_control_measures", "label": "Further Control Measures", "value_type": "free_text" },
+      { "ordinal": 8, "key": "responsible_person", "label": "Responsible Person", "value_type": "free_text" },
+      { "ordinal": 9, "key": "planned_completion_date", "label": "Planned Completion Date", "value_type": "date" },
+      { "ordinal": 10, "key": "completion_date", "label": "Completion Date", "value_type": "date" }
+    ]
+  },
+  "checklist_templates": [
+    {
+      "key": "gu137_s4_2_identify_hazards",
+      "label": "4-2 Identify Hazards",
+      "applies_to": "The person carrying out the risk assessment",
+      "source_section": "4-2",
+      "template_note": "These are method prompts ('we need to do the following'), not attestable checkpoints. They are encoded as free_text because the document expects a written output, not a yes/no. An engine that renders them as yes/no boxes is inventing an attestation the document does not define.",
+      "items": [
+        { "item_no": "4-2.1", "text": "Walk through the workplace and observe all activities, people's behavior while at work and how they utilize work equipment.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.2", "text": "Identify potential sources of harm, such as machinery, chemicals, electrical systems, and work processes. What type of materials (chemicals and substances) are used, and hazards involved.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.3", "text": "List all safe and unsafe work practices in the workplace.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.4", "text": "The workplace's general condition and its suitability for the work being carried out.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.5", "text": "Consult with workers and review past incident reports, safety data sheets, and industry standards.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.6", "text": "Determine who might be harmed and how?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.6.1", "text": "Identify workers, contractors, visitors, and anyone else who might be affected by the hazards. Some workers have special requirements, for example young workers, new workers, new or expectant mothers and people with special needs.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" },
+        { "item_no": "4-2.6.2", "text": "Consider how they might be harmed, including the severity and likelihood of injuries or health issues.", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 5, "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu137_s4_3_assess_the_risks",
+      "label": "4-3 Assess the Risks",
+      "applies_to": "The person carrying out the risk assessment",
+      "source_section": "4-3",
+      "template_note": "Introduced by 'In this process we must ask:'. These are questions whose answers populate Appendix A columns 2, 3, 7, 8 and 9 respectively - they are not independent checkpoints.",
+      "items": [
+        { "item_no": "4-3.1", "text": "who might be at risk and how they might be harmed?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" },
+        { "item_no": "4-3.2", "text": "what are the existing control measures to control the risks?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" },
+        { "item_no": "4-3.3", "text": "what extra measures need to be taken to control the risks?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" },
+        { "item_no": "4-3.4", "text": "who is responsible to carry out the action?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" },
+        { "item_no": "4-3.5", "text": "what is the time frame and when these actions need to be completed?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu137_s4_4_control_the_risks",
+      "label": "4-4 Control the Risks",
+      "applies_to": "The person carrying out the risk assessment",
+      "source_section": "4-4",
+      "template_note": "The first two items are the 'In this process we must ask' questions; items 4-4.3 onward are the measures to 'consider' if further controls are needed. The hierarchy-of-control diagram referenced at the end of 4-4 ('In the following diagram hazard control methods at the top of the graphic are potentially more effective...') is described in the text but the graphic itself is not reproduced on the page in the published PDF - the levels of the hierarchy are therefore NOT extracted, because guessing the standard Elimination/Substitution/Engineering/Administrative/PPE ladder would be inventing content DM did not print.",
+      "items": [
+        { "item_no": "4-4.1", "text": "is it possible to get rid of the hazard completely?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" },
+        { "item_no": "4-4.2", "text": "If not, how can I manage the risks so that harm is unlikely?", "response_type": "free_text", "is_mandatory": true, "failure_severity": "unknown", "source_page": 6, "confidence": "high" },
+        { "item_no": "4-4.3", "text": "redesigning the job to make it less likely to cause harm", "response_type": "free_text", "is_mandatory": false, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-4.4", "text": "replacing the materials, machinery or process with a safer more efficient alternative.", "response_type": "free_text", "is_mandatory": false, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-4.5", "text": "organizing your work to reduce exposure to the materials, machinery or process.", "response_type": "free_text", "is_mandatory": false, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-4.6", "text": "Identify and implement practical control measures required to work safely", "response_type": "free_text", "is_mandatory": false, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-4.7", "text": "Suitability of the existing personal protective equipment and their effectiveness and making sure workers are wearing it", "response_type": "free_text", "is_mandatory": false, "failure_severity": "unknown", "source_page": 7, "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu137_s4_5_record_findings",
+      "label": "4-5 Record Findings and Implementation",
+      "applies_to": "Employers with 5 or more employees",
+      "source_section": "4-5",
+      "template_note": "This is the only genuinely attestable template in GU137: each item is a record that either exists or does not, so yes_no is faithful. It is conditional - 'If an employer has 5 or more employees'. For an employer with fewer than 5 employees the document imposes no recording duty, so this template must not be served, and its absence must not be scored as a failure.",
+      "applicability_condition": { "field": "employee_count", "operator": ">=", "value": 5, "source_quote": "If an employer has 5 or more employees, they must record the following:" },
+      "items": [
+        { "item_no": "4-5.1", "text": "document the hazards identified", "response_type": "yes_no", "is_mandatory": true, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-5.2", "text": "the risk assessment process", "response_type": "yes_no", "is_mandatory": true, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-5.3", "text": "the people at risk", "response_type": "yes_no", "is_mandatory": true, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-5.4", "text": "the control measures decided upon", "response_type": "yes_no", "is_mandatory": true, "failure_severity": "unknown", "source_page": 7, "confidence": "high" },
+        { "item_no": "4-5.5", "text": "The employer must keep a record of the findings, implementation process and training programs.", "response_type": "yes_no", "is_mandatory": true, "failure_severity": "unknown", "source_page": 8, "confidence": "high" }
+      ]
+    },
+    {
+      "key": "gu137_s4_6_review_triggers",
+      "label": "4-6 Review the controls and make amendments - reasons for review",
+      "applies_to": "All employers",
+      "source_section": "4-6",
+      "template_note": "These are TRIGGERS for a review, not checkpoints. They are duplicated into obligations[] as trigger_event entries, which is where an engine should consume them. They are kept here only so the verbatim wording survives in one place.",
+      "items": [
+        { "item_no": "4-6.1", "text": "if they are no longer effective enough", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.2", "text": "modifications in the workplace that create new risks such as changes to", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.2.1", "text": "staff and their qualifications", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.2.2", "text": "a process or addition of new processes", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.2.3", "text": "the substances used or equipment used", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.3", "text": "in case of accidents leading to injuries or fatalities and property damages", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.4", "text": "reoccurring near misses", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" },
+        { "item_no": "4-6.5", "text": "if workers spot any problems or difficulties in performing their duties safely", "response_type": "yes_no", "is_mandatory": false, "failure_severity": "unknown", "source_page": 8, "confidence": "high" }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "The document says 'regular Safety Risk Assessment' but states no interval anywhere. There is no periodic cadence to encode. The only date the system can hold is the assessor's own 'Date of next review' from the Appendix A header, which is self-declared, not DM-set. An overdue calculation must therefore key off that self-declared date and must be presented as 'past the date you set', never as 'past the DM interval'.",
+      "trigger_event": null,
+      "applies_to": "All commercial and industrial establishments, public or government institutions, including infrastructure and construction related project sites in the emirate of Dubai",
+      "source_quote": "performing regular Safey Risk Assessment on the procedures, processes and equipment in the workplace can help business owners identify all the hazards in their premises"
+    },
+    {
+      "obligation_type": "record_keeping",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Continuous duty; no interval stated. Conditional on 5 or more employees.",
+      "trigger_event": null,
+      "applies_to": "Employers with 5 or more employees",
+      "source_quote": "If an employer has 5 or more employees, they must record the following: document the hazards identified; the risk assessment process; the people at risk; the control measures decided upon"
+    },
+    {
+      "obligation_type": "communication_and_training",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No interval stated; triggered by the completion of an assessment.",
+      "trigger_event": "risk assessment findings determined",
+      "applies_to": "All staff members",
+      "source_quote": "All staff members must be informed of the results and necessary safety control measures, training sessions should be used as a tool to make sure they understand their responsibilities for sustaining safety."
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing duty to review control measures; no interval stated.",
+      "trigger_event": null,
+      "applies_to": "All employers",
+      "source_quote": "Employers must review the control measures to make sure they are working properly"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "control measures are no longer effective enough",
+      "applies_to": "All employers",
+      "source_quote": "if they are no longer effective enough"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "modifications in the workplace that create new risks - changes to staff and their qualifications, a process or addition of new processes, or the substances used or equipment used",
+      "applies_to": "All employers",
+      "source_quote": "modifications in the workplace that create new risks such as changes to staff and their qualifications; a process or addition of new processes; the substances used or equipment used"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "accident leading to injury, fatality or property damage",
+      "applies_to": "All employers",
+      "source_quote": "in case of accidents leading to injuries or fatalities and property damages"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "reoccurring near misses",
+      "applies_to": "All employers",
+      "source_quote": "reoccurring near misses"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "workers report problems or difficulties in performing their duties safely",
+      "applies_to": "All employers",
+      "source_quote": "if workers spot any problems or difficulties in performing their duties safely"
+    },
+    {
+      "obligation_type": "record_update",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Versioning duty: each review must be dated and versioned in the record.",
+      "trigger_event": "any change made as a result of a review",
+      "applies_to": "All employers",
+      "source_quote": "The risk assessment record must be updated in case any changes are made due to the above-mentioned reasons. Involve employees in the risk assessment process to gain insights and foster a safety culture. Dates and versions of the reviews and changes must be recorded."
+    }
+  ],
+  "references": [
+    "Local Order No. (61) of 1991 Concerning Environment Protection Systems in the Emirate of Dubai",
+    "Local Order No. (11) of 2003 Concerning Public Health and Safety of the Society in the Emirate of Dubai",
+    "UK, Health and safety executive, Managing risks and risk assessment at work",
+    "European Agency for Safety and Health at Work (EU-OSHA)",
+    "Singapore, The Workplace Safety and Health (WSH) Council"
+  ]
+}

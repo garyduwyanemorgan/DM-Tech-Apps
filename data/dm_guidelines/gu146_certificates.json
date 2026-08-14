@@ -1,0 +1,221 @@
+{
+  "standard": {
+    "code": "DM-HSD-146-FL2",
+    "guideline_no": 146,
+    "title": "Safe Forklift Operations",
+    "version": "V 1.0",
+    "issued_on": "2025-12-15",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2026/06/Safe-Forklift-Operations-TG-V1.0-10.5.26.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "module_kind = compliance per section 7.12. Section 4.5 carries an unambiguous, dated, third-party obligation: 'forklifts and their attachments shall be inspected and certified by EIAC-accredited inspection bodies annually with certificates retained on-site.' That is the cleanest certificate clause in the Phase 3 set — it names the accreditation body, the interval, and the retention duty in one sentence. Around it sit several other checkable obligations (documented pre-shift inspection, monthly proximity-sensor functional test, annual traffic management plan review), all record-based. Most of sections 4.1 to 4.4 is design guidance in 'should' language and yields no verdict; a report must confine its compliance claims to the record-based obligations. THREE CATALOGUE CORRECTIONS: (1) the document code is DM-HSD-146-FL2, printed on the cover and in every page footer — catalogue.json records code null for GU146, and note the code omits the usual 'GU' prefix, so this is DM's own irregularity, not a transcription error. (2) The issue date is 15/12/2025 from the cover page; the filename fragment '10.5.26' and the portal record date 2026-06-30 are both later and both wrong as edition dates. (3) Version V 1.0, superseded issue date 'New' — this is a first edition. NOTE the overlap with GU48: GU48 requirement 1 already names forklifts and imposes the same 12-month EIAC test, so a forklift carries the obligation under both guidelines. If both are sold as modules the obligation must not be double-counted against one asset.",
+  "subjects": [
+    {
+      "asset_type": "forklift (counterbalanced)",
+      "description": "A powered industrial truck fitted with fork arms on which the load (palletized or not) is carried in a cantilever position relative to the front wheels and balanced by the mass of the truck. May be powered by electric batteries, LPG, diesel/petrol engines or hybrid, used for lifting, transporting and handling loads within warehouses, factories and yards.",
+      "source_page": 5,
+      "source_quote": "A powered industrial truck fitted with fork arms on which the load (either palletized or not) is carried in a cantilever position relative to the front wheels and balanced by the mass of the truck. Forklifts may be powered by electric batteries, LPG, diesel/petrol engines, hybrid and are used for lifting, transporting and handling loads within warehouses, factories and yards."
+    },
+    {
+      "asset_type": "forklift attachment",
+      "description": "Attachments fitted to a forklift. Named alongside the forklift itself in the annual EIAC certification clause, so they are separately certifiable subjects rather than part of the truck.",
+      "source_page": 11,
+      "source_quote": "Ensure forklifts and their attachments shall be inspected and certified by EIAC-accredited inspection bodies annually with certificates retained on-site."
+    },
+    {
+      "asset_type": "forklift proximity warning system",
+      "description": "Laser scanner, ultrasonic or radar proximity warning sensors fitted to forklifts operating in shared pedestrian zones, blind corners, transfer points, dock approaches and high rack. Carries its own monthly functional-test obligation.",
+      "source_page": 10,
+      "source_quote": "Fit proximity warning sensors to forklifts operating in shared pedestrian zones, blind corners, transfer points, dock approaches and high rack. ... Detection zones and sensor response shall be verified monthly through functional testing to ensure accuracy under normal operating conditions. Inspection records shall be retained."
+    },
+    {
+      "asset_type": "forklift 360-degree camera system",
+      "description": "Surround camera system of four wide-angle cameras giving a 360-degree bird's eye view, optionally with a mast camera, plus an in-cab display monitor. Requires calibration on installation and periodic function tests by a competent technician.",
+      "source_page": 9,
+      "source_quote": "A full system calibration must be performed immediately after the initial installation by the installer. System calibration and function tests shall be performed frequently by a competent technician to verify camera alignment, sensor accuracy, and display clarity. Inspection and calibration records shall be maintained."
+    },
+    {
+      "asset_type": "forklift battery charging station",
+      "description": "Designated well-ventilated battery charging area with its own logbook, PPE, eyewash (and emergency shower for larger installations) and spill response arrangements.",
+      "source_page": 13,
+      "source_quote": "Designate a well-ventilated area to avoid building up of hydrogen gas during battery charging and away from direct sunlight. ... Battery charging log shall be maintained recording the date, time, operator name, start/end voltage, and any observed irregularities during charging."
+    }
+  ],
+  "examinations": [
+    {
+      "examination_type": "inspection",
+      "applies_to": "Forklifts and their attachments",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "'annually' — read as 12 months. Certificates must be retained on site.",
+      "trigger_event": null,
+      "examiner_competence": "EIAC-accredited inspection bodies. The references section names the applicable accreditation scheme: 'EIAC-RQ-IB-002 - Accreditation Requirements for Inspection Bodies working in the field of Lifting Equipment & Lifting Accessories'.",
+      "certificate_validity_months": null,
+      "source_page": 11,
+      "source_quote": "Ensure forklifts and their attachments shall be inspected and certified by EIAC-accredited inspection bodies annually with certificates retained on-site.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Every forklift, before each shift — documented pre-operational inspection, including cleaning camera lenses, verifying sensors and testing beacons/alarms",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Per shift, not per calendar interval. Recorded as a trigger_event because shift length is site-specific and no day or month figure is given.",
+      "trigger_event": "before each shift",
+      "examiner_competence": "In-house — 'in-house inspections shall be conducted and logged by the maintenance team/safety officer'",
+      "certificate_validity_months": null,
+      "source_page": 11,
+      "source_quote": "A documented pre-operational inspection shall be completed and logged before each shift. Forklifts with defects must be immediately taken out of service, tagged and reported for repair.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "A forklift taken out of service with defects, before it may return to service",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "after repair, before return to service",
+      "examiner_competence": "A qualified maintenance technician AND the Safety Officer — both must verify and sign off",
+      "certificate_validity_months": null,
+      "source_page": 11,
+      "source_quote": "Repairs shall be documented and the forklift shall not be returned to service until verified and signed off by a qualified maintenance technician and Safety Officer",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "test",
+      "applies_to": "Proximity sensor detection zones and sensor response",
+      "cadence_months": 1,
+      "cadence_days": null,
+      "cadence_note": "'verified monthly through functional testing'. Inspection records shall be retained.",
+      "trigger_event": null,
+      "examiner_competence": "Not specified for the monthly functional test",
+      "certificate_validity_months": null,
+      "source_page": 10,
+      "source_quote": "Detection zones and sensor response shall be verified monthly through functional testing to ensure accuracy under normal operating conditions. Inspection records shall be retained.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "test",
+      "applies_to": "360-degree camera system — full calibration on installation, then periodic calibration and function tests to verify camera alignment, sensor accuracy and display clarity",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on the recurring interval — it says only 'frequently'. No number is given, so both cadence fields are null. The initial calibration is event-triggered.",
+      "trigger_event": "immediately after initial installation (initial calibration, performed by the installer)",
+      "examiner_competence": "Initial calibration by the installer; recurring calibration and function tests by 'a competent technician'",
+      "certificate_validity_months": null,
+      "source_page": 9,
+      "source_quote": "A full system calibration must be performed immediately after the initial installation by the installer. System calibration and function tests shall be performed frequently by a competent technician to verify camera alignment, sensor accuracy, and display clarity.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Traffic Management Plan — review for continued accuracy and compliance",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "'at least annually' — a maximum interval; also triggered by incident or layout change (see the separate trigger row).",
+      "trigger_event": null,
+      "examiner_competence": "Not specified",
+      "certificate_validity_months": null,
+      "source_page": 7,
+      "source_quote": "Traffic management plan to be reviewed at least annually and after any incident or change in site layout to ensure continued accuracy and compliance.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Traffic Management Plan and risk assessment — out-of-cycle review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": null,
+      "trigger_event": "after any incident or near miss, or any significant change to workplace layout, work processes or vehicle types in use",
+      "examiner_competence": "Not specified",
+      "certificate_validity_months": null,
+      "source_page": 7,
+      "source_quote": "A review is essential when there is a significant change to the workplace layout, work processes or the types of vehicles in use, following any incident or near miss etc. ... Traffic management plan to be reviewed at least annually and after any incident or change in site layout",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "All barriers, floor markings and signage — checked for damage or fading",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on the interval — 'frequently' only. Inspection records shall be maintained.",
+      "trigger_event": null,
+      "examiner_competence": "Not specified",
+      "certificate_validity_months": null,
+      "source_page": 8,
+      "source_quote": "All barriers, floor markings, and signage shall be inspected frequently for damage or fading and maintained in good condition. Inspection records shall be maintained.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "test",
+      "applies_to": "PERSON, not plant: all forklift operators — third-party certification and refresher training, including direct employees and those engaged through temporary or outsourced services. A copy of the operator vehicle licence must always be available on site.",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on the refresher interval — it says 'refresher trainings' and, for pedestrian-vehicle safety refreshers, '(frequently)'. No number is given.",
+      "trigger_event": null,
+      "examiner_competence": "'Third party certified' — unlike the plant clause, the operator clause does NOT name EIAC. Operators must additionally receive training and certification on technology-assisted safety systems (such as AI), including interpretation of alerts and limitations of automated features.",
+      "certificate_validity_months": null,
+      "source_page": 11,
+      "source_quote": "Ensure third party certified and refresher trainings for all forklift operators, including direct employees and those engaged through temporary or outsourced services.",
+      "confidence": "high"
+    },
+    {
+      "examination_type": "inspection",
+      "applies_to": "Indoor air quality and carbon monoxide levels in enclosed areas where internal combustion engine forklifts operate",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT — 'monitored periodically' with no interval. This clause is the hand-off to the GU119 indoor air quality module; GU146 itself sets no CO limit.",
+      "trigger_event": null,
+      "examiner_competence": "Not specified",
+      "certificate_validity_months": null,
+      "source_page": 11,
+      "source_quote": "Operating internal combustion engine forklifts in poorly ventilated areas poses the risk of hazardous fume exposure and should be avoided. Where ventilation is inadequate, electrically powered forklifts are the safer alternative. Indoor Air quality and CO levels in enclosed areas shall be monitored periodically.",
+      "confidence": "high"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "forklift_camera_ingress_protection",
+      "parameter_label": "Minimum ingress protection rating for camera system components and wiring",
+      "unit": "IP rating",
+      "min_val": 67.0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "IP67 or higher",
+      "qualifier_rule": "min",
+      "source_page": 9,
+      "source_quote": "All components, including cameras and wiring, must be industrial grade with appropriate IP ratings (e.g., IP67 or higher) to withstand vibration, dust, moisture and antiglare typical in forklift operating environments.",
+      "confidence": "medium"
+    },
+    {
+      "parameter_key": "forklift_red_halo_arc_offset",
+      "parameter_label": "ADVISORY DESIGN PARAMETER — lateral offset of the red halo projected line from the outermost point of the truck",
+      "unit": "m",
+      "min_val": 0.5,
+      "max_val": 1.0,
+      "min_inclusive": true,
+      "max_inclusive": true,
+      "display": "0.5-1.0 m from the outermost point of the truck; increase toward 1.2-1.5 m in high-speed open areas",
+      "qualifier_rule": "bound",
+      "source_page": 10,
+      "source_quote": "Aim the arc so the projected line falls 0.5–1.0 m from the outermost point of the truck (counterweight/guard/attachment) around both sides; increase toward 1.2–1.5 m in high-speed open areas or where pedestrians habitually walk close.",
+      "confidence": "low"
+    },
+    {
+      "parameter_key": "forklift_blue_light_projection_narrow_aisle",
+      "parameter_label": "ADVISORY DESIGN PARAMETER — blue spot light projection distance in narrow aisles",
+      "unit": "m",
+      "min_val": 1.0,
+      "max_val": 2.0,
+      "min_inclusive": true,
+      "max_inclusive": true,
+      "display": "approximately 1-2 m (narrow aisles); approximately 3-6 m in wide aisles or open areas",
+      "qualifier_rule": "bound",
+      "source_page": 10,
+      "source_quote": "Set shorter projections in narrow aisles (≈1–2 m) to avoid reflections and set longer projections in wide aisles/open areas (≈3–6 m) so pedestrians can detect and react early. Where both narrow and wide aisles exist, set the projection to the narrow-aisle distance by default (≈1–2 m).",
+      "confidence": "low"
+    }
+  ]
+}

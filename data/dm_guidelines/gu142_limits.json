@@ -1,0 +1,119 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU142-MRC2",
+    "guideline_no": 142,
+    "title": "Technical Guideline for Mold Remediation and Control",
+    "version": "V1",
+    "issued_on": "2025-05-12",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2025/10/Technical-Guideline-for-Mold-Remediation-and-Control-V_1-002.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu142_post_remediation_laboratory_clearance",
+      "label": "GU142 post-remediation clearance — laboratory-evidenced parameters",
+      "applies_to_scope": "facilities",
+      "applies_to": "A remediated area, at post-remediation verification. Air and surface samples must be analysed by a laboratory accredited to ISO/IEC 17025 by the Emirates International Accreditation Centre (EIAC). This is the laboratory-evidenced module.",
+      "source_section": "9. Post-Remediation Verification — 3. Airborne Mold Testing, 4. Surface Testing, 5. Laboratory Analysis",
+      "limits": [
+        {
+          "parameter_key": "airborne_mold_spores_indoor_outdoor_ratio",
+          "parameter_label": "Airborne mold spore concentration, indoor as a percentage of the outdoor control sample",
+          "unit": "% of outdoor control",
+          "min_val": null,
+          "max_val": 50.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "indoor levels should not exceed 50% of outdoor levels",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "9. Post-Remediation Verification, 3. Airborne Mold Testing: 'Compare indoor spore levels to outdoor control samples to ensure they are within acceptable thresholds, where indoor levels should not exceed 50% of outdoor levels.' 'should not exceed' is inclusive — 50% itself complies. NOTE this is a RELATIVE limit: it cannot be judged from the indoor result alone, a paired outdoor control sample from the same event is required. A resolver with only an indoor figure must return NOT_ASSESSED, not a pass.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "surface_mold_spores",
+          "parameter_label": "Mold spores on previously contaminated surfaces (swab or tape lift)",
+          "unit": null,
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "confirm the absence of mold spores",
+          "qualifier_rule": "detect_fails",
+          "source_page": 19,
+          "source_quote": "9. Post-Remediation Verification, 4. Surface Testing: 'Surface sampling (e.g., swabs or tape lifts) shall be conducted on previously contaminated areas to confirm the absence of mold spores.' The criterion is ABSENCE, stated with no numeric threshold and no unit, so qualifier_rule is detect_fails — a laboratory reporting 'None detected' passes and any positive identification fails. max_val 0.0 is recorded only to satisfy the bounded constraint on spec_limits; it is not a measured concentration threshold and must not be read as one.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "material_moisture_content",
+          "parameter_label": "Relative moisture content of building materials",
+          "unit": "%",
+          "min_val": null,
+          "max_val": 18.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "should not exceed 16-18%",
+          "qualifier_rule": "bound",
+          "source_page": 19,
+          "source_quote": "9. Post-Remediation Verification, 2. Moisture Measurement: 'Dry standards may vary based on material type, but relative moisture content should not exceed 16-18%.' 'should not exceed' is inclusive, but the CEILING ITSELF IS A RANGE (16 or 18) and the document says it varies by material type without saying which material takes which value. max_val is set to 18 — the higher of the two — so the limit cannot manufacture a false FAIL; it will under-detect a material actually held to 16%. Appendix 3 (p26) states a stricter and differently-worded clearance criterion for the same measurement: 'Moisture content <16% for wood and drywall' — encoded separately as gu142_post_remediation_visual_clearance. Instrument-evidenced (calibrated moisture meter), not laboratory-evidenced.",
+          "confidence": "low"
+        }
+      ]
+    },
+    {
+      "key": "gu142_post_remediation_visual_clearance",
+      "label": "GU142 post-remediation visual inspection — moisture and humidity clearance criteria",
+      "applies_to_scope": "facilities",
+      "applies_to": "The affected area at post-remediation visual inspection, per Appendix 3. Instrument-evidenced (moisture meter, hygrometer) rather than laboratory-evidenced. These values are stricter and use different operators from the section 9 criteria above; both appear in the same document.",
+      "source_section": "11-3 Appendix-3: Post-Remediation Visual Inspection — 3. Moisture and Humidity Levels",
+      "limits": [
+        {
+          "parameter_key": "material_moisture_content",
+          "parameter_label": "Moisture content of wood and drywall",
+          "unit": "%",
+          "min_val": null,
+          "max_val": 16.0,
+          "min_inclusive": false,
+          "max_inclusive": false,
+          "display": "<16%",
+          "qualifier_rule": "bound",
+          "source_page": 26,
+          "source_quote": "Appendix 3, 3. Moisture and Humidity Levels: 'Confirm moisture levels in building materials are within acceptable limits: Moisture content <16% for wood and drywall.' The '<' glyph is explicit and EXCLUSIVE — a reading of exactly 16% does not comply. This contradicts the section 9 wording on p19 ('should not exceed 16-18%'), which is inclusive and permits up to 18%.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "relative_humidity",
+          "parameter_label": "Relative humidity in the affected area",
+          "unit": "%",
+          "min_val": null,
+          "max_val": 60.0,
+          "min_inclusive": false,
+          "max_inclusive": false,
+          "display": "<60%",
+          "qualifier_rule": "bound",
+          "source_page": 26,
+          "source_quote": "Appendix 3, 3. Moisture and Humidity Levels: 'Relative humidity <60% in the affected area.' The '<' glyph is explicit and EXCLUSIVE. Section 10-1 on p20 words the same requirement as 'Maintain indoor relative humidity levels below 60%, ideally between 30-50%' — 'below' is likewise exclusive, and the '30-50%' figure is prefaced by 'ideally' and is therefore an aspiration, NOT encoded as a bound.",
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "DOCUMENT IS SILENT on any recurring cadence. Event-triggered — clearance sampling falls due at the completion of a remediation, not on a clock. Both cadence fields null deliberately.",
+      "applies_to": "EVENT-TRIGGERED, not periodic — post-remediation verification of a remediated area. Air samples (spore traps or impact sampling) plus a paired outdoor control, and surface samples, submitted to a laboratory accredited to ISO/IEC 17025 by the Emirates International Accreditation Centre (EIAC). Sampling methods per ASTM D7338-14, ISO 16000-21 or equivalent. Relevant to the §4.7 laboratories registry.",
+      "source_quote": "p19, 9. Post-Remediation Verification, 5. Laboratory Analysis: 'Submit air and surface samples to accredited laboratories that comply with ISO/IEC 17025 for quality assurance in testing and calibration, and the laboratories shall be accredited by the Emirates International Accreditation Centre (EIAC).' and 'Ensure that labs follow the Emirates International Accreditation Centre (EIAC) protocols for spore identification and quantification.'"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Document states 'Implement a bi-annual inspection schedule' — a number, but an AMBIGUOUS one. 'Bi-annual' is undefined in the document and may mean twice per year (6 months) or once every two years (24 months). cadence_months 6 is recorded as the reading consistent with a preventive regime, but this must be confirmed with DM before it drives an overdue alert.",
+      "applies_to": "Visual inspection of high-risk areas including basements, crawl spaces and HVAC ducts.",
+      "source_quote": "p20, 10-2 Regular Inspections and Monitoring, 1. Inspection Protocols: 'Conduct visual inspections of high-risk areas, including basements, crawl spaces, and HVAC ducts.' followed by 'Implement a bi-annual inspection schedule.' AMBIGUITY: 'bi-annual' is used without definition and can mean twice per year (6 months) or once every two years (24 months). cadence_months 6 is recorded as the reading consistent with a preventive inspection regime, but this must be confirmed with DM before the obligation drives an overdue alert."
+    }
+  ]
+}

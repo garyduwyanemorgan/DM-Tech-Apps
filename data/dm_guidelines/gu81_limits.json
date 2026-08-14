@@ -1,0 +1,656 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU81-PSPS2",
+    "guideline_no": 81,
+    "title": "Public Swimming Pools Safety Guidelines",
+    "version": "V 3.0",
+    "issued_on": "2024-04-30",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/07/DM-HSD-GU81-PSPS2_Public-Swimming-Pools-Safety-Guidelines_V3-26-04-2024-003.pdf",
+    "language": "en"
+  },
+  "specification_sets": [
+    {
+      "key": "gu81_pool_chlorine_le26",
+      "label": "GU81 swimming / wading / waterslide pool — chlorine, water temperature 26 °C or below",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public swimming pools, wading pools and waterslides disinfected with chlorine, pool water temperature ≤ 26 °C. NOTE: the '≤' glyph is not recoverable from the PDF text layer — the cell extracts as a blank followed by '26OC' and is paired in the same table with a '> 26OC' row, so '≤' is the only consistent reading. Confirm against the printed page.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.6,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.6",
+          "qualifier_rule": "bound",
+          "source_page": 30,
+          "source_quote": "Table 5 row 'Chlorine | ≤26OC | 7.2 - 7.6 | 60 - 200 mg/l2 | Min. 1 - 2 mg/l3 | 30 - 50 mg/l'. The endpoints carry NO operator glyph; read as inclusive because the body text at 4-16 requires the value be 'continuously controlled and monitored within the ranges as specified in Table 5'.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 30,
+          "source_quote": "Table 5 cell '60 - 200 mg/l2'. Footnote 2: 'If disinfectant used is gaseous chlorine the total alkalinity should range from 150 to 200 mg/l.' — that narrower range applies ONLY where the disinfectant is gaseous chlorine and is not encoded here. Endpoints carry no operator glyph; read as inclusive per the 'within the ranges' wording at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Free Chlorine",
+          "unit": "mg/l",
+          "min_val": 1.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 1 - 2 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 30,
+          "source_quote": "Table 5 cell 'Min. 1 - 2 mg/l3'. The minimum is CONDITIONAL, per footnote 3 (p31): 'If cyanuric acid is used, minimum free chlorine is 2 mg/l at ≤26OC and 4 mg/l at > 26OC. For unstabilized pool water (without cyanuric acid), minimum free chlorine is 1 mg/l at ≤26OC and 2 mg/l at > 26OC.' min_val is therefore set to the LOWEST value the document permits in this band (1 mg/l, unstabilized water); a stabilized pool is actually held to 2 mg/l and this limit will under-detect that case. Upper bound from footnote 7 (p31): 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.' — 'shall not exceed' is inclusive. Requires human resolution into stabilized / unstabilized sets before sale.",
+          "confidence": "low"
+        },
+        {
+          "parameter_key": "cyanuric_acid",
+          "parameter_label": "Cyanuric Acid",
+          "unit": "mg/l",
+          "min_val": 30.0,
+          "max_val": 50.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "30 - 50 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 30,
+          "source_quote": "Table 5 cell '30 - 50 mg/l' under the 'Cyanuric Acid1' column. Footnote 1 (p31): 'Stabilizer (cyanuric acid and chlorinated cyanurates) is not allowed to be used in indoor pools (swimming pool, wading pool, or waterslide) which includes spa pool and hydrotherapy pool (both indoor and outdoor).' This limit therefore applies to OUTDOOR pools only. Endpoints carry no operator glyph.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "key": "gu81_pool_chlorine_26_30",
+      "label": "GU81 swimming / wading / waterslide pool — chlorine, water temperature 26 °C to 30 °C",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public swimming pools, wading pools and waterslides disinfected with chlorine, pool water temperature 26 °C - 30 °C.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.6,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.6",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 row '26OC - 30OC | 7.2 - 7.6 | 60 - 200 mg/l2 | Min. 2 - 3 mg/l3 | 30 - 50 mg/l' (chlorine group). Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l2'. Footnote 2 narrows to 150 - 200 mg/l for gaseous chlorine only; not encoded here.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Free Chlorine",
+          "unit": "mg/l",
+          "min_val": 2.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 2 - 3 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell 'Min. 2 - 3 mg/l3'. NOTE A DOCUMENT INCONSISTENCY: footnote 3 gives only two temperature bands — 'minimum free chlorine is 2 mg/l at ≤26OC and 4 mg/l at > 26OC' (stabilized) and '1 mg/l at ≤26OC and 2 mg/l at > 26OC' (unstabilized) — which yields {2, 4} for this band, not the '2 - 3' printed in the table cell. min_val is set to the lowest value either source permits (2 mg/l). Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.' Must be resolved with DM before this set is sold.",
+          "confidence": "low"
+        },
+        {
+          "parameter_key": "cyanuric_acid",
+          "parameter_label": "Cyanuric Acid",
+          "unit": "mg/l",
+          "min_val": 30.0,
+          "max_val": 50.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "30 - 50 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '30 - 50 mg/l'. Footnote 1 restricts stabilizer use to outdoor pools, so this limit applies to outdoor pools only.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "key": "gu81_pool_chlorine_gt30",
+      "label": "GU81 swimming / wading / waterslide pool — chlorine, water temperature above 30 °C (Jacuzzi)",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public swimming pools, wading pools and waterslides disinfected with chlorine, pool water temperature > 30 °C (Jacuzzi).",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.6,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.6",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 row '> 30OC (Jacuzzi) | 7.2 - 7.6 | 60 - 200 mg/l2 | Min. 2 - 4 mg/l3 | 30 - 50 mg/l'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l2'. Footnote 2 narrows to 150 - 200 mg/l for gaseous chlorine only; not encoded here.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Free Chlorine",
+          "unit": "mg/l",
+          "min_val": 2.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 2 - 4 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell 'Min. 2 - 4 mg/l3'. Conditional per footnote 3: unstabilized water 2 mg/l at > 26OC, stabilized (cyanuric acid used) 4 mg/l at > 26OC. min_val set to the lowest value permitted (2 mg/l, unstabilized); a stabilized pool is held to 4 mg/l and this limit will under-detect that case. Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "low"
+        },
+        {
+          "parameter_key": "cyanuric_acid",
+          "parameter_label": "Cyanuric Acid",
+          "unit": "mg/l",
+          "min_val": 30.0,
+          "max_val": 50.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "30 - 50 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '30 - 50 mg/l'. Footnote 1 restricts stabilizer use to outdoor pools, so this limit applies to outdoor pools only.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "key": "gu81_pool_bromine_le26",
+      "label": "GU81 swimming / wading / waterslide pool — bromine, water temperature 26 °C or below",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public swimming pools, wading pools and waterslides disinfected with bromine, pool water temperature ≤ 26 °C ('≤' glyph not recoverable from the text layer — see gu81_pool_chlorine_le26).",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.8,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.8",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 bromine sub-row '≤26OC | 7.2 - 7.8 | 60 - 200 mg/l4 | 2 mg/l'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l4'. Footnote 4: 'If disinfectant used is 1-Bromo-3-chloro-5, 5-dimethylhydantoin (BCDMH) the total alkalinity should range from 150 to 200 mg/l.' — narrower BCDMH range not encoded here.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "bromine",
+          "parameter_label": "Bromine",
+          "unit": "mg/l",
+          "min_val": 2.0,
+          "max_val": 10.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "2 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell reads exactly '2 mg/l' with NO operator and NO 'Min.' prefix — unlike every chlorine cell in the same table and unlike the hydrotherapy and spa bromine cells, which read 'Min. 4 mg/l' and 'Min. 8 mg/l'. Whether 2 mg/l is a floor, a target or a ceiling is therefore NOT stated for this row, so min_inclusive is left null rather than guessed; min_val 2.0 is recorded on the parallel with the 'Min.' rows but must be confirmed. Upper bound is firm — footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "low"
+        }
+      ]
+    },
+    {
+      "key": "gu81_pool_bromine_gt26",
+      "label": "GU81 swimming / wading / waterslide pool — bromine, water temperature above 26 °C",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public swimming pools, wading pools and waterslides disinfected with bromine, pool water temperature > 26 °C.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.8,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.8",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 bromine sub-row '> 26OC | 7.2 - 7.8 | 60 - 200 mg/l4 | 4 mg/l'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l4'. Footnote 4 narrows to 150 - 200 mg/l where BCDMH is the disinfectant; not encoded here.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "bromine",
+          "parameter_label": "Bromine",
+          "unit": "mg/l",
+          "min_val": 4.0,
+          "max_val": 10.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "4 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell reads exactly '4 mg/l' with NO operator and NO 'Min.' prefix, unlike the hydrotherapy and spa bromine cells in the same table ('Min. 4 mg/l', 'Min. 8 mg/l'). Direction is not stated, so min_inclusive is left null rather than guessed. Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "low"
+        }
+      ]
+    },
+    {
+      "key": "gu81_hydrotherapy_chlorine",
+      "label": "GU81 hydrotherapy pool — chlorine",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public hydrotherapy pools disinfected with chlorine, pool water temperature 28 °C - 35 °C.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.6,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.6",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 'Hydrotherapy pools | Chlorine | 28O - 35OC | 7.2 - 7.6 | 60 - 200 mg/l2 | Min. 2 mg/l5'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l2'. Footnote 2 narrows to 150 - 200 mg/l for gaseous chlorine only.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Free Chlorine",
+          "unit": "mg/l",
+          "min_val": 2.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 2 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell 'Min. 2 mg/l5'. 'Min.' is read as inclusive (2 mg/l itself satisfies a stated minimum). Footnote 5: 'In cases where the pool is operated at the upper temperature limit and heavy bather load, the recommended free chlorine is at least 4 mg/l.' — that is worded as a RECOMMENDATION, not a requirement, and is not encoded as a bound. Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu81_hydrotherapy_bromine",
+      "label": "GU81 hydrotherapy pool — bromine",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public hydrotherapy pools disinfected with bromine, pool water temperature 28 °C - 35 °C.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.8,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.8",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 'Bromine | 28O - 35OC | 7.2 - 7.8 | 60 - 200 mg/l4 | Min. 4 mg/l6'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l4'. Footnote 4 narrows to 150 - 200 mg/l where BCDMH is the disinfectant.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "bromine",
+          "parameter_label": "Bromine",
+          "unit": "mg/l",
+          "min_val": 4.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 4 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell 'Min. 4 mg/l6'. 'Min.' read as inclusive. Footnote 6: 'In cases where the pool is operated at the upper temperature limit and heavy bather load, the recommended bromine concentration is at least 8 mg/l.' — recommendation, not encoded. Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu81_spa_chlorine",
+      "label": "GU81 spa pool — chlorine",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public spa pools disinfected with chlorine, pool water temperature 35 °C - 37 °C.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.6,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.6",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 'Spa pools | Chlorine | 35O - 37OC | 7.2 - 7.6 | 60 - 200 mg/l | Min. 4 mg/l'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l' on the spa pool chlorine row (this cell carries no footnote marker, unlike the other alkalinity cells).",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "free_chlorine",
+          "parameter_label": "Free Chlorine",
+          "unit": "mg/l",
+          "min_val": 4.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 4 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell 'Min. 4 mg/l'. 'Min.' read as inclusive. Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu81_spa_bromine",
+      "label": "GU81 spa pool — bromine",
+      "applies_to_scope": "facilities",
+      "applies_to": "Public spa pools disinfected with bromine, pool water temperature 35 °C - 37 °C.",
+      "source_section": "4-16 Water Quality Requirements, Table 5: Pool Water Standard Quality Parameters",
+      "limits": [
+        {
+          "parameter_key": "ph",
+          "parameter_label": "pH",
+          "unit": "pH Units",
+          "min_val": 7.2,
+          "max_val": 7.8,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "7.2 - 7.8",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 'Bromine | 35O - 37OC | 7.2 - 7.8 | 60 - 200 mg/l4 | Min. 8 mg/l'. Endpoints carry no operator glyph; read as inclusive per 'within the ranges' at 4-16.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "total_alkalinity",
+          "parameter_label": "Total Alkalinity",
+          "unit": "mg/l",
+          "min_val": 60.0,
+          "max_val": 200.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "60 - 200 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell '60 - 200 mg/l4'. Footnote 4 narrows to 150 - 200 mg/l where BCDMH is the disinfectant.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "bromine",
+          "parameter_label": "Bromine",
+          "unit": "mg/l",
+          "min_val": 8.0,
+          "max_val": 10.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "Min. 8 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Table 5 cell 'Min. 8 mg/l'. 'Min.' read as inclusive. Upper bound from footnote 7: 'The maximum level for both free chlorine and bromine shall not exceed 10 mg/l.'",
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "key": "gu81_all_pools_calcium_saturation",
+      "label": "GU81 all pool types — calcium hardness and saturation index",
+      "applies_to_scope": "facilities",
+      "applies_to": "All types of public pool, whether indoor or outdoor (footnote 9 states this explicitly).",
+      "source_section": "4-16 Water Quality Requirements, Table 5 footnote 9",
+      "limits": [
+        {
+          "parameter_key": "calcium_hardness",
+          "parameter_label": "Calcium Hardness",
+          "unit": "mg/l",
+          "min_val": 100.0,
+          "max_val": 500.0,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "between 100 to 500 mg/l",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Footnote 9: 'Calcium Hardness shall be between 100 to 500 mg/l and Saturation Index shall be between -0.5 to 0.5. These parameter values are applicable to all types of pools whether indoor and outdoor.' 'between X to Y' carries no operator glyph; read as inclusive.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "saturation_index",
+          "parameter_label": "Saturation Index",
+          "unit": null,
+          "min_val": -0.5,
+          "max_val": 0.5,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "display": "between -0.5 to 0.5",
+          "qualifier_rule": "bound",
+          "source_page": 31,
+          "source_quote": "Footnote 9: 'Calcium Hardness shall be between 100 to 500 mg/l and Saturation Index shall be between -0.5 to 0.5. These parameter values are applicable to all types of pools whether indoor and outdoor.' No operator glyph; read as inclusive.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    {
+      "key": "gu81_microbiological",
+      "label": "GU81 pool water — microbiological parameters (all pool types)",
+      "applies_to_scope": "facilities",
+      "applies_to": "All public swimming pool water covered by GU81. Table 6 is not qualified by pool type or disinfectant.",
+      "source_section": "4-16 Water Quality Requirements, Table 6: Maximum Allowable Microbiological Parameters",
+      "limits": [
+        {
+          "parameter_key": "total_coliforms",
+          "parameter_label": "Total Coliforms",
+          "unit": "mpn/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 mpn/100 ml.",
+          "qualifier_rule": "detect_fails",
+          "source_page": 31,
+          "source_quote": "Table 6 'Maximum Allowable Microbiological Parameters': 'Total Coliforms | 0 mpn/100 ml.' A stated acceptable range of zero under a 'Maximum Allowable' heading means any detection breaches; qualifier_rule is detect_fails so a laboratory's 'Absent' / 'Not Detected' / '<1' passes and any quantified value fails, rather than a non-detect being coerced to a measured zero.",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "fecal_coliforms",
+          "parameter_label": "Fecal Coliforms",
+          "unit": "mpn/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 mpn/100 ml.",
+          "qualifier_rule": "detect_fails",
+          "source_page": 32,
+          "source_quote": "Table 6 (continued onto p32): 'Fecal Coliforms | 0 mpn/100 ml.'",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "heterotrophic_plate_count",
+          "parameter_label": "Heterotrophic Plate Count",
+          "unit": "cfu/ml",
+          "min_val": null,
+          "max_val": 1000.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "1000 cfu/ml.",
+          "qualifier_rule": "bound",
+          "source_page": 32,
+          "source_quote": "Table 6: 'Heterotrophic Plate Count | 1000 cfu/ml.' The cell carries no operator glyph; inclusivity is taken from the table heading 'Maximum Allowable Microbiological Parameters', under which 1000 is itself allowable. CAUTION: this PDF is known to drop '≤' glyphs (see the temperature cells in Table 5), so the cell may read '≤ 1000' on the printed page — which would give the same inclusive reading.",
+          "confidence": "medium"
+        },
+        {
+          "parameter_key": "pseudomonas_aeruginosa",
+          "parameter_label": "Pseudomonas Aeruginosa",
+          "unit": "cfu/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 cfu/100 ml.",
+          "qualifier_rule": "detect_fails",
+          "source_page": 32,
+          "source_quote": "Table 6: 'Pseudomonas Aeruginosa | 0 cfu/100 ml.'",
+          "confidence": "high"
+        },
+        {
+          "parameter_key": "fecal_streptococci",
+          "parameter_label": "Fecal Streptococci",
+          "unit": "cfu/100 ml",
+          "min_val": null,
+          "max_val": 0.0,
+          "min_inclusive": null,
+          "max_inclusive": true,
+          "display": "0 cfu/100 ml.",
+          "qualifier_rule": "detect_fails",
+          "source_page": 32,
+          "source_quote": "Table 6: 'Fecal Streptococci | 0 cfu/100 ml.'",
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": 1,
+      "cadence_note": "Document states an explicit daily cadence: 'tested daily (before use)'. Encoded as cadence_days 1. Note the cadence is tied to USE — a pool closed for a period has no reading due — which cadence_days alone cannot express.",
+      "applies_to": "Public swimming pool water — pH, chlorine and temperature. Tested before use each day; readings recorded in a logbook.",
+      "source_quote": "p30, 4-16: 'Water quality shall be tested daily (before use) for pH, chlorine, and temperature levels.' and 'All readings shall be recorded in a logbook.'"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": 15,
+      "cadence_note": "Document states an explicit cadence: 'for every 15 days'. Encoded as cadence_days 15 rather than a half-month, because the document counts in days.",
+      "applies_to": "Public swimming pool water — calcium hardness, alkalinity, saturation index and cyanuric acid.",
+      "source_quote": "p30, 4-16: 'Pool water shall also be tested for calcium hardness, alkalinity, saturation index and cyanuric acid for every 15 days. All readings shall be recorded in a logbook.'"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": 2,
+      "cadence_days": null,
+      "cadence_note": "Document states an explicit cadence: 'every two months'. Encoded as cadence_months 2. No grace period is stated anywhere in GU81.",
+      "applies_to": "Public swimming pool water — microbiological parameters (Table 6: total coliforms, fecal coliforms, heterotrophic plate count, Pseudomonas aeruginosa, fecal streptococci). This is the laboratory-evidenced obligation.",
+      "source_quote": "p30, 4-16: 'Pool water shall be tested for microbiological parameters every two months.'"
+    }
+  ]
+}
