@@ -679,7 +679,16 @@ def create_checkout_session(
     success_url: str,
     cancel_url: str,
 ) -> Optional[str]:
-    """Start a subscription purchase. Returns the hosted payment page URL."""
+    """Start a subscription purchase. Returns the hosted payment page URL.
+
+    Refuses a deprecated site-count tier (§8 decision 4): those keys survive in
+    PLANS only so that payments/ and existing rows keep resolving, and nobody
+    may buy one. The charge here is the BASE FEE ONLY — module add-ons are not
+    yet wired through a provider; see the KNOWN GAP in the module docstring."""
+    if not plan_is_sellable(plan_key):
+        logger.error("billing: refused checkout for non-sellable plan %r "
+                     "(site-count tiers were replaced by base + per-module)", plan_key)
+        return None
     return get_provider().create_checkout_session(
         org_id=org_id,
         plan_key=plan_key,
