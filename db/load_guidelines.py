@@ -55,10 +55,19 @@ FOUR RULES THIS FILE EXISTS TO ENFORCE
    NULL and the only alternative to refusing is fabricating a date that
    citation_is_stale would then act on.
 
-   The consequence is severe and is the headline finding: ALL 81 CATALOGUE ROWS
-   ARE REFUSED. Not one carries an issue date. The catalogue can name a document;
-   it cannot describe an edition. Standards therefore come only from the
-   extraction files, which read the date off the cover page.
+   That was once fatal: not one of the 81 catalogue rows carried an issue date,
+   so the catalogue could name a document but never describe an edition, and it
+   contributed no standards rows at all. `data/dm_guidelines/catalogue_editions.json`
+   closes it — 80 of 81 editions read off the PDFs themselves, each with a page
+   and the printed line it came from. 67 now load; 4 remain undated and 10 have
+   no code, and both are reported rather than guessed at.
+
+   The portal date is worse than it first appeared and is still never read: 25
+   rows differ from the real issue date in the YEAR alone, and GU115's portal
+   date falls a year EARLIER than its issue date, so it is not even an upper
+   bound. Where a document's printed code disagrees with the listing, the
+   document wins — four listing codes are known wrong (GU124, GU29, GU93, GU19)
+   and GU86 prints another guideline's identity on its inner pages.
 
 4. A CODE IS NEVER DERIVED. Ten catalogue entries have a null code, and two known
    irregulars would be silently corrupted by any pattern-based guess: GU146's code
@@ -427,11 +436,31 @@ def module_key_for(path: str) -> str:
 
 
 def extraction_paths(directory: str = DATA_DIR) -> list[str]:
-    """Every extraction document, catalogue excluded — it is a different shape."""
-    return sorted(
-        p for p in glob.glob(os.path.join(directory, "*.json"))
-        if os.path.basename(p) != "catalogue.json"
-    )
+    """Every extraction document in the directory.
+
+    Selected by SHAPE rather than by an exclusion list. The first version here
+    excluded catalogue.json by name, which held only until a second differently
+    shaped file appeared — catalogue_editions.json is a bare list, and the loader
+    crashed on `doc.get("standard")` with an AttributeError that named neither
+    the file nor the reason.
+
+    An extraction document is a JSON object with a "standard" key. Anything else
+    in this directory is companion data for some other tool and is not this
+    loader's business. Silence is right here: these are not malformed documents,
+    they are simply not documents.
+    """
+    paths = []
+    for path in sorted(glob.glob(os.path.join(directory, "*.json"))):
+        try:
+            doc = read_json(path)
+        except (OSError, json.JSONDecodeError):
+            # Unreadable is a real problem and is reported where files are
+            # processed, not silently skipped here.
+            paths.append(path)
+            continue
+        if isinstance(doc, dict) and "standard" in doc:
+            paths.append(path)
+    return paths
 
 
 def read_json(path: str) -> Any:
@@ -874,22 +903,92 @@ def describe_obligations(mod_key: str, doc: dict, report: Report) -> int:
 
 # ── catalogue ────────────────────────────────────────────────────────────────
 
-def catalogue_index(entries: list[dict], report: Report) -> dict[str, dict]:
-    """Index the catalogue by code, refusing every row as a standards row.
+EDITIONS = os.path.join(DATA_DIR, "catalogue_editions.json")
 
-    Rule 3 in its most concrete form. Not one of the 81 entries carries an issue
-    date, because the DM portal publishes none — `portal_document_date` is a CMS
-    record date and is deliberately never read here. So the catalogue contributes
-    NO standards rows at all. What it can do is name a document and say what kind
-    of evidence it demands, which is enough to enrich a module whose standard came
-    from an extraction file.
+# Confidences an edition must reach before its date may drive a standards row.
+# 'medium' is admitted but flagged: the medium rows are overwhelmingly dates
+# printed numerically where both components are <= 12, which cannot be read
+# unambiguously from that document alone. That is exactly the error that fires a
+# false `citation_is_stale`, so they are surfaced as a worklist rather than
+# silently trusted — but refusing them outright would discard 13 of 80 editions
+# for a risk the report can carry instead.
+EDITION_CONFIDENCE_OK = {"high", "medium"}
+
+
+def edition_index(report: Report, path: str = EDITIONS) -> dict[str, dict]:
+    """Issue dates and versions read off the PDFs themselves, keyed by code.
+
+    Rule 3 says issued_on is never invented, and the portal publishes none — so
+    for a long while the catalogue contributed NO standards rows at all. This
+    closes that: the editions file carries `issued_on`, verbatim `version` and
+    the printed `code` taken from inside each document, with a page and a quote
+    for each, which is the only admissible source.
+
+    Missing file is not an error. It is optional enrichment, and without it the
+    loader behaves exactly as it did before.
     """
+    index: dict[str, dict] = {}
+    if not os.path.isfile(path):
+        return index
+
+    low_confidence = 0
+    for entry in read_json(path) or []:
+        code = entry.get("code")
+        if not code or not entry.get("issued_on"):
+            continue
+        if entry.get("confidence") not in EDITION_CONFIDENCE_OK:
+            low_confidence += 1
+            continue
+        index[code] = entry
+        if entry.get("confidence") == "medium":
+            report.catalogue_refusals.append((
+                code,
+                f"edition date {entry['issued_on']} recorded at MEDIUM confidence "
+                f"({entry.get('notes') or 'see catalogue_editions_notes.md'}) — "
+                "verify before this standard drives a staleness warning"))
+
+    if low_confidence:
+        report.catalogue_refusals.append((
+            f"{low_confidence} editions",
+            "issue date recorded at low confidence — not used. A wrong issue date "
+            "produces the false 'your citation is out of date' warning §7.1 says "
+            "must never reach a client."))
+    return index
+
+
+def catalogue_index(entries: list[dict], report: Report,
+                    editions: Optional[dict[str, dict]] = None) -> dict[str, dict]:
+    """Index the catalogue by code, enriched with editions where they are known.
+
+    An entry that gains an issue date, a version and a code from the editions
+    file can become a standards row; one that does not still cannot, and is
+    reported. The catalogue's own `portal_document_date` is never read — it is a
+    CMS record date, and 25 rows differ from the real issue date in the YEAR
+    alone, with at least one (GU115) landing a year EARLIER than issue, so it is
+    not even an upper bound.
+    """
+    editions = editions or {}
     by_code: dict[str, dict] = {}
     no_code = 0
+    undated = 0
     if not entries:
         return by_code
     for entry in entries:
         code = entry.get("code")
+        edition = editions.get(code) if code else None
+        if edition:
+            # The document's own printed code wins over the listing's: four
+            # listing codes are known wrong (GU124, GU29, GU93, GU19) and one
+            # document (GU86) prints another guideline's identity internally.
+            entry = {**entry, "code": edition.get("code") or code,
+                     "version": edition.get("version") or entry.get("version"),
+                     "issued_on": edition["issued_on"],
+                     "edition_confidence": edition.get("confidence"),
+                     "edition_source_page": edition.get("source_page"),
+                     "superseded_issued_on": edition.get("superseded_issued_on")}
+            code = entry["code"]
+        elif code:
+            undated += 1
         if not code:
             no_code += 1
             continue
@@ -899,12 +998,19 @@ def catalogue_index(entries: list[dict], report: Report) -> dict[str, dict]:
             continue
         by_code[code] = entry
 
-    report.catalogue_refusals.append((
-        f"{len(entries)} catalogue rows",
-        "none can become a standards row: not one carries an issue date, and "
-        "022 makes standards.issued_on NOT NULL. portal_document_date is a CMS "
-        "record date (GU44's page reads 27/07/2026 for a 2025-08-19 edition) and "
-        "must never be loaded into it (§7.11). Each needs its PDF read."))
+    dated = sum(1 for e in by_code.values() if e.get("issued_on"))
+    if dated:
+        report.catalogue_refusals.append((
+            f"{dated} of {len(entries)} catalogue rows",
+            "have an issue date recovered from inside the PDF and can become "
+            "standards rows. portal_document_date was NOT used and never is."))
+    if undated:
+        report.catalogue_refusals.append((
+            f"{undated} catalogue rows",
+            "still have no issue date, and 022 makes standards.issued_on NOT "
+            "NULL. The portal publishes none — portal_document_date is a CMS "
+            "record date (GU44's page reads 27/07/2026 for a 2025-08-19 edition, "
+            "and 25 rows differ in the year alone). Each needs its PDF read."))
     if no_code:
         report.catalogue_refusals.append((
             f"{no_code} catalogue rows",
@@ -945,7 +1051,7 @@ def load(directory: str = DATA_DIR, apply: bool = False,
 
     catalogue_path = os.path.join(directory, "catalogue.json")
     catalogue = read_json(catalogue_path) if os.path.exists(catalogue_path) else []
-    by_code = catalogue_index(catalogue, report)
+    by_code = catalogue_index(catalogue, report, edition_index(report))
 
     seen_set_keys: dict[str, str] = {}
 
