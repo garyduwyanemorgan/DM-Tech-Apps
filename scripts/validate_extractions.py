@@ -29,10 +29,13 @@ import glob
 import io
 import json
 import os
+import re
 import sys
 
+from core.console import use_utf8_stdout
+
 QUALIFIER_RULES = {"bound", "detect_fails", "unassessable"}
-SCOPES = {"lagoon", "facilities", None}
+SCOPES = {"lagoon", "facilities", "consumer_product", None}  # 026
 LANGUAGES = {"en", "ar", "both"}
 
 
@@ -106,6 +109,23 @@ def check_limit(lim: dict, where: str) -> list[Finding]:
     if lim.get("confidence") == "low":
         out.append(Finding("ADVISORY", where, "confidence low — verify before use"))
 
+    # Cross-check the display string against the bounds. 022 forbids parsing
+    # `display` to recover STRICTNESS, and that still holds — this does not do
+    # that. It only asks whether the numbers a human will read on the report are
+    # the numbers the resolver will judge against. Found in the wild: a GU81
+    # free-chlorine limit displaying "Min. 1 - 2 mg/l" while carrying max_val 10,
+    # so the report says one thing and the verdict uses another. Advisory,
+    # because a legitimate display can mention a number that is not a bound
+    # ("< 100 cfu/L at 30 °C").
+    display_nums = {float(n) for n in re.findall(r"\d+(?:\.\d+)?", str(lim.get("display") or ""))}
+    if display_nums:
+        invisible = [b for b in (mn, mx) if b is not None and float(b) not in display_nums]
+        if invisible:
+            out.append(Finding("ADVISORY", where,
+                               f"bound(s) {invisible} do not appear in display "
+                               f"{lim.get('display')!r} — the resolver would judge "
+                               "against a number the reader cannot see on the report"))
+
     # A limit marked unassessable never yields a verdict, so bounds on it are
     # decorative and usually mean it is descriptive text rather than a limit.
     if lim.get("qualifier_rule") == "unassessable" and (mn is not None or mx is not None):
@@ -163,6 +183,7 @@ def check_file(path: str) -> list[Finding]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    use_utf8_stdout()
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--file", help="validate one file instead of the whole directory")
     ap.add_argument("--blocking-only", action="store_true")

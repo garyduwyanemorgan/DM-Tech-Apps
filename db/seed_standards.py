@@ -74,6 +74,7 @@ import sys
 from datetime import date
 from typing import Any, NamedTuple, Optional
 
+from core.console import use_utf8_stdout
 from core.constants import COMPLIANCE_LIMITS
 from core.standards import KNOWN_EDITIONS
 from db.client import get_client, is_configured
@@ -563,6 +564,7 @@ def seed(verified_by: Optional[str] = None, verified_on: Optional[date] = None,
 
 
 def main(argv: Optional[list[str]] = None) -> int:
+    use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dry-run", action="store_true",
                         help="print the plan without writing.")

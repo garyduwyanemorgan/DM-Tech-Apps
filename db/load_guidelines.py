@@ -93,6 +93,8 @@ import io
 import json
 import os
 import sys
+
+from core.console import use_utf8_stdout
 from typing import Any, NamedTuple, Optional
 
 from db.client import get_client, is_configured
@@ -111,7 +113,10 @@ COMING_SOON = "coming_soon"
 # 023's vocabulary, restated so a bad value fails in Python with a readable
 # message rather than as a 23514 from PostgREST half way through a corpus.
 MODULE_KINDS_PERMITTED = {"compliance", "monitoring", "process", "delegating", "unusable"}
-SCOPES_PERMITTED = {"lagoon", "facilities", None}
+# Widened by migration 026 — GU116/GU117 govern goods placed on a market,
+# not a site under an FM contract. Kept in step with the three CHECKs 026
+# moves together (assets, asset_types, specification_sets).
+SCOPES_PERMITTED = {"lagoon", "facilities", "consumer_product", None}
 # Must match obligations_type_check in migration 025, which widened 023's four
 # values after this loader refused 25 obligations from ten real guidelines for
 # requiring ordinary FM duties — cleaning, disinfection, pest control, waste
@@ -1042,6 +1047,7 @@ def load(directory: str = DATA_DIR, apply: bool = False,
 
 
 def main(argv: Optional[list[str]] = None) -> int:
+    use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--apply", action="store_true",
                         help="actually write. WITHOUT THIS THE RUN IS A DRY RUN — "
