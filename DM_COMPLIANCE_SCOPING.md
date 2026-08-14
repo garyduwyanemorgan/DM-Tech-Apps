@@ -216,10 +216,38 @@ the existing `core/corrective.py` machine.
 > actually on the hook for, and several are the recurring duties a client would
 > most expect the product to track.
 >
-> Widen the vocabulary before Phase 1 closes. Note also that many carry their
-> trigger as prose in `cadence_note` rather than as a `trigger_event`, and that
-> prose must be promoted by a human rather than parsed — a mis-parsed trigger
-> produces a compliance deadline nobody agreed to.
+Migration 025 widens it to sixteen values, grouped by whether the duty produces
+judgeable evidence, is an operational task with only a completion record, is
+administrative, or is incident-driven. The list deliberately stops short of the
+extraction's tail — `third_party_examination_anchorage`,
+`waste_covering_at_landfill`, `subcontractor_verification` and similar are
+*descriptions of one duty in one guideline*, not types. `obligation_type` answers
+"what kind of duty", which is what a dashboard groups by and what decides whether
+§4.7's accreditation gate applies; `obligations.label` answers "which duty" and
+is NOT NULL so the specific thing is always recorded. Adding a value per document
+would grow the CHECK without bound and put categories on the dashboard with one
+member each.
+
+> **But the vocabulary was the smaller problem.** With 025 applied, the dominant
+> blocker is different and more awkward: **41 obligations state a duty with no
+> frequency at all.** The guideline says the grease trap must be cleaned, or a
+> risk assessment kept current, without saying how often — the trigger, where one
+> exists, is prose in `cadence_note`.
+>
+> 023's `obligations_cadence_check` requires exactly one of a cadence or a
+> trigger, which is correct: an obligation with neither cannot age toward overdue
+> and would sit in the registry forever looking satisfied. So these cannot be
+> loaded, and that is the constraint doing its job.
+>
+> The consequence for the product is real. **A large share of DM duties are not
+> automatically trackable from the guideline text alone** — somebody has to
+> decide the frequency, and often that decision is genuinely site-specific
+> (how often a particular kitchen needs deep cleaning depends on the kitchen).
+> So the onboarding flow needs a step where a client sets cadences for duties the
+> guideline leaves open, and the module catalogue should be honest that some
+> obligations arrive as templates requiring a local decision rather than as
+> ready-made schedules. That prose must be promoted by a human, never parsed — a
+> mis-parsed trigger produces a compliance deadline nobody agreed to.
 >
 > Add `trigger_event TEXT` and make the model explicit that an obligation is
 > *either* periodic *or* event-triggered, with a CHECK that exactly one is set —

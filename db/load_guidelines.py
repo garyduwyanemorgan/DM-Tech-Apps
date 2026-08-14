@@ -112,7 +112,29 @@ COMING_SOON = "coming_soon"
 # message rather than as a 23514 from PostgREST half way through a corpus.
 MODULE_KINDS_PERMITTED = {"compliance", "monitoring", "process", "delegating", "unusable"}
 SCOPES_PERMITTED = {"lagoon", "facilities", None}
-OBLIGATION_TYPES = {"sampling", "examination", "inspection", "competency"}
+# Must match obligations_type_check in migration 025, which widened 023's four
+# values after this loader refused 25 obligations from ten real guidelines for
+# requiring ordinary FM duties — cleaning, disinfection, pest control, waste
+# removal, maintenance. Kept in step by hand: a value permitted here but not by
+# the CHECK fails at write time with a 23514 part-way through the corpus, and one
+# permitted by the CHECK but not here is silently never loaded.
+#
+# `appeal_window` is deliberately absent from both. An obligation ages toward
+# overdue and is discharged by evidence; an appeal window is a right that expires
+# and is discharged by doing nothing. Recording it would put "overdue: appeal
+# window" in front of a client who simply chose not to appeal.
+OBLIGATION_TYPES = {
+    # produce judgeable evidence
+    "sampling", "examination", "inspection", "self_inspection", "health_screening",
+    # operational duties, evidenced by a completion record
+    "cleaning", "deep_cleaning", "disinfection", "pest_control", "waste_removal",
+    "maintenance",
+    # administrative
+    "competency", "permit_renewal", "reporting", "review", "risk_assessment",
+    "process",
+    # incident-driven; event-triggered only
+    "isolation_and_notification",
+}
 
 # Columns a human is expected to own in the database, which this loader must
 # never revert — the same discipline as seed_standards.HUMAN_OWNED, and for
@@ -827,7 +849,7 @@ def describe_obligations(mod_key: str, doc: dict, report: Report) -> int:
         if otype not in OBLIGATION_TYPES:
             report.shape_conflicts.append((
                 f"{mod_key}.obligations[{i}]",
-                f"obligation_type {otype!r} is not one 023 permits "
+                f"obligation_type {otype!r} is not one 025 permits "
                 f"({sorted(OBLIGATION_TYPES)})"))
         days = obl.get("cadence_days")
         if isinstance(days, float) and days != int(days):
