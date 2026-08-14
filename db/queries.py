@@ -1335,3 +1335,222 @@ def delete_asset_type(organization_id: str, key: str) -> bool:
         return True
     except Exception:
         return False
+
+
+# ── Obligations, module catalogue & entitlements (migrations 023 + 027) ──────
+#
+# Reads only, and NOTHING here computes a status: `obligations.status` is the
+# stored value, and the verdict a caller shows is produced by
+# core.obligations.evaluate at read time. §5 already counts eight divergent
+# verdict implementations in this repo, and a SQL one would be the ninth — and
+# the worst of them, because a status aggregated inside the database cannot be
+# re-derived later for an audit.
+
+def list_obligations(organization_id: str, site_id: str | None = None) -> list[dict]:
+    """The obligation registry for one tenant, optionally narrowed to a site.
+
+    `site_id` must already have been resolved inside the caller's organisation;
+    this filter never widens the org one. Site-less obligations (an org-wide
+    policy review, a competency) are excluded when a site filter is given —
+    they are not that site's duties.
+    """
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = (client.table("obligations").select("*")
+             .eq("organization_id", organization_id))
+        if site_id:
+            q = q.eq("site_id", site_id)
+        return (q.order("next_due_on").execute().data) or []
+    except Exception:
+        # Table absent until 023 is applied. An empty registry is the honest
+        # answer to "nothing is recorded"; it is never evidence of compliance.
+        return []
+
+
+def list_site_ids(organization_id: str) -> list[str]:
+    """Every site id in the organisation — the sites an entitlement covers."""
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        rows = (client.table("sites").select("id")
+                .eq("organization_id", organization_id).execute().data) or []
+        return [r["id"] for r in rows]
+    except Exception:
+        return []
+
+
+def site_names(organization_id: str) -> dict:
+    """{site_id: name} for labelling the obligations view without an N+1."""
+    client = get_client()
+    if not client or not organization_id:
+        return {}
+    try:
+        rows = (client.table("sites").select("id, name")
+                .eq("organization_id", organization_id).execute().data) or []
+        return {r["id"]: r["name"] for r in rows}
+    except Exception:
+        return {}
+
+
+def list_guideline_modules() -> list[dict]:
+    """The whole catalogue. Global reference data — never org-scoped (023)."""
+    client = get_client()
+    if not client:
+        return []
+    try:
+        return (client.table("guideline_modules").select("*")
+                .order("label").execute().data) or []
+    except Exception:
+        return []
+
+
+def get_guideline_module(module_id: str) -> dict | None:
+    client = get_client()
+    if not client or not module_id:
+        return None
+    try:
+        res = (client.table("guideline_modules").select("*")
+               .eq("id", module_id).execute())
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def list_module_obligations(module_id: str) -> list[dict]:
+    """The duties a module states — the templates instantiated on entitlement."""
+    client = get_client()
+    if not client or not module_id:
+        return []
+    try:
+        return (client.table("module_obligations").select("*")
+                .eq("module_id", module_id).execute().data) or []
+    except Exception:
+        return []
+
+
+def list_entitlements(organization_id: str, active_only: bool = False) -> list[dict]:
+    """A tenant's entitlements. Closed windows are history and are returned too
+    unless `active_only` — §7.5 keeps them; they record what was monitored."""
+    client = get_client()
+    if not client or not organization_id:
+        return []
+    try:
+        q = (client.table("organization_entitlements").select("*")
+             .eq("organization_id", organization_id))
+        if active_only:
+            q = q.is_("active_until", "null")
+        return (q.execute().data) or []
+    except Exception:
+        return []
+
+
+def get_entitlement(organization_id: str, entitlement_id: str) -> dict | None:
+    """One entitlement, scoped to the organisation so an id belonging to another
+    tenant can neither be read nor written through."""
+    client = get_client()
+    if not client or not organization_id or not entitlement_id:
+        return None
+    try:
+        res = (client.table("organization_entitlements").select("*")
+               .eq("id", entitlement_id)
+               .eq("organization_id", organization_id).execute())
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def find_active_entitlement(organization_id: str, module_id: str) -> dict | None:
+    """The open entitlement for a module, if there is one. 023's partial unique
+    index permits at most one, so this is the whole answer to "already ticked?"."""
+    client = get_client()
+    if not client or not organization_id or not module_id:
+        return None
+    try:
+        res = (client.table("organization_entitlements").select("*")
+               .eq("organization_id", organization_id)
+               .eq("module_id", module_id)
+               .is_("active_until", "null").execute())
+        return res.data[0] if res.data else None
+    except Exception:
+        return None
+
+
+def create_entitlement(organization_id: str, module_id: str, active_from: str,
+                       price_agreed: float | None = None,
+                       notes: str | None = None) -> dict | None:
+    """Tick a module. `active_from` is required and never defaulted — 023 has no
+    DEFAULT on it because a guessed date either backdates a commercial agreement
+    or opens a window of unmonitored time nobody can see.
+
+    Exceptions propagate deliberately: a CHECK refusal here (an unverified
+    module may not be sold) is information the caller must show, not something
+    to swallow into a None.
+    """
+    client = get_client()
+    if not client or not organization_id or not module_id:
+        return None
+    row = {"organization_id": organization_id, "module_id": module_id,
+           "active_from": active_from}
+    if price_agreed is not None:
+        row["price_agreed"] = price_agreed
+    if notes:
+        row["notes"] = notes
+    res = client.table("organization_entitlements").insert(row).execute()
+    return res.data[0] if res.data else None
+
+
+def insert_obligations(rows: list[dict]) -> list[dict]:
+    """Write instantiated obligations. The rows come from core.entitlements,
+    which computed each status through core.obligations.evaluate — this layer
+    must never substitute a status of its own."""
+    client = get_client()
+    if not client or not rows:
+        return []
+    res = client.table("obligations").insert(rows).execute()
+    return res.data or []
+
+
+def delete_entitlement_rows(entitlement_id: str, organization_id: str) -> None:
+    """Roll back a half-completed tick — the entitlement was created but its
+    obligations failed to insert. Only ever called against an entitlement
+    created moments earlier that has no obligations hanging off it, which is why
+    023's ON DELETE RESTRICT does not (and must not) block it. This is never an
+    un-tick: un-ticking sets active_until and keeps everything."""
+    client = get_client()
+    if not client:
+        return
+    (client.table("organization_entitlements").delete()
+     .eq("id", entitlement_id).eq("organization_id", organization_id).execute())
+
+
+def deactivate_entitlement(organization_id: str, entitlement_id: str,
+                           active_until: str) -> dict | None:
+    """Un-tick: close the window. NEVER a DELETE (§7.5) — monitoring stops and
+    history is retained, and 023's RESTRICT foreign keys refuse the alternative
+    anyway."""
+    client = get_client()
+    if not client or not organization_id or not entitlement_id:
+        return None
+    res = (client.table("organization_entitlements")
+           .update({"active_until": active_until})
+           .eq("id", entitlement_id)
+           .eq("organization_id", organization_id).execute())
+    return res.data[0] if res.data else None
+
+
+def suspend_obligations_for_entitlement(organization_id: str, entitlement_id: str) -> int:
+    """Mark an un-ticked entitlement's obligations `suspended`, so they stop
+    ageing while staying visible (§7.5). Deliberately not 'compliant' and
+    certainly not deleted: core.obligations.evaluate reports a suspended row as
+    not monitored, which is the truth, whereas removing it would read as a clean
+    record."""
+    client = get_client()
+    if not client or not organization_id or not entitlement_id:
+        return 0
+    res = (client.table("obligations").update({"status": "suspended"})
+           .eq("organization_id", organization_id)
+           .eq("entitlement_id", entitlement_id).execute())
+    return len(res.data or [])

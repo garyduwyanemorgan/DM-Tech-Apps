@@ -531,8 +531,15 @@ def test_a_second_edition_is_never_inserted_alongside_the_first(tmp_path):
 # ── Template obligations are reported, never loaded ──────────────────────────
 
 def test_template_obligations_are_not_written_to_the_obligations_table(tmp_path):
-    """They have no tenant, no entitlement and no compliance status to have."""
-    doc = make_doc(obligations=[{
+    """They go to module_obligations (027), never to obligations (023).
+
+    The distinction is the whole point of 027: a template has no tenant, no
+    entitlement and no compliance status to have. Writing one into `obligations`
+    would create a duty belonging to nobody that nothing could ever satisfy.
+    """
+    # module_kind is required: a template hangs off a module, so a guideline
+    # whose kind is unresolved creates neither, which is its own tested case.
+    doc = make_doc(module_kind="compliance", obligations=[{
         "obligation_type": "sampling", "cadence_months": 3, "cadence_days": None,
         "cadence_note": None, "applies_to": "All water systems",
         "source_quote": "Table (2)",
@@ -543,9 +550,11 @@ def test_template_obligations_are_not_written_to_the_obligations_table(tmp_path)
     report = loader.load(directory=str(tmp_path), apply=True, client=client)
 
     assert client.inserted("obligations") == []
-    assert report.unloadable_obligations
-    assert any("guideline_obligation_templates" in reason
-               for _, _, reason in report.unloadable_obligations)
+    written = client.inserted("module_obligations")
+    assert len(written) == 1
+    assert written[0]["cadence_months"] == 3
+    assert written[0]["self_declared_review"] is False
+    assert written[0]["label"]          # NOT NULL on 027
 
 
 def test_a_fractional_cadence_is_reported_as_a_shape_conflict():
@@ -557,14 +566,31 @@ def test_a_fractional_cadence_is_reported_as_a_shape_conflict():
     assert any("fractional" in msg for _, msg in report.shape_conflicts)
 
 
-def test_a_cadenceless_obligation_with_no_trigger_is_reported():
-    """023 requires exactly one; GU44 keeps its trigger in cadence_note prose."""
+def test_a_cadenceless_obligation_becomes_a_self_declared_review():
+    """The guideline states a duty and no frequency — 41 of these exist.
+
+    It is no longer refused: 027's self_declared_review holds it, and
+    core/obligations.py reports it as needing a cadence agreed with the client
+    rather than as either compliant or late. It is still SURFACED, because every
+    one is a conversation somebody owes the client — and because the trigger,
+    where there is one, is prose in cadence_note that a human must promote
+    rather than a parser.
+    """
     report = Report()
+    row = loader.template_row(
+        {"obligation_type": "sampling",
+         "cadence_note": "Event-triggered: due after a cleaning or disinfection."},
+        "mod-1", "std-1", "Sampling", "gu44.obligations[0]", report)
+    assert row["self_declared_review"] is True
+    assert row["cadence_months"] is None and row["cadence_days"] is None
+    assert row["trigger_event"] is None
+
+    report2 = Report()
     describe_obligations("gu44", {"obligations": [{
         "obligation_type": "sampling",
         "cadence_note": "Event-triggered: due after a cleaning or disinfection.",
-    }]}, report)
-    assert any("obligations_cadence_check" in msg for _, msg in report.shape_conflicts)
+    }]}, report2)
+    assert any("self-declared review" in msg for _, msg in report2.shape_conflicts)
 
 
 def test_examination_requirements_are_reported_not_loaded(tmp_path):

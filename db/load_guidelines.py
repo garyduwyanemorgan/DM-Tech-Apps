@@ -773,7 +773,9 @@ def module_row(mod_key: str, standard_id: Optional[str], std: dict,
 
 
 def upsert_module(client, row: dict, dry_run: bool, apply_updates: bool,
-                  report: Report) -> None:
+                  report: Report) -> Optional[str]:
+    """Create or update the module row. Returns its id, which 027's
+    module_obligations need in order to hang templates off it."""
     key = row["key"]
     existing = (client.table("guideline_modules")
                 .select("id,key,label,category,module_kind,status,provenance,"
@@ -796,16 +798,17 @@ def upsert_module(client, row: dict, dry_run: bool, apply_updates: bool,
         else:
             print(f"  module {key} DIFFERS in: {', '.join(changes)} — not written "
                   "(use --apply-updates)")
-        return
+        return current["id"]
 
     if dry_run:
         print(f"  [dry-run] would insert module {key} "
               f"({row['module_kind']}, {row['status']}/{row['provenance']})")
-        return
+        return None
 
-    _write(client, "guideline_modules", refuse_to_sell(row), None)
+    created = _write(client, "guideline_modules", refuse_to_sell(row), None)
     report.bump("guideline_modules inserted")
     print(f"  inserted module {key} ({row['module_kind']}, coming_soon/unverified)")
+    return created.get("id")
 
 
 # ── obligations and examinations: reported, not loaded ───────────────────────
@@ -855,28 +858,156 @@ def upsert_module(client, row: dict, dry_run: bool, apply_updates: bool,
 #     satisfy a CHECK constraint is exactly the guessing this file refuses.
 #     (The *_certificates.json files DO carry trigger_event properly.)
 
+def obligation_label(obl: dict, index: int, taken: set[str]) -> str:
+    """A label unique within the module. NOT NULL on module_obligations.
+
+    The extraction files carry no label — they were written before 027 — so one
+    is derived from what they do carry, preferring the most specific. Uniqueness
+    matters because UNIQUE (module_id, label) is what stops a re-run inserting a
+    second copy of the same duty.
+    """
+    base = (obl.get("key") or obl.get("applies_to")
+            or obl.get("display") or obl.get("obligation_type") or "obligation")
+    base = " ".join(str(base).split())[:120].strip() or "obligation"
+    label = base
+    n = 2
+    while label in taken:
+        label = f"{base} ({n})"
+        n += 1
+    taken.add(label)
+    return label
+
+
+def template_row(obl: dict, module_id: Optional[str], standard_id: Optional[str],
+                 label: str, where: str, report: Report) -> Optional[dict]:
+    """One module_obligations row, or None with the reason recorded."""
+    otype = obl.get("obligation_type")
+    if otype not in OBLIGATION_TYPES:
+        report.shape_conflicts.append((
+            where, f"obligation_type {otype!r} is not one 025 permits "
+                   f"({sorted(OBLIGATION_TYPES)})"))
+        return None
+
+    days = obl.get("cadence_days")
+    months = obl.get("cadence_months")
+    if isinstance(days, float) and days != int(days):
+        report.shape_conflicts.append((
+            where, f"cadence_days {days} is fractional; the column is INTEGER > 0. "
+                   "Rounding it would under-report a sub-daily obligation."))
+        return None
+    if months is not None and days is not None:
+        report.shape_conflicts.append((
+            where, "both cadence_months and cadence_days set — 027 permits one."))
+        return None
+
+    trigger = (obl.get("trigger_event") or "").strip() or None
+
+    # The three modes 027's CHECK enforces. The third is the important one: a
+    # duty the guideline states without a frequency is NOT an extraction failure
+    # and is no longer refused. It becomes a self-declared review, which
+    # core/obligations.py reports as needing a cadence agreed with the client
+    # rather than as either compliant or late. Any trigger wording sitting in
+    # cadence_note stays prose — promoting it is a human act, because a
+    # mis-parsed trigger is a deadline nobody agreed to.
+    self_declared = months is None and days is None and trigger is None
+
+    return {
+        "module_id": module_id,
+        "standard_id": standard_id,
+        "obligation_type": otype,
+        "label": label,
+        "applies_to": obl.get("applies_to"),
+        "cadence_months": int(months) if months is not None else None,
+        "cadence_days": int(days) if days is not None else None,
+        "trigger_event": trigger,
+        "self_declared_review": self_declared,
+        "source_page": obl.get("source_page"),
+        "source_quote": obl.get("source_quote") or obl.get("cadence_note"),
+        "confidence": obl.get("confidence"),
+    }
+
+
+def upsert_templates(client, mod_key: str, doc: dict, module_id: Optional[str],
+                     standard_id: Optional[str], dry_run: bool,
+                     apply_updates: bool, report: Report) -> int:
+    """Load the guideline's stated duties into module_obligations (027)."""
+    obligations = list(doc.get("obligations") or [])
+    examinations = list(doc.get("examinations") or [])
+    total = len(obligations) + len(examinations)
+    if not total:
+        return 0
+
+    if module_id is None and not dry_run:
+        # No module means no module_kind was resolvable, and a template must hang
+        # off a module. Reported rather than orphaned.
+        report.unloadable_obligations.append((
+            mod_key, total,
+            "no module row exists for this guideline, and module_obligations "
+            "requires one. State its module_kind (§7.12) and re-run."))
+        return 0
+
+    if examinations:
+        # §4.4's examinations carry certificate_validity_months, which 023 records
+        # on the certificate (valid_until), not on the obligation. 027 has no
+        # column for it, so loading them here would silently drop the field that
+        # makes a certificate expire.
+        report.unloadable_obligations.append((
+            mod_key, len(examinations),
+            "examination requirements carry certificate_validity_months, which "
+            "023 records on the certificate (valid_until) and 027 has no column "
+            "for. Loading them here would drop the field that makes a "
+            "certificate expire. Phase 3 work."))
+
+    existing: dict[str, dict] = {}
+    if module_id and not dry_run:
+        res = (client.table("module_obligations")
+               .select("id,module_id,standard_id,obligation_type,label,applies_to,"
+                       "cadence_months,cadence_days,trigger_event,"
+                       "self_declared_review,source_page,source_quote,confidence")
+               .eq("module_id", module_id).execute())
+        existing = {r["label"]: r for r in (res.data or [])}
+
+    taken: set[str] = set(existing)
+    loaded = 0
+    for i, obl in enumerate(obligations):
+        label = obligation_label(obl, i, taken)
+        row = template_row(obl, module_id, standard_id, label,
+                           f"{mod_key}.obligations[{i}]", report)
+        if row is None:
+            continue
+
+        if dry_run:
+            loaded += 1
+            continue
+
+        current = existing.get(label)
+        if current is None:
+            _write(client, "module_obligations", row, None)
+            report.bump("module obligations inserted")
+            loaded += 1
+            continue
+
+        changes = drifted_columns("module_obligations", current, row)
+        if changes and apply_updates:
+            _write(client, "module_obligations", row, current["id"])
+            report.bump("module obligations updated")
+        elif changes:
+            report.shape_conflicts.append((
+                f"{mod_key}.{label}",
+                f"differs from the extraction in: {', '.join(changes)} — not "
+                "written. Re-run with --apply-updates to overwrite."))
+        loaded += 1
+
+    return loaded
+
+
 def describe_obligations(mod_key: str, doc: dict, report: Report) -> int:
-    """Record the template obligations as a worklist. Writes nothing. Returns count."""
+    """Shape checks only, for the dry-run worklist. Writes nothing."""
     obligations = doc.get("obligations") or []
     examinations = doc.get("examinations") or []
     total = len(obligations) + len(examinations)
     if not total:
         return 0
-
-    if obligations:
-        report.unloadable_obligations.append((
-            mod_key, len(obligations),
-            "template obligations — no organization_id, entitlement_id, status or "
-            "label exists for them (see the comment in db/load_guidelines.py). "
-            "They need a guideline_obligation_templates table, not 023.obligations."
-        ))
-    if examinations:
-        report.unloadable_obligations.append((
-            mod_key, len(examinations),
-            "examination requirements — same reason. They additionally describe "
-            "certificate_validity_months, which 023 records on the certificate "
-            "(valid_until), not on the obligation, so the template table needs it."
-        ))
 
     for i, obl in enumerate(obligations):
         otype = obl.get("obligation_type")
@@ -893,11 +1024,17 @@ def describe_obligations(mod_key: str, doc: dict, report: Report) -> int:
                 "Rounding it would under-report a sub-daily obligation."))
         if (obl.get("cadence_months") is None and days is None
                 and not obl.get("trigger_event")):
+            # No longer a refusal. 027's self_declared_review is exactly this
+            # case, and core/obligations.py reports such a duty as needing a
+            # cadence agreed with the client rather than as compliant or late.
+            # Still surfaced, because every one is a conversation somebody owes
+            # the client — and because the trigger, where there is one, is prose
+            # in cadence_note that a human must promote rather than a parser.
             report.shape_conflicts.append((
                 f"{mod_key}.obligations[{i}]",
-                "no cadence and no trigger_event — 023's obligations_cadence_check "
-                "requires exactly one. Any trigger is in cadence_note as prose and "
-                "must be promoted by a human, not parsed."))
+                "the guideline states this duty and no frequency — loaded as a "
+                "self-declared review. A cadence must be agreed with the client "
+                "before it can be tracked."))
     return total
 
 
@@ -1138,11 +1275,17 @@ def load(directory: str = DATA_DIR, apply: bool = False,
                 "document may not have (§7.12). Read the document and state it."))
         else:
             cat_type = (cat or {}).get("evidence_type")
-            upsert_module(
+            module_id = upsert_module(
                 client,
                 module_row(mod_key, std_id, doc.get("standard") or {}, kind,
                            None if cat_type == "unknown" else cat_type),
                 dry_run, apply_updates, report)
+
+            # 027: the guideline's stated duties, hung off the module. Only
+            # reachable when a module exists, because a template with no module
+            # belongs to nothing.
+            upsert_templates(client, mod_key, doc, module_id, std_id,
+                             dry_run, apply_updates, report)
 
         describe_obligations(mod_key, doc, report)
 
