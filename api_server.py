@@ -132,19 +132,51 @@ def _admin_notify_email() -> str:
     return secret("admin", "notify_email").lower()
 
 
-def _clerk_jwks_url() -> str:
-    """Derive the per-instance JWKS URL from the Clerk publishable key."""
+def _clerk_frontend_api_domain() -> str:
+    """The Clerk Frontend API host encoded in the publishable key, or "".
+
+    A pk_ key is `pk_<instance>_<base64 of "domain$">`. That domain is both where
+    the instance publishes its JWKS and what it puts in the `iss` claim, so
+    deriving both from this one function keeps them describing the same instance —
+    a token can never be verified against instance A's keys while being accepted
+    for instance B's issuer.
+    """
     import base64
     try:
         pk = _clerk_publishable_key()
         if pk.startswith("pk_"):
             b64 = pk.split("_", 2)[2]
             b64 += "=" * (4 - len(b64) % 4)
-            domain = base64.b64decode(b64).decode().rstrip("$")
-            return f"https://{domain}/.well-known/jwks.json"
+            return base64.b64decode(b64).decode().rstrip("$")
     except Exception:
         pass
-    return "https://api.clerk.com/v1/jwks"
+    return ""
+
+
+def _clerk_jwks_url() -> str:
+    """Derive the per-instance JWKS URL from the Clerk publishable key."""
+    domain = _clerk_frontend_api_domain()
+    return f"https://{domain}/.well-known/jwks.json" if domain else "https://api.clerk.com/v1/jwks"
+
+
+def _clerk_issuer() -> str:
+    """The `iss` value tokens from our instance carry, or "" if underivable."""
+    domain = _clerk_frontend_api_domain()
+    return f"https://{domain}" if domain else ""
+
+
+def _clerk_authorized_parties() -> set[str]:
+    """Origins allowed in a token's `azp` claim, from CLERK_AUTHORIZED_PARTIES.
+
+    Clerk sets `azp` to the origin the session token was minted for. Without a
+    list, a token issued to any *other* app on the same Clerk instance verifies
+    here perfectly well — same keys, same issuer — so a user of a sibling app
+    could replay their token against this API. The allow-list is what stops that.
+
+    Comma-separated, e.g. "https://app.gdm-enviro.com,http://localhost:5173".
+    """
+    raw = secret("clerk", "authorized_parties")
+    return {p.strip() for p in raw.split(",") if p.strip()}
 
 
 def get_user_from_token(token: str | None) -> dict | None:
@@ -180,14 +212,38 @@ def get_user_from_token(token: str | None) -> dict | None:
                 return None
         public_key = RSAAlgorithm.from_jwk(_json.dumps(key_data))
         # leeway tolerates clock skew on Clerk's short-lived tokens (exp/nbf/iat);
-        # Clerk's own backend SDKs allow ~60s. Skip aud/iss checks (not set by default).
+        # Clerk's own backend SDKs allow ~60s. `aud` stays unverified because Clerk
+        # does not set it on default session tokens; `iss` and `azp` below are the
+        # checks that actually bind the token to this instance and this app.
+        issuer = _clerk_issuer()
+        # An unparseable publishable key means we are already falling back to the
+        # generic api.clerk.com JWKS and cannot say which instance is legitimate.
+        # Passing issuer="" there would reject every token, so verification stays
+        # where it was (JWKS-only) rather than taking the whole API down over a
+        # misconfigured key. A real deployment always has a pk_ key.
         payload = pyjwt.decode(
             token,
             public_key,
             algorithms=["RS256"],
             leeway=60,
-            options={"verify_aud": False},
+            issuer=issuer or None,
+            options={"verify_aud": False, "verify_iss": bool(issuer)},
         )
+
+        allowed_parties = _clerk_authorized_parties()
+        if allowed_parties:
+            azp = payload.get("azp")
+            # A token with no azp cannot be shown to belong to this app, so a
+            # deliberately configured allow-list rejects it too — silently letting
+            # it through would make the list decorative for exactly the tokens an
+            # attacker controls the shape of.
+            if azp not in allowed_parties:
+                print(f"[clerk-auth] azp not in allow-list: {azp!r}", file=sys.stderr)
+                return None
+        # Empty list = fail open: CLERK_AUTHORIZED_PARTIES is unset on a fresh
+        # local checkout and on any deployment predating this check, and locking
+        # those out is a worse failure than the LOW-severity replay it prevents.
+        # The issuer check above still holds in that case.
         return {
             "id": payload["sub"],
             "email": payload.get("email", ""),
@@ -889,6 +945,21 @@ def put_user_sites(user_id: str, body: SiteAssignmentRequest,
     return {"updated": True, "user_id": user_id, "message": msg}
 
 
+# M3: one wording for every "this address is spoken for somewhere we will not name"
+# refusal. Our market is FM contractors bidding against each other, so any message
+# that distinguishes "exists elsewhere on the platform" from "does not exist" turns
+# /users/invite into a staff-list oracle: probe an address, read the 409. Both the
+# database collision and Clerk's own duplicate-identifier error return this string,
+# because two different wordings for the same condition are the same oracle.
+_INVITE_REFUSED_DETAIL = "This address cannot be invited."
+
+# Clerk error codes/messages that mean "an account or invitation already exists for
+# this identifier". Matched loosely: a Clerk wording change must fail closed (generic
+# refusal) rather than leak the identifier's status through the 502 detail.
+_CLERK_DUPLICATE_MARKERS = ("form_identifier_exists", "duplicate", "already exists",
+                            "already been invited", "taken")
+
+
 def _require_clerk_secret_key() -> str:
     """Resolve the Clerk secret key, refusing when it targets a different instance
     than the one we verify logins against.
@@ -944,9 +1015,20 @@ def _create_clerk_invitation(email: str, role: str, org_id: str | None, redirect
     )
     if r.status_code not in (200, 201):
         try:
-            msg = r.json()["errors"][0]["message"]
+            err = r.json()["errors"][0]
+            msg = err.get("message") or ""
+            code = err.get("code") or ""
         except Exception:
-            msg = r.text[:200]
+            msg, code = r.text[:200], ""
+        # M3: Clerk knows about every account on the instance, across all tenants, so
+        # echoing its error back is the same disclosure as an unscoped database check
+        # by another route — "duplicate email address" confirms the address exists on
+        # a competitor's roster just as effectively. Collapse that case to the generic
+        # refusal; unrelated Clerk failures still surface verbatim, since they are
+        # about our configuration and say nothing about the invitee.
+        probe = f"{code} {msg}".lower()
+        if any(m in probe for m in _CLERK_DUPLICATE_MARKERS):
+            raise HTTPException(status_code=409, detail=_INVITE_REFUSED_DETAIL)
         raise HTTPException(status_code=502, detail=f"Clerk invitation failed: {msg}")
     return r.json()["id"]
 
@@ -977,18 +1059,60 @@ def invite_user(body: InviteRequest, request: Request, profile: dict = Depends(g
     # sign-up flow (falls back to the API's own base URL if no Origin header).
     origin = request.headers.get("origin") or str(request.base_url)
     redirect_url = origin.rstrip("/") + "/"
+    def _audit(outcome: str, target_id: str = "", **extra):
+        # The invitee has no profile id until the insert succeeds, so refusals are
+        # keyed on the address. Identifiers and role only — never the invitation token.
+        audit_emit("user.invite", actor_user_id=profile.get("user_id"),
+                   actor_role=profile.get("role"), organization_id=org_id,
+                   outcome=outcome, target_type="user", target_id=target_id or email,
+                   role=body.role, email=email, **extra)
+
     try:
-        existing = client.table("user_profiles").select("id").eq("email", email).execute()
+        # M3: scoped to the caller's own organisation. An in-org collision is the
+        # caller's own roster — they can already list it via GET /users — so naming
+        # the address back discloses nothing and keeps the error actionable.
+        existing = (client.table("user_profiles").select("id")
+                    .eq("email", email).eq("organization_id", org_id).execute())
         if existing.data:
             raise HTTPException(status_code=409, detail=f"{email} is already invited or registered.")
-        invitation_id = _create_clerk_invitation(email, body.role, org_id, redirect_url)
+        # Cross-tenant collision. We must still refuse, and separately must not say why.
+        #
+        # Why refuse: get_user_profile's email fallback links a pending profile by
+        # email alone (`.is_("clerk_id","null")`) and takes res.data[0] — with two
+        # pending rows for one address in different organisations, whichever row the
+        # database happens to return first decides which tenant that person lands in.
+        # Inserting here would make org assignment on sign-in arbitrary, i.e. a
+        # cross-tenant data-placement bug, so a refusal is the safe answer.
+        #
+        # Why generic: naming the address would confirm it belongs to someone on the
+        # platform. Genuine multi-org membership (one person contracting for two FM
+        # companies) is a real case this blocks, but it needs a proper membership
+        # model — profiles keyed by (user, organisation) rather than one row per
+        # email — which is out of scope here. Do not paper over it by inserting.
+        elsewhere = client.table("user_profiles").select("id").eq("email", email).execute()
+        if elsewhere.data:
+            # Audited so enumeration attempts leave a trail even though the caller is
+            # told nothing: a burst of these from one actor is the attack signature.
+            _audit("denied", reason="email_registered_in_another_organisation")
+            raise HTTPException(status_code=409, detail=_INVITE_REFUSED_DETAIL)
+        try:
+            invitation_id = _create_clerk_invitation(email, body.role, org_id, redirect_url)
+        except HTTPException as exc:
+            # Clerk saw a duplicate the database did not (e.g. an account created
+            # outside this app). Same refusal, same trail.
+            if exc.status_code == 409:
+                _audit("denied", reason="clerk_identifier_exists")
+            raise
+        profile_id = str(_uuid.uuid4())
         client.table("user_profiles").insert({
-            "id": str(_uuid.uuid4()),
+            "id": profile_id,
             "organization_id": org_id,
             "role": body.role,
             "email": email,
             "clerk_id": None,  # linked on first sign-in via the email fallback
         }).execute()
+        # Account creation was the only user-management action with no audit trail.
+        _audit("success", target_id=profile_id, invitation_id=invitation_id)
         return {
             "invited": True,
             "email": email,
@@ -2613,10 +2737,65 @@ class EntitlementCreate(BaseModel):
         description=("YYYY-MM-DD override for the first due date. Omitted means "
                      "TODAY — a newly entitled module has no evidence on file yet, "
                      "so its duties are outstanding now. Overriding this is a claim "
-                     "about the past and should be recorded in `notes`."),
+                     "about the past, so it must not be in the future and it must "
+                     "be justified in `notes` (both enforced, see _bounded_date)."),
     )
-    price_agreed: float | None = Field(None, ge=0, description="NULL = list price")
-    notes: str | None = None
+    # NUMERIC(12,2) in 023:352. Without an upper bound, 1e15 reaches PostgREST and
+    # comes back as an unhandled numeric-overflow exception — create_entitlement
+    # propagates by design (db/queries.py:1488-1502) and this endpoint does not
+    # wrap it — so the caller sees a 500 for what is a bad request. le= makes
+    # pydantic answer 422 before the row is ever built. 10 digits + 2 decimals is
+    # the largest value the column can hold.
+    price_agreed: float | None = Field(None, ge=0, le=9_999_999_999.99,
+                                       description="NULL = list price")
+    # TEXT in 023, i.e. unbounded at the database. This is the justification for a
+    # first_due_on override, not a document store; a cap keeps an audited field
+    # readable and keeps an unbounded body off the write path.
+    notes: str | None = Field(None, max_length=2000)
+
+
+# How far either entitlement date may sit from today. Both windows are
+# deliberately generous — the point is to catch a typo or an abuse, not to
+# second-guess a commercial agreement.
+_BACKDATE_LIMIT_DAYS = 3650   # ten years: older than any plausible FM contract here
+_FORWARD_LIMIT_DAYS = 365     # a contract may start next quarter; not next decade
+# A first_due_on override asserts the duty was already discharged before signup.
+# Requiring a substantive sentence (not "." or "ok") is the only thing that makes
+# the claim reviewable afterwards, since nothing else evidences it.
+_OVERRIDE_NOTE_MIN = 10
+
+
+def _bounded_date(value: str, field: str, *, today: date,
+                  earliest_days: int = _BACKDATE_LIMIT_DAYS,
+                  latest_days: int = _FORWARD_LIMIT_DAYS) -> date:
+    """Parse an entitlement date and refuse one outside a plausible window.
+
+    §7.5 is usually discussed as the un-tick threat: stop monitoring a duty you
+    are late on. The create path is the same threat wearing a different hat, and
+    it is quieter. `first_due_on` flows to core/entitlements.py:84-88, which sets
+    `next_due_on` and hence the status core/obligations.py computes — so a
+    first_due_on of 2035-01-01 makes every periodic obligation in the module read
+    `compliant` from the moment it is created, with no warning block, no
+    `no_longer_monitored` list and nothing on the face of the record to notice.
+
+    Parsing alone never caught that: a far-future date is a perfectly valid date.
+    So the range is checked here, and the caller (the endpoint) decides which
+    window each field gets.
+    """
+    from datetime import timedelta
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        raise HTTPException(status_code=422, detail=f"{field} must be a YYYY-MM-DD date.")
+    if parsed < today - timedelta(days=earliest_days):
+        raise HTTPException(
+            status_code=422,
+            detail=f"{field} cannot be more than {earliest_days // 365} years in the past.")
+    if parsed > today + timedelta(days=latest_days):
+        raise HTTPException(
+            status_code=422,
+            detail=f"{field} cannot be more than {latest_days} days in the future.")
+    return parsed
 
 
 def _as_of(value: str | None) -> date:
@@ -2881,11 +3060,26 @@ def create_entitlement_endpoint(body: EntitlementCreate, response: Response,
     org_id = profile.get("organization_id")
     if not org_id:
         raise HTTPException(status_code=400, detail="No organization associated with this account.")
-    try:
-        active_from = date.fromisoformat(body.active_from)
-        first_due = date.fromisoformat(body.first_due_on) if body.first_due_on else None
-    except ValueError:
-        raise HTTPException(status_code=422, detail="Dates must be YYYY-MM-DD.")
+    today = date.today()
+    # active_from may legitimately be forward-dated — a contract starting next
+    # quarter — so it keeps the default window. first_due_on may not: its own
+    # field description calls it "a claim about the past", and a future value is
+    # not a claim about anything, it is a period of unmonitored time that reads
+    # as compliant. latest_days=0 is that sentence in code.
+    active_from = _bounded_date(body.active_from, "active_from", today=today)
+    first_due = (_bounded_date(body.first_due_on, "first_due_on", today=today, latest_days=0)
+                 if body.first_due_on else None)
+    # Nothing else evidences the override — no certificate, no sample, no prior
+    # obligation row (there are none yet, that is the point). The note is the
+    # entire audit trail for "they were already sampling before they signed up",
+    # so it is mandatory and must say something.
+    if first_due is not None and len((body.notes or "").strip()) < _OVERRIDE_NOTE_MIN:
+        raise HTTPException(
+            status_code=422,
+            detail=("first_due_on backdates when this module's duties first fall due, "
+                    "which is a claim about evidence that predates the entitlement. "
+                    "Record what it is based on in `notes` (at least "
+                    f"{_OVERRIDE_NOTE_MIN} characters)."))
 
     from db.queries import (create_entitlement, delete_entitlement_rows,
                             find_active_entitlement, get_guideline_module,
@@ -2905,7 +3099,6 @@ def create_entitlement_endpoint(body: EntitlementCreate, response: Response,
         raise HTTPException(status_code=409,
                             detail="This organisation is already entitled to that module.")
 
-    today = date.today()
     templates = list_module_obligations(body.module_id)
     sites = _validated_sites(body.site_ids, org_id)
 
@@ -2952,10 +3145,30 @@ def create_entitlement_endpoint(body: EntitlementCreate, response: Response,
                             detail=f"Obligations could not be created, so the entitlement was "
                                    f"rolled back: {exc}")
 
+    # The fields below are the ones that decide whether a duty is ever monitored,
+    # so they belong in the record of the decision. `module_id` and a count do not
+    # distinguish "ticked GU44 across eleven sites, due now" from "ticked GU44 on
+    # one site with everything already claimed as discharged" — and the second is
+    # the §7.5 threat arriving through the create path. DELETE /entitlements
+    # already records active_until and the suspended count; this matches it.
+    #
+    # All identifiers, dates and one price — no tokens, no secrets, no request
+    # body — so within core/audit.py's stated policy (core/audit.py:10-12). `notes`
+    # itself is free text and is recorded as present/absent rather than copied,
+    # since its value already lives on the entitlement row.
     audit_emit("entitlement.create", actor_user_id=profile.get("user_id"),
                actor_role=profile.get("role"), organization_id=org_id,
                target_type="entitlement", target_id=entitlement["id"],
-               module_id=body.module_id, obligations_created=len(created))
+               module_id=body.module_id, obligations_created=len(created),
+               active_from=active_from.isoformat(),
+               first_due_on=first_due.isoformat() if first_due else None,
+               first_due_on_overridden=first_due is not None,
+               site_ids=[s for s in sites if s],
+               site_count=len([s for s in sites if s]),
+               all_sites=body.site_ids is None,
+               price_agreed=body.price_agreed,
+               notes_provided=bool((body.notes or "").strip()),
+               confirm=body.confirm)
     return _created(response, {
         "created": True,
         "entitlement": entitlement,
