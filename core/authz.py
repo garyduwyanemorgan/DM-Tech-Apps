@@ -48,6 +48,7 @@ PERMISSIONS: FrozenSet[str] = frozenset({
     "users.read", "users.invite", "users.role.assign",
     "users.executive.assign", "users.sites.assign", "users.remove",
     "billing.read", "billing.manage",
+    "entitlements.manage",
     "organization.configure", "audit.read", "permissions.configure",
     "demo.activate",
 })
@@ -103,6 +104,18 @@ _SUPER_ADMIN: FrozenSet[str] = (
         "organization.configure", "permissions.configure",
         # Starting the org's one-month demo is an org-level commitment.
         "demo.activate",
+        # Ticking and un-ticking guideline modules. Executive Management only,
+        # matching the RLS on organization_entitlements in migration 023 — and
+        # the API layer is where it actually bites, because the backend runs as
+        # service_role and bypasses RLS entirely.
+        #
+        # The reason is not the money. Ticking a module RAISES the client's bill,
+        # which is self-limiting. Un-ticking is the dangerous direction: it stops
+        # monitoring (§7.5), so a manager sitting on overdue Legionella duties
+        # could make them stop being tracked. History is retained either way, so
+        # the act is auditable — but it should not be available to the person
+        # most likely to want it.
+        "entitlements.manage",
     })
 )
 

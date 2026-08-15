@@ -46,6 +46,13 @@ SITE_A = "site-a"
 SITE_B = "site-b"
 
 
+def _exec_profile(org: str | None = ORG) -> dict:
+    """Executive Management. Entitlement changes require entitlements.manage,
+    which only super_admin holds — see test_only_executive_management_can_untick.
+    Kept separate from _profile so the read tests keep exercising `admin`."""
+    return _profile(role="super_admin", org=org)
+
+
 def _profile(role: str = "admin", org: str | None = ORG) -> dict:
     return {"user_id": "clerk-1", "role": role, "organization_id": org, "token": None}
 
@@ -423,7 +430,7 @@ def test_price_is_hidden_from_roles_that_cannot_see_billing(db):
 
 # ── POST /api/entitlements — plan first, then write ──────────────────────────
 
-def _tick(module_id="mod-sellable", confirm=False, role="admin", org=ORG, **over):
+def _tick(module_id="mod-sellable", confirm=False, role="super_admin", org=ORG, **over):
     body = api_server.EntitlementCreate(
         module_id=module_id, active_from="2026-08-15", confirm=confirm, **over)
     response = FakeResponse()
@@ -540,7 +547,7 @@ def test_active_from_is_required_and_never_guessed():
 def test_dates_must_be_dates(db):
     body = api_server.EntitlementCreate(module_id="mod-sellable", active_from="15/08/2026")
     with pytest.raises(HTTPException) as exc:
-        api_server.create_entitlement_endpoint(body, FakeResponse(), profile=_profile())
+        api_server.create_entitlement_endpoint(body, FakeResponse(), profile=_exec_profile())
     assert exc.value.status_code == 422
 
 
@@ -556,7 +563,7 @@ def test_operational_roles_cannot_tick_a_module(db):
 
 def test_unticking_closes_the_window_and_suspends_without_deleting(db):
     out = api_server.deactivate_entitlement_endpoint("ent-1", active_until="2026-08-31",
-                                                     profile=_profile())
+                                                     profile=_exec_profile())
     assert out["deactivated"] is True
     assert out["entitlement"]["active_until"] == "2026-08-31"
     assert out["obligations_deleted"] == 0
@@ -569,7 +576,7 @@ def test_unticking_closes_the_window_and_suspends_without_deleting(db):
 def test_unticking_names_what_stops_being_monitored(db):
     """§7.5 requires an explicit warning about what stops being tracked. A count
     alone does not tell a client which duty just went dark."""
-    out = api_server.deactivate_entitlement_endpoint("ent-1", profile=_profile())
+    out = api_server.deactivate_entitlement_endpoint("ent-1", profile=_exec_profile())
     listed = out["no_longer_monitored"]
     # Every duty is named individually, with the date it was next due — that is
     # what tells a client which gap has just gone dark.
@@ -580,36 +587,55 @@ def test_unticking_names_what_stops_being_monitored(db):
 
 
 def test_a_suspended_registry_still_reads_as_suspended_not_compliant(db):
-    api_server.deactivate_entitlement_endpoint("ent-1", profile=_profile())
-    out = api_server.obligations_summary_endpoint(as_of=TODAY.isoformat(), profile=_profile())
+    api_server.deactivate_entitlement_endpoint("ent-1", profile=_exec_profile())
+    out = api_server.obligations_summary_endpoint(as_of=TODAY.isoformat(), profile=_exec_profile())
     assert out["totals"]["suspended"] == len(REGISTRY)
     assert out["totals"]["compliant"] == 0
 
 
 def test_unticking_another_tenants_entitlement_is_a_404(db):
     with pytest.raises(HTTPException) as exc:
-        api_server.deactivate_entitlement_endpoint("ent-1", profile=_profile(org=OTHER_ORG))
+        api_server.deactivate_entitlement_endpoint("ent-1", profile=_exec_profile(org=OTHER_ORG))
     assert exc.value.status_code == 404
     assert all(o["status"] != "suspended" or o["label"] == "suspended"
                for o in db["obligations"])
 
 
 def test_unticking_twice_is_refused(db):
-    api_server.deactivate_entitlement_endpoint("ent-1", profile=_profile())
+    api_server.deactivate_entitlement_endpoint("ent-1", profile=_exec_profile())
     with pytest.raises(HTTPException) as exc:
-        api_server.deactivate_entitlement_endpoint("ent-1", profile=_profile())
+        api_server.deactivate_entitlement_endpoint("ent-1", profile=_exec_profile())
     assert exc.value.status_code == 409
 
 
 def test_the_window_cannot_close_before_it_opened(db):
     with pytest.raises(HTTPException) as exc:
         api_server.deactivate_entitlement_endpoint("ent-1", active_until="2025-01-01",
-                                                   profile=_profile())
+                                                   profile=_exec_profile())
     assert exc.value.status_code == 422
 
 
-def test_operational_roles_cannot_untick(db):
-    for role in ("operator", "auditor"):
+def test_only_executive_management_can_untick(db):
+    """entitlements.manage is super_admin only, and ADMIN is the point.
+
+    Ticking a module raises the client's bill, which is self-limiting. Un-ticking
+    is the dangerous direction: it stops monitoring (§7.5), so a manager sitting
+    on overdue duties could make them stop being tracked. History is retained
+    either way, so the act is auditable — but it must not be available to the
+    person most likely to want it.
+
+    This also has to be enforced HERE. 023's RLS says the same thing, but the
+    backend runs as service_role and bypasses RLS, so the API layer is the only
+    real gate.
+    """
+    for role in ("operator", "auditor", "admin"):
         with pytest.raises(HTTPException) as exc:
             api_server.deactivate_entitlement_endpoint("ent-1", profile=_profile(role=role))
         assert exc.value.status_code == 403, role
+
+
+def test_an_admin_cannot_tick_either(db):
+    """Both directions, so nobody rebinds one and forgets the other."""
+    with pytest.raises(HTTPException) as exc:
+        _tick(confirm=True, role="admin")
+    assert exc.value.status_code == 403

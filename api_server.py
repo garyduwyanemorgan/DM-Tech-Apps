@@ -2876,8 +2876,8 @@ def create_entitlement_endpoint(body: EntitlementCreate, response: Response,
     `needs_cadence_agreed` count is the number of conversations somebody still
     has to have with the client.
     """
-    _ensure_permission(profile, "billing.manage",
-                       detail="Only Managers and Executive Management can change entitlements.")
+    _ensure_permission(profile, "entitlements.manage",
+                       detail="Only Executive Management can change entitlements.")
     org_id = profile.get("organization_id")
     if not org_id:
         raise HTTPException(status_code=400, detail="No organization associated with this account.")
@@ -2981,8 +2981,8 @@ def deactivate_entitlement_endpoint(entitlement_id: str, active_until: str | Non
     as "not monitored, and history retained" — deliberately not `compliant`, which
     would turn a commercial decision into a clean compliance record.
     """
-    _ensure_permission(profile, "billing.manage",
-                       detail="Only Managers and Executive Management can change entitlements.",
+    _ensure_permission(profile, "entitlements.manage",
+                       detail="Only Executive Management can change entitlements.",
                        target_type="entitlement", target_id=entitlement_id)
     org_id = profile.get("organization_id")
     if not org_id:

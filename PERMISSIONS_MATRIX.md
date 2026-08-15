@@ -124,6 +124,7 @@ These stable permission keys can replace scattered role-name checks. Roles shoul
 | `users.remove` | Remove organization membership |
 | `billing.read` | View subscription and usage |
 | `billing.manage` | Purchase, change, or cancel a subscription |
+| `entitlements.manage` | Tick or un-tick a guideline module — **Executive Management only** |
 | `organization.configure` | Manage organization and business-unit structure |
 | `audit.read` | View security and operational audit events |
 | `permissions.configure` | Maintain custom role bundles, if enabled later |
@@ -149,3 +150,31 @@ Every authorization decision should combine an atomic permission with an effecti
 4. Add corrective-action, inventory, asset configuration, and audit-log data models before exposing their permissions.
 5. Add immutable audit events for destructive actions, role changes, report approval, stock adjustments, and billing changes.
 6. Align frontend visibility with backend authorization, but treat the backend as the source of truth.
+
+## `entitlements.manage` — why it is not `billing.manage`
+
+Ticking a guideline module changes two things at once: what the client is
+charged, and what the platform monitors them against. Those two have very
+different risk profiles, which is why this is its own permission and why it sits
+with Executive Management rather than with Managers.
+
+**Ticking is self-limiting.** It raises the bill. Nobody grants themselves a
+module they do not want to pay for.
+
+**Un-ticking is the dangerous direction.** It stops monitoring. A manager sitting
+on overdue Legionella sampling could make those duties stop being tracked, and
+the compliance dashboard would go quiet — not because the risk was addressed, but
+because the watch was switched off. `DM_COMPLIANCE_SCOPING.md` §7.5 requires that
+history is retained and that the client is warned explicitly about what stops
+being tracked, so the act is auditable after the fact. This permission is what
+makes it hard to perform in the first place.
+
+**It has to be enforced at the API layer.** Migration 023 restricts writes on
+`organization_entitlements` to super_admin in RLS, but the backend connects as
+`service_role`, which bypasses RLS entirely. The permission check in
+`api_server.py` is therefore the only real gate, and the RLS policy is a second
+line of defence for any future client that connects with a user JWT.
+
+Enforced on both `POST /api/entitlements` and `DELETE /api/entitlements/{id}` —
+both directions, so nobody rebinds one and forgets the other. Pinned by
+`test_only_executive_management_can_untick` and `test_an_admin_cannot_tick_either`.
