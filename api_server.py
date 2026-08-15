@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 # Make core/, db/, data/ importable regardless of working directory
@@ -44,6 +44,11 @@ from core.scope import ALL_SITES, resolve_site_scope
 from core.calculations import check_all_compliance, compliance_summary
 from core.config import secret
 from core.constants import ALERT_LABELS, MONTH_NAMES, TREATMENT_ACTIONS, AlertLevel
+# The ageing engine (§4.3) and the entitlement→obligation function (§4.5),
+# imported under names that say what they are at the call site. Both are pure and
+# take `today` as a parameter; nothing in this file re-implements either.
+from core.entitlements import instantiate_all, plan_summary
+from core.obligations import evaluate as obligation_status, summarise as summarise_obligations
 from core.models import WaterReading
 from core.version import get_version, get_version_info
 
@@ -2567,6 +2572,466 @@ def science_interventions():
              "description": iv.description}
             for iv in DIGITAL_TWIN_INTERVENTIONS.values()
         ]
+    }
+
+
+# ── Obligations, module catalogue & entitlements (Phase 1 — §4.3, §4.5) ──────
+#
+# Phase 1 promises "an Obligations view (due / due soon / overdue per site) and a
+# module catalogue with entitlement ticking" (§6). These endpoints are that view.
+#
+# THE ONE RULE THIS SECTION EXISTS TO KEEP. No status is computed here, and none
+# is computed in SQL. Every verdict comes from core.obligations.evaluate, which
+# is pure and takes `today` as a parameter so a report re-rendered next year
+# reproduces this year's answer. §5 counts eight divergent verdict
+# implementations already in this repo; a ninth living in an endpoint — where it
+# could never be unit-tested against a fixed date — would be the worst of them.
+#
+# AND THE SECOND. `needs_attention` is never folded into `overdue`. "You are
+# late" and "we cannot tell whether you are late" are different conversations,
+# and merging them lets a configuration gap hide inside a compliance figure. Both
+# are reported, separately, everywhere.
+
+class EntitlementCreate(BaseModel):
+    module_id: str = Field(..., description="guideline_modules.id to tick")
+    active_from: str = Field(
+        ...,
+        description=("YYYY-MM-DD — when monitoring and billing begin. Required, "
+                     "never defaulted: 023 has no DEFAULT on this column because "
+                     "a guessed date either backdates a commercial agreement or "
+                     "opens a window of unmonitored time nobody can see."),
+    )
+    confirm: bool = Field(
+        False,
+        description=("false (the default) returns the PLAN and writes nothing; "
+                     "true creates the entitlement and its obligations."),
+    )
+    site_ids: list[str] | None = Field(
+        None, description="Sites to instantiate against. Omitted = every site in the org.")
+    first_due_on: str | None = Field(
+        None,
+        description=("YYYY-MM-DD override for the first due date. Omitted means "
+                     "TODAY — a newly entitled module has no evidence on file yet, "
+                     "so its duties are outstanding now. Overriding this is a claim "
+                     "about the past and should be recorded in `notes`."),
+    )
+    price_agreed: float | None = Field(None, ge=0, description="NULL = list price")
+    notes: str | None = None
+
+
+def _as_of(value: str | None) -> date:
+    """The date a registry is aged against. A parameter, never date.today() alone,
+    so an obligations view can be reproduced for an audit exactly as it read on
+    the day — the same discipline core/obligations.py enforces on itself."""
+    if not value:
+        return date.today()
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="as_of must be a YYYY-MM-DD date.")
+
+
+def _obligation_view(row: dict, today: date, names: dict) -> dict:
+    """One obligation, aged. The verdict is computed here at read time, never read
+    out of the `status` column — a stored status is only as fresh as the last job
+    that wrote it, and a stale 'compliant' is the exact misstatement §4.3 exists
+    to prevent. Both are returned: a disagreement between them is a real finding
+    (the ageing sweep has not run), not something to hide."""
+    verdict = obligation_status(row, today)
+    return {
+        **row,
+        "site_name": names.get(row.get("site_id")),
+        "status": verdict.status,
+        "stored_status": row.get("status"),
+        "kind": verdict.kind,
+        "reason": verdict.reason,
+        "days_until_due": verdict.days_until_due,
+        "needs_attention": verdict.needs_attention,
+    }
+
+
+def _resolve_site_filter(site_id: str | None, profile: dict) -> str | None:
+    """A site id from the query string, validated against the caller's own org and
+    site scope. Never trusted as given: an unchecked id would read another
+    tenant's registry, and `obligations` is the single most damaging table here to
+    leak — it is a map of where a contractor is exposed."""
+    if not site_id:
+        return None
+    from db.queries import list_site_ids
+    if site_id not in list_site_ids(profile.get("organization_id")):
+        raise HTTPException(status_code=404, detail="Site not found in your organisation.")
+    scope = _effective_site_ids(profile)
+    if scope != ALL_SITES and site_id not in scope:
+        raise HTTPException(status_code=403, detail="That site is outside your assigned scope.")
+    return site_id
+
+
+def _in_scope(rows: list[dict], profile: dict) -> list[dict]:
+    """Narrow to the caller's effective site scope (a no-op while
+    SCOPE_ENFORCEMENT is off). Site-less obligations — an org-wide policy review,
+    a competency — belong to the organisation and are kept for everyone in it."""
+    scope = _effective_site_ids(profile)
+    if scope == ALL_SITES:
+        return rows
+    return [r for r in rows if not r.get("site_id") or r["site_id"] in scope]
+
+
+@app.get("/obligations", tags=["Obligations"])
+def list_obligations_endpoint(site_id: str | None = None, as_of: str | None = None,
+                              profile: dict = Depends(get_current_user_profile)):
+    """The obligation registry for the caller's organisation (§4.3).
+
+    Each row carries its computed status, kind, reason and days_until_due, plus a
+    summary block over the same rows. `as_of` ages the registry at a given date
+    instead of today, so an audit can reproduce what the view said on the day.
+    """
+    _ensure_permission(profile, "reports.read",
+                       detail="Your role cannot view the obligation registry.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        return {"obligations": [], "summary": summarise_obligations([], date.today()),
+                "as_of": date.today().isoformat()}
+    today = _as_of(as_of)
+    site = _resolve_site_filter(site_id, profile)
+    from db.queries import list_obligations, site_names
+    rows = _in_scope(list_obligations(org_id, site_id=site), profile)
+    names = site_names(org_id)
+    return {
+        "as_of": today.isoformat(),
+        "site_id": site,
+        "obligations": [_obligation_view(r, today, names) for r in rows],
+        # summarise() counts needs_attention separately and never folds it into
+        # overdue — see core/obligations.py. Passed through unchanged.
+        "summary": summarise_obligations(rows, today),
+    }
+
+
+@app.get("/obligations/summary", tags=["Obligations"])
+def obligations_summary_endpoint(as_of: str | None = None,
+                                 profile: dict = Depends(get_current_user_profile)):
+    """Counts per site: compliant / due_soon / overdue / suspended, and
+    `needs_attention` SEPARATELY.
+
+    needs_attention is not a fifth status and is not a subset of overdue — it is
+    the count of obligations whose ageing cannot be trusted (a periodic duty that
+    was never scheduled, a duty whose guideline states no frequency). Adding it
+    into overdue would inflate a lateness figure with configuration gaps; hiding
+    it would let those gaps read as a clean record. Both figures are given.
+    """
+    _ensure_permission(profile, "reports.read",
+                       detail="Your role cannot view the obligation registry.")
+    org_id = profile.get("organization_id")
+    today = _as_of(as_of)
+    if not org_id:
+        return {"as_of": today.isoformat(), "by_site": [],
+                "totals": summarise_obligations([], today)}
+    from db.queries import list_obligations, site_names
+    rows = _in_scope(list_obligations(org_id), profile)
+    names = site_names(org_id)
+
+    grouped: dict = {}
+    for row in rows:
+        grouped.setdefault(row.get("site_id"), []).append(row)
+
+    by_site = []
+    for sid, site_rows in grouped.items():
+        by_site.append({
+            "site_id": sid,
+            # A site-less obligation is a duty of the organisation, not of a site
+            # with a missing name. Labelled rather than dropped: dropping it would
+            # remove competency and policy duties from every per-site total and
+            # make the portfolio figure quietly smaller than the truth.
+            "site_name": names.get(sid) if sid else "Organisation-wide",
+            **summarise_obligations(site_rows, today),
+        })
+    by_site.sort(key=lambda s: (s["site_name"] or "").lower())
+    return {"as_of": today.isoformat(), "by_site": by_site,
+            "totals": summarise_obligations(rows, today)}
+
+
+def _module_view(module: dict, entitlements: dict, profile: dict) -> dict:
+    """One catalogue row, with this organisation's entitlement to it.
+
+    `sellable` is not a UI hint. 023 refuses status='available' unless
+    provenance='verified' (nobody may sell a module whose limits nobody has read
+    against the published DM PDF) and refuses it outright for module_kind
+    'unusable'. Saying WHY a module cannot be ticked is more useful than a
+    disabled checkbox with no explanation.
+    """
+    ent = entitlements.get(module["id"])
+    row = {
+        "id": module["id"],
+        "key": module.get("key"),
+        "label": module.get("label"),
+        "category": module.get("category"),
+        "standard_id": module.get("standard_id"),
+        # §7.12 — what a report is permitted to CLAIM for this module. Only
+        # 'compliance' may produce a verdict at all; the other kinds are sellable
+        # but are not the same product, and a report claiming compliance against
+        # a guideline that sets no limit is a misrepresentation to a regulator.
+        "module_kind": module.get("module_kind"),
+        "obligation_type": module.get("obligation_type"),
+        "status": module.get("status"),
+        "provenance": module.get("provenance"),
+        "notes": module.get("notes"),
+        "entitled": bool(ent and not ent.get("active_until")),
+        "entitlement_id": ent.get("id") if ent else None,
+        "active_from": ent.get("active_from") if ent else None,
+        "active_until": ent.get("active_until") if ent else None,
+        "sellable": module.get("status") == "available",
+        "not_sellable_reason": _not_sellable_reason(module),
+    }
+    # Price is commercial data, hidden from operational roles exactly as
+    # inventory cost is (_strip_financial).
+    if has_permission(profile.get("role"), "billing.read"):
+        row["list_price_monthly"] = module.get("list_price_monthly")
+        row["currency"] = module.get("currency")
+    return row
+
+
+def _not_sellable_reason(module: dict) -> str | None:
+    """Why 023 would refuse to sell this module, in words, or None if it would not."""
+    if module.get("status") == "available":
+        return None
+    if module.get("module_kind") == "unusable":
+        return ("The guideline contradicts itself and cannot be delivered as a "
+                "module — there is nothing a report could truthfully say (§7.12).")
+    if module.get("status") == "retired":
+        return "Retired. Existing entitlements and their history are unaffected (§7.5)."
+    if module.get("provenance") != "verified":
+        return ("Not yet verified: nobody has read the published DM document against "
+                "this module's content, and 023 refuses to put an unverified module "
+                "on sale (§7.1). Verification is editorial work, not a code change.")
+    return "Not yet released for sale."
+
+
+@app.get("/modules", tags=["Obligations"])
+def list_modules_endpoint(profile: dict = Depends(get_current_user_profile)):
+    """The module catalogue (§4.5): every guideline module with its kind, status,
+    provenance, and whether THIS organisation is entitled to it.
+
+    The catalogue is global reference data — the same rows for every tenant. What
+    differs per tenant is the entitlement flag, which is why the two are joined
+    here rather than in the table.
+    """
+    _ensure_permission(profile, "reports.read", detail="Your role cannot view the catalogue.")
+    from db.queries import list_entitlements, list_guideline_modules
+    modules = list_guideline_modules()
+    org_id = profile.get("organization_id")
+    # Newest window per module wins the flag; a closed one leaves `entitled`
+    # false while still showing the history (§7.5).
+    ents: dict = {}
+    for e in list_entitlements(org_id) if org_id else []:
+        current = ents.get(e["module_id"])
+        if current is None or not e.get("active_until"):
+            ents[e["module_id"]] = e
+    rows = [_module_view(m, ents, profile) for m in modules]
+    return {
+        "modules": rows,
+        "entitled_count": sum(1 for r in rows if r["entitled"]),
+        "sellable_count": sum(1 for r in rows if r["sellable"]),
+    }
+
+
+def _validated_sites(body_site_ids: list | None, org_id: str) -> list:
+    """The sites an entitlement will cover, every one of them proven to belong to
+    this organisation. A site id posted from outside the tenant must never reach
+    an obligation row — 023's composite foreign key would not catch it, because
+    site_id is not part of that key."""
+    from db.queries import list_site_ids
+    owned = list_site_ids(org_id)
+    if body_site_ids is None:
+        # No sites yet is not an error: a site-less obligation (a competency, an
+        # org-wide policy review) is expressible, and core.entitlements uses
+        # (None,) for exactly that.
+        return owned or [None]
+    unknown = [s for s in body_site_ids if s not in owned]
+    if unknown:
+        raise HTTPException(status_code=404,
+                            detail=f"Unknown site(s) for your organisation: {', '.join(unknown)}")
+    return body_site_ids or [None]
+
+
+def _created(response: Response, payload: dict) -> dict:
+    """201 for the write path; the plan path leaves the default 200. One endpoint
+    answers two questions, and the status code says which one it answered."""
+    response.status_code = 201
+    return payload
+
+
+@app.post("/entitlements", tags=["Obligations"])
+def create_entitlement_endpoint(body: EntitlementCreate, response: Response,
+                                profile: dict = Depends(get_current_user_profile)):
+    """Tick a module (§4.5) — PLAN FIRST, then write.
+
+    `confirm: false` (the default) returns what ticking WOULD create and writes
+    nothing. `confirm: true` creates the entitlement and instantiates its
+    obligations, and returns what it created.
+
+    The two-step is not ceremony. Ticking one module instantiates one obligation
+    per (template, site), so a contractor with eleven sites can acquire dozens of
+    immediately-overdue duties in one click — which is the correct outcome, since
+    no evidence exists for any of them yet, and an alarming one to meet by
+    surprise. core.entitlements.plan_summary exists to say so beforehand, and its
+    `needs_cadence_agreed` count is the number of conversations somebody still
+    has to have with the client.
+    """
+    _ensure_permission(profile, "billing.manage",
+                       detail="Only Managers and Executive Management can change entitlements.")
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+    try:
+        active_from = date.fromisoformat(body.active_from)
+        first_due = date.fromisoformat(body.first_due_on) if body.first_due_on else None
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Dates must be YYYY-MM-DD.")
+
+    from db.queries import (create_entitlement, delete_entitlement_rows,
+                            find_active_entitlement, get_guideline_module,
+                            insert_obligations, list_module_obligations)
+    module = get_guideline_module(body.module_id)
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found in the catalogue.")
+
+    # 023's guideline_modules_verified_to_sell_check. Refusing here rather than
+    # letting the insert fail turns a Postgres constraint message into an answer:
+    # the module is not on sale, and why. Every module currently loaded is
+    # coming_soon/unverified, so this legitimately refuses everything today.
+    if module.get("status") != "available":
+        raise HTTPException(status_code=409, detail=_not_sellable_reason(module))
+
+    if find_active_entitlement(org_id, body.module_id):
+        raise HTTPException(status_code=409,
+                            detail="This organisation is already entitled to that module.")
+
+    today = date.today()
+    templates = list_module_obligations(body.module_id)
+    sites = _validated_sites(body.site_ids, org_id)
+
+    # The plan is built from an UNSAVED entitlement so nothing is written to
+    # produce it. instantiate_all computes each status through
+    # core.obligations.evaluate; nothing here picks one.
+    provisional = {"id": None, "organization_id": org_id}
+    preview = instantiate_all(templates, provisional, today,
+                              site_ids=sites, first_due_on=first_due)
+    plan = plan_summary(preview, today)
+    plan_block = {
+        "module": {"id": module["id"], "key": module.get("key"),
+                   "label": module.get("label"), "module_kind": module.get("module_kind")},
+        "sites": len([s for s in sites if s]),
+        "obligations": plan,
+        "warning": (
+            f"{plan['due_immediately']} of {plan['total']} obligation(s) are due or "
+            f"overdue the moment this is ticked — no evidence exists for them yet. "
+            f"{plan['needs_cadence_agreed']} state a duty with no frequency and need a "
+            f"cadence agreed with the client before they can be tracked."
+        ) if plan["total"] else "This module states no obligations to instantiate.",
+    }
+
+    if not body.confirm:
+        return {"created": False, "plan": plan_block,
+                "message": "Nothing was written. Re-post with confirm=true to tick this module."}
+
+    entitlement = create_entitlement(org_id, body.module_id, active_from.isoformat(),
+                                     price_agreed=body.price_agreed, notes=body.notes)
+    if not entitlement:
+        raise HTTPException(status_code=500, detail="Could not create the entitlement.")
+
+    rows = instantiate_all(templates, entitlement, today,
+                           site_ids=sites, first_due_on=first_due)
+    try:
+        created = insert_obligations(rows)
+    except Exception as exc:
+        # An entitlement with no obligations is a client paying for silence
+        # (023's header). Undo it rather than leave that state behind — this is
+        # the one moment the entitlement is provably obligation-free, so RESTRICT
+        # cannot object.
+        delete_entitlement_rows(entitlement["id"], org_id)
+        raise HTTPException(status_code=400,
+                            detail=f"Obligations could not be created, so the entitlement was "
+                                   f"rolled back: {exc}")
+
+    audit_emit("entitlement.create", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="entitlement", target_id=entitlement["id"],
+               module_id=body.module_id, obligations_created=len(created))
+    return _created(response, {
+        "created": True,
+        "entitlement": entitlement,
+        "plan": plan_block,
+        "obligations_created": len(created),
+        "obligations": created,
+    })
+
+
+@app.delete("/entitlements/{entitlement_id}", tags=["Obligations"])
+def deactivate_entitlement_endpoint(entitlement_id: str, active_until: str | None = None,
+                                    profile: dict = Depends(get_current_user_profile)):
+    """Un-tick a module (§7.5). Closes the entitlement window and suspends its
+    obligations. NOTHING IS DELETED.
+
+    Despite the HTTP verb this is not a destructive operation and cannot be made
+    into one: obligations and their evidence are retained, and 023's ON DELETE
+    RESTRICT foreign keys would refuse a real delete anyway. A regulator asking
+    in 2028 what was tested in 2026 must get the same answer whether or not the
+    module is still on the invoice.
+
+    The obligations move to `suspended`, which core.obligations.evaluate reports
+    as "not monitored, and history retained" — deliberately not `compliant`, which
+    would turn a commercial decision into a clean compliance record.
+    """
+    _ensure_permission(profile, "billing.manage",
+                       detail="Only Managers and Executive Management can change entitlements.",
+                       target_type="entitlement", target_id=entitlement_id)
+    org_id = profile.get("organization_id")
+    if not org_id:
+        raise HTTPException(status_code=400, detail="No organization associated with this account.")
+    try:
+        closes_on = date.fromisoformat(active_until) if active_until else date.today()
+    except ValueError:
+        raise HTTPException(status_code=422, detail="active_until must be a YYYY-MM-DD date.")
+
+    from db.queries import (deactivate_entitlement, get_entitlement, list_obligations,
+                            suspend_obligations_for_entitlement)
+    entitlement = get_entitlement(org_id, entitlement_id)
+    if not entitlement:
+        raise HTTPException(status_code=404, detail="Entitlement not found in your organisation.")
+    if entitlement.get("active_until"):
+        raise HTTPException(status_code=409,
+                            detail=f"Already inactive since {entitlement['active_until']}.")
+    if date.fromisoformat(str(entitlement["active_from"])) > closes_on:
+        raise HTTPException(status_code=422,
+                            detail="active_until cannot be before the entitlement's active_from.")
+
+    affected = [o for o in list_obligations(org_id)
+                if o.get("entitlement_id") == entitlement_id]
+    updated = deactivate_entitlement(org_id, entitlement_id, closes_on.isoformat())
+    if not updated:
+        raise HTTPException(status_code=500, detail="Could not deactivate the entitlement.")
+    suspended = suspend_obligations_for_entitlement(org_id, entitlement_id)
+
+    audit_emit("entitlement.deactivate", actor_user_id=profile.get("user_id"),
+               actor_role=profile.get("role"), organization_id=org_id,
+               target_type="entitlement", target_id=entitlement_id,
+               active_until=closes_on.isoformat(), obligations_suspended=suspended)
+    return {
+        "deactivated": True,
+        "entitlement": updated,
+        "obligations_suspended": suspended,
+        "obligations_deleted": 0,
+        # §7.5 requires an explicit warning about what stops being tracked, by
+        # name — a count alone does not tell a client which duty went dark.
+        "no_longer_monitored": [
+            {"id": o["id"], "label": o.get("label"), "site_id": o.get("site_id"),
+             "next_due_on": o.get("next_due_on")}
+            for o in affected
+        ],
+        "message": (
+            f"Monitoring stopped for {len(affected)} obligation(s). Nothing was deleted: "
+            f"every obligation, sample and certificate is retained and remains visible "
+            f"as suspended (§7.5)."
+        ),
     }
 
 
