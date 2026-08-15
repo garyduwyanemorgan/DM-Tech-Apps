@@ -366,10 +366,24 @@ def delete_site(site_name: str, organization_id: str | None = None, token: str |
         count_res = client.table("readings").select("id", count="exact").eq("site_id", site_id).execute()
         reading_count = count_res.count or 0
 
-        # Delete readings
+        # Delete readings for THIS site only.
+        #
+        # There used to be a second statement here deleting by site_name with no
+        # site_id and no organisation predicate, to "cover legacy rows stored by
+        # site_name only". It deleted every tenant's readings for any site of the
+        # same name — and site names collide constantly ("Main Plant", "Site 1").
+        #
+        # It was not even reaching only legacy rows: insert_reading writes
+        # site_name on EVERY row, so the statement matched current data across the
+        # whole platform. RLS would have caught it; the backend runs as
+        # service_role and bypasses RLS, so nothing did.
+        #
+        # `readings` has no organization_id column — tenancy lives only in
+        # site_id — so a name-based delete cannot be made tenant-safe. Genuinely
+        # orphaned rows with a NULL site_id need a deliberate, audited cleanup
+        # that identifies them by organisation first, not a blind name match
+        # riding along with an ordinary site deletion.
         client.table("readings").delete().eq("site_id", site_id).execute()
-        # Also cover legacy rows stored by site_name only
-        client.table("readings").delete().eq("site_name", site_name).execute()
 
         # Delete predictions (table may not exist — silently ignore)
         try:

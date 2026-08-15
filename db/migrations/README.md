@@ -31,7 +31,7 @@ Apply in this order, in the Supabase SQL editor:
 1. `db/migrations/000_base.sql` — `readings`, `predictions`, `deployment_identity`
 2. `db/schema.sql` — `organizations`, `sites`, adds `site_id` to both
 3. `db/schema_rls.sql` — `user_profiles`, `get_user_organization()`, `get_user_role()`, policies
-4. `db/migrations/001` … `023` in numeric order
+4. `db/migrations/001` … `028` in numeric order
 5. `python -m db.seed_standards --dry-run`, then without the flag
 
 **000 refuses to run against a database that already has `readings` or
@@ -101,6 +101,11 @@ header before running it.
 | 021 | `021_lab_samples_asset_type.sql` | `lab_samples.asset_type` |
 | 022 | `022_standards_specifications.sql` | `standards`, `specification_sets`, `spec_limits` |
 | 023 | `023_obligations_entitlements.sql` | `laboratories`, `guideline_modules`, `organization_entitlements`, `obligations`, `certificates` |
+| 024 | `024_checklists_risk_assessments.sql` | `severity_scales`, `checklist_templates`, `checklist_items`, `inspections`, `inspection_findings`, `risk_assessments` |
+| 025 | `025_obligation_types.sql` | Widens `obligations.obligation_type` to the full corpus vocabulary |
+| 026 | `026_consumer_product_scope.sql` | Adds `consumer_product` to the scope CHECKs |
+| 027 | `027_module_obligations.sql` | `module_obligations` — the duties a guideline states, plus `obligations.module_obligation_id` |
+| 028 | `028_people_credentials.sql` | `people_credentials`, `credential_prerequisites`, `coverage_requirements`, `credential_valid_on()`, `credential_covers()` |
 
 Two files share the `002` and `006` prefixes. They are independent of each
 other, so either order within the pair is fine.
@@ -110,7 +115,10 @@ other, so either order within the pair is fine.
 Apply the `_down` files in **reverse** numeric order. Read the one you intend to
 run first: several are lossy by design and say so in their header. `023_down`
 destroys entitlements, obligations and certificate evidence with no way back —
-export before running it. `019_down`
+export before running it. `028_down` is worse in kind rather than in degree: it
+destroys credential records about **named individuals**, including the reasons
+credentials were revoked, and the prerequisite graph whose loss makes every
+derived expiry read afterwards as the scheme's full ceiling. `019_down`
 cannot restore `report_types.scope` as `NOT NULL`, and `018_down` discards the
 governing-standard columns (the citations survive inside `raw_extraction`, which
 016 makes immutable, but they stop being queryable).
