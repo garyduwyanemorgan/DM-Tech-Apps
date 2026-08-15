@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from core.constants import COMPLIANCE_LIMITS, MONTH_NAMES
+from core.specs import NON_COMPLIANT, judge, lagoon_spec_set
 from data.provider import get_monthly_readings, get_monthly_table
 from ui.components import page_header, section_header
 
@@ -37,32 +38,49 @@ def render():
         "Temp (°C)": raw["water_temp"],
     })
 
+    # Column header -> parameter key. This view showed six of the ten parameters
+    # and still does; a parameter that is not judged agrees with everything, so
+    # widening the table is a product decision, not a side effect of this change.
+    _COLUMN_PARAM = {
+        "DO (mg/L)": "do",
+        "TSS (mg/L)": "tss",
+        "Turbidity (NTU)": "turbidity",
+        "COD (mg/L)": "cod",
+        "Ammonia (mg/L)": "ammonia",
+        "Phosphate (mg/L)": "phosphate",
+    }
+    _spec = lagoon_spec_set()
+
     def highlight_risk(val, col):
-        limits = {
-            "DO (mg/L)": (4.0, "lower"),
-            "TSS (mg/L)": (50, "upper"),
-            "Turbidity (NTU)": (75, "upper"),
-            "COD (mg/L)": (50, "upper"),
-            "Ammonia (mg/L)": (5.0, "upper"),
-            "Phosphate (mg/L)": (5.0, "upper"),
-        }
-        if col not in limits:
+        """Red on a breach, amber when approaching one.
+
+        The breach test used to be a private copy of the limits — the third of
+        the eight verdict implementations DM_COMPLIANCE_SCOPING.md §5 catalogues.
+        Its values and operators matched the canonical ones, so routing it through
+        core/specs.py changes no cell's colour; it removes the copy that would
+        eventually have drifted.
+
+        The AMBER band is deliberately left as it was: 0.8x an upper limit, 1.2x
+        a lower one. It is a fourth risk-band scheme (§5), and unifying the bands
+        is a separate decision that changes what users see. This change is about
+        where the BREACH comes from, and nothing else.
+        """
+        key = _COLUMN_PARAM.get(col)
+        if key is None:
             return ""
-        lim, direction = limits[col]
         try:
             v = float(val)
         except (ValueError, TypeError):
             return ""
-        if direction == "upper":
-            if v >= lim:
-                return "background-color: #FFC7CE; color: #9C0006"
-            if v >= lim * 0.8:
-                return "background-color: #FFEB9C; color: #856404"
-        else:
-            if v <= lim:
-                return "background-color: #FFC7CE; color: #9C0006"
-            if v <= lim * 1.2:
-                return "background-color: #FFEB9C; color: #856404"
+
+        if judge(v, _spec, parameter_key=key) == NON_COMPLIANT:
+            return "background-color: #FFC7CE; color: #9C0006"
+
+        lim = _spec.limits[key]
+        if lim.max_val is not None and v >= lim.max_val * 0.8:
+            return "background-color: #FFEB9C; color: #856404"
+        if lim.min_val is not None and v <= lim.min_val * 1.2:
+            return "background-color: #FFEB9C; color: #856404"
         return ""
 
     styled = df.style.hide(axis="index")

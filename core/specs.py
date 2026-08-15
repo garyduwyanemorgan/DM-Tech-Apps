@@ -515,3 +515,46 @@ def _judge_qualified(limit: SpecLimit, value: Optional[float],
     # An unrecognised qualifier is not a licence to ignore it and judge the bare
     # number: whatever it meant, it modified the value.
     return NOT_ASSESSED
+
+
+# ── The built-in lagoon set, without a database ──────────────────────────────
+
+def lagoon_spec_set() -> SpecSet:
+    """The ten lagoon limits as a SpecSet, built from core/constants.py.
+
+    The seeded `lagoon_dm_water` row in the database is generated from exactly
+    these two structures, so this and a database read produce the same verdicts —
+    `tests/test_specs_integration.py` asserts that against real rows.
+
+    It exists so that in-process callers — the alert engine, the Streamlit
+    monitoring view — can judge through this module instead of keeping their own
+    copy of the limits. §5 records eight divergent verdict implementations in this
+    repo; retiring them needs a way to reach the resolver without a round trip,
+    and this is it.
+
+    NOT a fallback for a failed database read. A caller that should be using the
+    org's own specification set must not quietly fall back to the built-in one —
+    that is §7.4's confident wrong verdict, arriving by a different route.
+    """
+    from core.constants import BOUND_RULES, COMPLIANCE_LIMITS
+
+    limits: dict[str, SpecLimit] = {}
+    for key, lim in COMPLIANCE_LIMITS.items():
+        rule = BOUND_RULES[key]
+        limits[key] = SpecLimit(
+            parameter_key=key,
+            parameter_label=lim.parameter,
+            unit=lim.unit,
+            min_val=lim.min_val,
+            max_val=lim.max_val,
+            min_inclusive=rule.min_inclusive,
+            max_inclusive=rule.max_inclusive,
+            display=lim.display,
+            qualifier_rule=rule.qualifier_rule,
+        )
+    return SpecSet(
+        key="lagoon_dm_water",
+        label="DM Lagoon Water Quality",
+        applies_to_scope="lagoon",
+        limits=limits,
+    )

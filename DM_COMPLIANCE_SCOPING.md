@@ -497,7 +497,35 @@ seeder reads it directly.
 > Step 2 is therefore a consolidation, not a swap. Sequence it as: land the
 > resolver, prove parity against `check_compliance` over a value grid for all ten
 > parameters *at exactly the bound*, then retire the copies one at a time behind
-> that parity test. The data half of that proof already exists in
+> that parity test.
+>
+> **Progress: two of the three Python copies are retired.**
+> `core/alert_engine.py` and `ui/monitoring.py` now judge through
+> `core/specs.py::lagoon_spec_set()`, which builds the built-in set from
+> `core/constants.py` without a database — so a limit corrected in one place
+> reaches every in-process caller. `BOUND_RULES` moved from `db/seed_standards.py`
+> into `core/constants.py` for the same reason: it is domain data, and runtime
+> code must not import from `db/`.
+>
+> Both were verified by differential runs against the retired implementations —
+> 632 readings for the alert engine, 210 cells for the monitoring view — rather
+> than by trusting that the values matched. The alert engine's differential
+> earned its keep: verdicts and precedence were identical, but the *wording* had
+> drifted, because `SpecLimit` carries the limit's real unit while the old
+> messages used shorter ones (pH gained "pH Units", E. coli became "CFU/100mL").
+> That is the failure mode of a consolidation — the logic is right and the output
+> changes underneath somebody. `tests/test_alert_breach_wording.py` now pins every
+> string.
+>
+> Deliberately NOT changed in the same pass: `ui/monitoring.py`'s amber band
+> (0.8x / 1.2x) is a fourth risk-band scheme, and unifying the bands changes what
+> users see. This pass changed only where the *breach* comes from.
+>
+> Remaining: `core/calculations.py` stays as the canonical implementation and the
+> parity reference. The three TypeScript engines and `ingestion/gates.py`'s
+> printed-spec path are separate — the first flip verdicts and need the owner's
+> decision (`frontend/VERDICT_DIVERGENCE.md`), the second is intentionally a
+> second opinion under §8 decision 6. The data half of that proof already exists in
 > `tests/test_seed_standards.py`, written before the resolver so that it
 > constrains the resolver rather than agreeing with it by construction.
 

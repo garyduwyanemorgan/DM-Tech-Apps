@@ -5,7 +5,7 @@ Zero UI dependencies — pure data.
 """
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
 # ── Dubai Municipality Water Quality Standards ──
 
@@ -29,6 +29,74 @@ COMPLIANCE_LIMITS: Dict[str, ComplianceLimit] = {
     "ecoli":            ComplianceLimit("E. coli",             "CFU/100mL",  None, 200,  "< 200"),
     "total_coliforms":  ComplianceLimit("Total Coliforms",     "CFU/100mL",  None, 1000, "< 1000"),
 }
+
+
+# ── Bound strictness and qualifier handling ───────────────────────────────────
+# COMPLIANCE_LIMITS above cannot express two things migration 022 requires:
+# whether a bound itself passes, and how a non-numeric laboratory result is
+# judged. It stores ("do", 4.0, None, "> 4.0"), so the operator survives only
+# inside the display string — which 022 forbids parsing back.
+#
+# This lived in db/seed_standards.py until the verdict consolidation. It is
+# domain data, not seeding logic: core/specs.py and core/alert_engine.py need it
+# at runtime, and runtime code must not import from db/. The seeder is a
+# consumer of this, not its owner.
+
+class BoundRule(NamedTuple):
+    """The strictness and qualifier handling COMPLIANCE_LIMITS cannot express."""
+    min_inclusive: bool
+    max_inclusive: bool
+    qualifier_rule: str
+    evidence: str
+
+
+# An inert flag — one describing a bound that is NULL — is set False throughout.
+# The value is never read while the bound is absent, but exclusive is the
+# stricter reading, so code that someday forgets the NULL check errs toward
+# failing a value rather than silently passing one.
+_INERT = False
+
+# Every entry below is derived from core/calculations.py::check_compliance, which
+# DM_COMPLIANCE_SCOPING.md §5 names as the canonical implementation of the eight
+# that currently exist. Seeding anything else would break the parity proof that
+# core/specs.py has to pass before those copies can be retired, so this table is
+# transcribed from observed behaviour rather than from the published guideline.
+#
+#   calculations.py:23  two-sided  ->  lim.min_val <= value <= lim.max_val   BOTH INCLUSIVE
+#   calculations.py:28  min only   ->  value > lim.min_val                   MIN EXCLUSIVE
+#   calculations.py:32  max only   ->  value < lim.max_val                   MAX EXCLUSIVE
+#
+# NOTE FOR WHOEVER VERIFIES THIS AGAINST THE DM DOCUMENT. These operators are
+# NOT arbitrary, and an audit raised the prior that they are document-derived:
+# they agree exactly, parameter for parameter, with the notation in the `display`
+# strings of COMPLIANCE_LIMITS — "> 4.0" and "< 50" carry strict glyphs and are
+# implemented strictly, while pH's "6.0 – 9.0" carries no glyph and is
+# implemented inclusively, which is the universal convention for a range in a
+# water-quality standard. Someone merely transcribing a table would have written
+# <= in all three branches. That corroboration is why preserving this behaviour
+# is the safe default rather than a coin toss.
+#
+# It is still not verification. Where the published document disagrees, the
+# document wins — but change it HERE, in BOUND_RULES, as its own commit with the
+# parity test updated in the same change. Editing the database directly will not
+# survive review and this seeder will report it as drift.
+#
+# qualifier_rule is 'bound' for all ten: none of these parameters is one where
+# mere presence is the breach, so '<X' is judged by X — the upper bound of what
+# the true value could be. See the qualifier_rule column comment in 022.
+BOUND_RULES: dict[str, BoundRule] = {
+    "ph":              BoundRule(True,   True,   "bound", "calculations.py:23 two-sided, <= both ends; display '6.0 – 9.0' has no glyph"),
+    "do":              BoundRule(False,  _INERT, "bound", "calculations.py:28 min-only, strict >; display '> 4.0'"),
+    "tss":             BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 50'"),
+    "turbidity":       BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 75'"),
+    "cod":             BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 50'"),
+    "ammonia":         BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 5.0'"),
+    "phosphate":       BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 5.0'"),
+    "oil_grease":      BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 10'"),
+    "ecoli":           BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 200'"),
+    "total_coliforms": BoundRule(_INERT, False,  "bound", "calculations.py:32 max-only, strict <; display '< 1000'"),
+}
+
 
 # ── Alert Levels ──
 

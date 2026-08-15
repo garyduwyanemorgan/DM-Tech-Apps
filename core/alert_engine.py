@@ -5,7 +5,8 @@ and applies escalation / de-escalation rules.
 """
 from typing import List, Optional, Tuple
 
-from .constants import AlertLevel
+from .constants import COMPLIANCE_LIMITS, AlertLevel
+from .specs import NON_COMPLIANT, judge, lagoon_spec_set
 from .models import AlertState, WaterReading
 
 
@@ -85,28 +86,54 @@ def evaluate_alert_level(reading: WaterReading) -> AlertState:
     )
 
 
+# The wording the old inline copy used, kept verbatim: these strings reach the
+# user as an escalation reason, and consolidating the LOGIC should not quietly
+# reword the OUTPUT.
+# (label, unit-suffix) exactly as the inline copy printed them. The suffixes are
+# NOT SpecLimit.unit: the old messages said "CFU" where the limit's unit is
+# "CFU/100mL", and pH carried no unit at all where the limit says "pH Units". A
+# differential run over 432 readings caught that difference — the verdicts and
+# their precedence were identical, only the wording had drifted.
+_BREACH_TEXT = {
+    "ph":              ("pH", ""),
+    "do":              ("DO", " mg/L"),
+    "tss":             ("TSS", " mg/L"),
+    "turbidity":       ("Turbidity", " NTU"),
+    "cod":             ("COD", " mg/L"),
+    "ammonia":         ("Ammonia", " mg/L"),
+    "phosphate":       ("Phosphate", " mg/L"),
+    "oil_grease":      ("O&G", " mg/L"),
+    "ecoli":           ("E. coli", " CFU"),
+    "total_coliforms": ("Coliforms", " CFU"),
+}
+
+
 def _check_compliance_breach(r: WaterReading) -> Optional[str]:
-    """Return the name of the first breached Compliance parameter, or None."""
-    if not (6.0 <= r.ph <= 9.0):
-        return f"pH {r.ph}"
-    if r.do <= 4.0:
-        return f"DO {r.do} mg/L"
-    if r.tss >= 50:
-        return f"TSS {r.tss} mg/L"
-    if r.turbidity >= 75:
-        return f"Turbidity {r.turbidity} NTU"
-    if r.cod >= 50:
-        return f"COD {r.cod} mg/L"
-    if r.ammonia >= 5.0:
-        return f"Ammonia {r.ammonia} mg/L"
-    if r.phosphate >= 5.0:
-        return f"Phosphate {r.phosphate} mg/L"
-    if r.oil_grease >= 10:
-        return f"O&G {r.oil_grease} mg/L"
-    if r.ecoli >= 200:
-        return f"E. coli {r.ecoli} CFU"
-    if r.total_coliforms >= 1000:
-        return f"Coliforms {r.total_coliforms} CFU"
+    """Return the name of the first breached Compliance parameter, or None.
+
+    This used to carry its own inline copy of all ten limits — the second of the
+    eight verdict implementations §5 catalogues. The copy agreed with
+    core/calculations.py on every value and every operator, so retiring it changes
+    no verdict; what it removes is the certainty that it would eventually stop
+    agreeing.
+
+    Judging now goes through core/specs.py, the same resolver that judges
+    database-backed sets, so a limit corrected in core/constants.py reaches the
+    alert engine without anybody remembering to update it here.
+
+    Ordering is preserved deliberately: this returns the FIRST breach, and the
+    escalation reason a user sees depends on which. COMPLIANCE_LIMITS is ordered,
+    and iterating it keeps the previous precedence exactly.
+    """
+    spec = lagoon_spec_set()
+    for key in COMPLIANCE_LIMITS:
+        value = getattr(r, key, None)
+        if value is None:
+            continue
+        if judge(value, spec, parameter_key=key) == NON_COMPLIANT:
+            label, unit = _BREACH_TEXT.get(
+                key, (spec.limits[key].parameter_label, ""))
+            return f"{label} {value}{unit}"
     return None
 
 
