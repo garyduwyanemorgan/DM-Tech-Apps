@@ -501,11 +501,27 @@ def _effective_site_ids(profile: dict):
         # is acceptable and non-destructive for a read-only role.
         return ALL_SITES
     clerk_id, org = profile.get("user_id"), profile.get("organization_id")
-    from db.queries import get_assigned_site_ids, get_project_site_ids
-    if role == "admin":
-        return resolve_site_scope(role, project_site_ids=get_project_site_ids(clerk_id, org))
-    if role == "operator":
-        return resolve_site_scope(role, assigned_site_ids=get_assigned_site_ids(clerk_id, org))
+    from db.queries import ScopeUnavailable, get_assigned_site_ids, get_project_site_ids
+    try:
+        if role == "admin":
+            # Both terms: core/scope.py resolves admin as projects | direct sites.
+            # Passing only projects dropped the direct half, which is the only
+            # assignment mechanism with a working writer (PUT /users/{id}/sites),
+            # so an admin given sites through User Management resolved to nothing.
+            return resolve_site_scope(
+                role,
+                project_site_ids=get_project_site_ids(clerk_id, org),
+                assigned_site_ids=get_assigned_site_ids(clerk_id, org),
+            )
+        if role == "operator":
+            return resolve_site_scope(role, assigned_site_ids=get_assigned_site_ids(clerk_id, org))
+    except ScopeUnavailable as exc:
+        # Deny, but say so. Returning the empty set here would be indistinguishable
+        # from a genuinely unassigned user: the caller would see an empty site list
+        # and an empty registry with no error, and read it as policy rather than an
+        # outage. 503 is the honest answer and is retryable.
+        raise HTTPException(status_code=503,
+                            detail="Site assignments are unavailable; try again shortly.") from exc
     return frozenset()  # pending/unknown -> no sites
 
 
@@ -919,8 +935,15 @@ def get_user_sites(user_id: str, profile: dict = Depends(get_current_user_profil
     _ensure_permission(profile, "users.read", detail="Admin access required.")
     org_id = profile.get("organization_id")
     clerk_id = _resolve_target_clerk_id(user_id, org_id)
-    from db.queries import list_user_site_assignments
-    return {"user_id": user_id, "site_ids": list_user_site_assignments(clerk_id, org_id)}
+    from db.queries import ScopeUnavailable, list_user_site_assignments
+    try:
+        site_ids = list_user_site_assignments(clerk_id, org_id)
+    except ScopeUnavailable as exc:
+        # An admin reading this screen to decide what to assign must not be shown
+        # an empty list that means "could not load" — they would assign against it.
+        raise HTTPException(status_code=503,
+                            detail="Site assignments are unavailable; try again shortly.") from exc
+    return {"user_id": user_id, "site_ids": site_ids}
 
 
 @app.put("/users/{user_id}/sites", tags=["Users"])

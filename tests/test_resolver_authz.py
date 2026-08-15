@@ -104,16 +104,36 @@ def test_scope_enforcement_off_is_org_wide():
 
 
 def test_scope_enforcement_on_role_scoping():
-    # Flag on: exec/GM stay org-wide; operator/pending resolve to their (here empty,
-    # no DB) assignment set rather than everything.
+    # Flag on: exec/GM stay org-wide; pending denies without consulting the DB.
     os.environ["SCOPE_ENFORCEMENT"] = "1"
     try:
         from core.scope import ALL_SITES
         assert api_server._effective_site_ids(_profile("super_admin")) == ALL_SITES
         assert api_server._effective_site_ids(_profile("auditor")) == ALL_SITES
-        # operator with no assignment data resolves to an empty (deny) set, not ALL.
-        assert api_server._effective_site_ids(_profile("operator")) != ALL_SITES
+        # pending/unknown never reaches the assignment tables — deny outright.
         assert api_server._effective_site_ids(_profile("pending")) == frozenset()
+    finally:
+        os.environ.pop("SCOPE_ENFORCEMENT", None)
+
+
+def test_operator_with_unreadable_assignments_is_an_error_not_an_empty_scope():
+    """This asserted the defect before it was fixed.
+
+    With no database configured, get_assigned_site_ids used to swallow the
+    failure and return [], so an operator resolved to the empty set — identical
+    to a genuinely unassigned user. The caller saw an empty site list and an
+    empty registry and had no way to tell an outage from a policy decision.
+    It must now raise rather than answer.
+    """
+    from fastapi import HTTPException
+    os.environ["SCOPE_ENFORCEMENT"] = "1"
+    try:
+        try:
+            api_server._effective_site_ids(_profile("operator"))
+        except HTTPException as exc:
+            assert exc.status_code == 503
+        else:
+            raise AssertionError("an unreadable assignment table returned a scope")
     finally:
         os.environ.pop("SCOPE_ENFORCEMENT", None)
 

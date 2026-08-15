@@ -634,30 +634,48 @@ def dismiss_data_request(request_id: str, site_name: str,
 
 
 # ── Scope: user -> site / project assignments (migration 007) ─────────────────
-# These back Phase 2 scope enforcement. They fail safe: if the assignment tables
-# do not exist yet (migration unapplied) or the DB is down, reads return empty and
-# writes return False, so nothing crashes — enforcement stays behind the
-# SCOPE_ENFORCEMENT flag until backfill is complete.
+# These back Phase 2 scope enforcement. An empty list from them is a POSITIVE
+# claim — "this user is assigned nothing", which under SCOPE_ENFORCEMENT=1 denies
+# every site. So they must never return empty because they could not find out:
+# a missing table (007 unapplied) or an unreachable DB raises ScopeUnavailable
+# and the caller decides, rather than silently reporting a fully-assigned user as
+# unassigned. With enforcement off nothing calls them on the request path, so the
+# distinction costs nothing today and is load-bearing the moment the flag flips.
+
+class ScopeUnavailable(Exception):
+    """The assignment tables could not be read, so scope is unknown — not empty."""
+
 
 def get_assigned_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
-    """Site ids explicitly assigned to a user within an org (Site Supervisor scope)."""
+    """Site ids explicitly assigned to a user within an org (Site Supervisor scope).
+
+    Raises ScopeUnavailable if the assignment data cannot be read.
+    """
+    if not user_clerk_id or not organization_id:
+        return []  # nothing to resolve against — a real empty, not a failure
     client = get_client()
-    if not client or not user_clerk_id or not organization_id:
-        return []
+    if not client:
+        raise ScopeUnavailable("Supabase is not configured")
     try:
         res = (client.table("user_site_assignments").select("site_id")
                .eq("user_clerk_id", user_clerk_id)
                .eq("organization_id", organization_id).execute())
         return [r["site_id"] for r in (res.data or [])]
-    except Exception:
-        return []
+    except Exception as exc:
+        raise ScopeUnavailable(f"user_site_assignments unreadable: {exc}") from exc
 
 
 def get_project_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
-    """Site ids belonging to the projects a user is assigned to (Project Manager scope)."""
-    client = get_client()
-    if not client or not user_clerk_id or not organization_id:
+    """Site ids belonging to the projects a user is assigned to (Project Manager scope).
+
+    Raises ScopeUnavailable if the assignment data cannot be read. An empty
+    project list is a real empty and returns []; only a failed read raises.
+    """
+    if not user_clerk_id or not organization_id:
         return []
+    client = get_client()
+    if not client:
+        raise ScopeUnavailable("Supabase is not configured")
     try:
         pa = (client.table("user_project_assignments").select("project_id")
               .eq("user_clerk_id", user_clerk_id)
@@ -669,12 +687,18 @@ def get_project_site_ids(user_clerk_id: str, organization_id: str) -> list[str]:
               .eq("organization_id", organization_id)
               .in_("project_id", project_ids).execute())
         return [r["id"] for r in (sr.data or [])]
-    except Exception:
-        return []
+    except ScopeUnavailable:
+        raise
+    except Exception as exc:
+        raise ScopeUnavailable(f"project assignments unreadable: {exc}") from exc
 
 
 def list_user_site_assignments(user_clerk_id: str, organization_id: str) -> list[str]:
-    """Alias for get_assigned_site_ids, for the assignment-admin read endpoint."""
+    """Alias for get_assigned_site_ids, for the assignment-admin read endpoint.
+
+    Propagates ScopeUnavailable: the admin screen must not render "no sites
+    assigned" for a user whose assignments simply could not be loaded.
+    """
     return get_assigned_site_ids(user_clerk_id, organization_id)
 
 
