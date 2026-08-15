@@ -657,8 +657,55 @@ near-universal, but needs the §4.6 checklist engine — the third new primitive
 which is why it follows the other two rather than accompanying them.
 
 ### Phase 5 — People, competency and permits
-Reuses the Phase 3 expiry primitive against `subject_user_id`, adds
-permit-to-work.
+
+> **This phase was scoped as cheap and is not.** The plan was to reuse the Phase 3
+> expiry primitive against `subject_user_id`. Reading twelve of the documents
+> shows the expiry half reuses directly and four things do not:
+>
+> - **Validity is derived, not stored.** The Lifeguard scheme sets certification
+>   validity at MIN(2 years, remaining training-record validity). A plain
+>   `valid_until` date goes silently wrong when a *different* row lapses.
+> - **Renewal anchors to the previous expiry, not to the examination.** Computing
+>   `issued_on + 24 months` over-grants by up to two months — a mis-issuance, on a
+>   certificate naming a person.
+> - **Status is not a function of dates.** The Lifeguard scheme lists six
+>   revocation grounds; a *sector change* invalidates an OHS Person in Charge
+>   certificate; an establishment's inspection grade can cancel individuals'
+>   certificates. A date-driven model reports these as valid.
+> - **The requirement is coverage, not holding.** One certified Person in Charge
+>   is required *per shift per location*, present throughout. That is a roster
+>   question, and no set of certificate rows answers it.
+>
+> Two further mismatches with §4.4 specifically: specialty scope gates validity
+> (a Shallow Water lifeguard supervising 2 m of water holds a valid certificate
+> and is non-compliant), and person-certificates are site-tied, which §4.4's
+> exactly-one-of-asset-or-person CHECK forbids.
+>
+> A `people_credentials` + `coverage_requirements` shape is sketched in
+> `data/dm_guidelines/competency_group_notes.md` §3.9. Budget Phase 5 as a new
+> primitive, not a reuse.
+
+**Two documents are in the wrong phase.** SP06 (NOC to practise H&S activities)
+is not a competency document at all — "health and safety activities" is a
+*commercial licence category* (salons, spas, gyms, laundries) and the document is
+a premises permit assessed against a furniture-layout drawing, with no competency
+content, no expiry and nothing to schedule. It belongs at the front of the Phase 6
+bundle it delegates to. GU42 likewise has no people content, and contrary to the
+catalogue's classification sets **no thorough-examination requirement at all**.
+
+**GU43 is `delegating` and that has a commercial consequence.** It sets no
+exposure value of any kind; §5-1 points at the ACGIH TLVs. A verdict-bearing GU43
+therefore needs an ACGIH licence — those values are copyrighted and sold. Until
+that is bought it can only ship as an obligations module.
+
+**GU66 is `monitoring`, not `compliance`.** It is full of numbers — 12h/8h
+shifts, 54/108/215 lux — but every one sits under a heading reading
+"Recommended", with controls "may be exercised as applicable". Telling a client
+they are NON-COMPLIANT for a 13-hour shift asserts a rule DM did not make. Its
+mandatory core — risk assessment, clinic health screening, training plan — is
+what makes it sellable.
+
+Reuses the Phase 3 expiry primitive where it fits, adds permit-to-work.
 
 | Guideline | Subject |
 |---|---|
@@ -916,6 +963,32 @@ This also means **currency cannot be derived from the edition chain alone.** A
 document that nothing supersedes may still be dead — nobody issued a successor,
 they simply stopped meaning it. `supersedes_id` answers "is there a newer
 edition"; it cannot answer "is this still in force".
+
+**7.13a Published DM documents contain defects, and encoding one is our
+problem, not theirs.** Five found while extracting twelve people-and-competency
+documents, all recorded as printed rather than normalised:
+
+- **The OHS Person in Charge scheme's Annex D requires "a minimum total of
+  twenty (20) hours" from components that sum to 24**, and §8.3.4 independently
+  says 24. Encoded as 24. Reading Annex D alone ships a check four hours short of
+  what the same document requires elsewhere.
+- **Sibling schemes issued the same day disagree on failing grades** — one says
+  "D or F", the other "D or E". Recorded as printed; normalising them would
+  invent a rule.
+- **GU131 clause 1.1 cross-refers to a clause 2.9 that does not exist** — the
+  numbering stops at 2.8 — leaving its ≤50-room exemption unresolved.
+- **The Lifeguard scheme lists "Lagoons & other water features Lifeguards" in
+  scope with no prerequisites, no specialty examination and no depth rule.**
+  Directly relevant to the current client base: do not assume the pool specialty
+  covers a lagoon.
+- **SP06's permitted-services matrix is 5×7 of tick and cross glyphs whose text
+  layer returns the headers and not one cell value** — the strongest case yet for
+  §7.14's render-and-read default.
+
+Each of these is a question to put to DM, not a thing to fix in code. The
+consistent rule: record what is printed, flag the contradiction, and let a human
+adjudicate. A guideline that contradicts itself cannot be sold as a compliance
+module until it is resolved (§7.12).
 
 **7.14 Two extraction lessons that should become standing practice.**
 

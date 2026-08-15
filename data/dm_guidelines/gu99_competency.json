@@ -1,0 +1,241 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU99-SSW2",
+    "guideline_no": 99,
+    "title": "Technical Guidelines for Safety Signs at Work",
+    "version": "V 2.0",
+    "issued_on": "2021-10-04",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2020/07/DM-HSD-GU99-SSW2-Technical-Guidelines-for-Safety-Signs-at-Work_V2.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "WHY module_kind = compliance. GU99 is the opposite case to GU66. Its core requirements are prescriptive and objectively checkable: a prohibition sign SHALL be a red circle with a diagonal line, a mandatory sign a blue circle, a warning sign a yellow equilateral triangle with rounded corners, per the section 5D table; the signal word letter height SHALL be at least 50 percent greater than the capital letter of the hazard text; training SHALL be delivered at least once a year; training records SHALL be kept at least five years and produced to DM OHS inspectors. An inspector can hold a sign against the document and be right or wrong about it, with no interpretation and no external standard needed — because, crucially, Annex C REPRODUCES the EN ISO 7010 symbol library in full, with reference numbers (E001 emergency exit left hand, E002 right hand, E003 first aid, and so on through the mandatory, prohibition, warning, safe condition and fire safety categories). That is what keeps GU99 out of the delegating bucket that GU43 falls into: the binding content is inside the document rather than behind a paywalled external standard. PARTIAL DELEGATION, WHICH MUST BE HONOURED IN SCOPE. Three areas are expressly carved out and cannot be judged from GU99: (1) fire safety, exit and directional signs go to the UAE Fire and Life Safety Code of Practice and the Dubai Universal Design Code — section 5D footnotes the fire safety and safe condition rows for exactly this, and section 3 SCOPE says the guideline does not cover fire and life safety signs at all; (2) labelling of containers, tanks, vessels and pipework carrying dangerous goods goes to the DM Code of Practice for the Management of Dangerous Goods plus the GHS standard; (3) transport signage goes to RTA and other legislation. A GU99 module must therefore be sold as covering occupational safety signage only, and the resolver must not raise findings on fire exit signage. Sections 5L and 5J are recorded below as obligations precisely so the boundary is visible rather than silently dropped. RENDER-AND-READ WAS NECESSARY HERE, per section 7.14. This is a 28-page document that is largely tables and images, and the text layer returns the Arabic and English header cells interleaved in a way that destroys reading order and hides content behind apparently-short pages. Pages 11, 27 and 28 were rendered as images and read: page 11 confirmed the '50%' and the '60 degrees from center' figures whose degree glyphs the text layer drops entirely (it returns '600 from center', which read as a bare number would be nonsense and, worse, plausible-looking nonsense); pages 27 and 28 confirmed the Annex D table's three-column structure and its 14 rows by position rather than by text order. EDITION AND DATE. Version V 2.0 and issue date 4 October 2021 come from the document-control footer block repeated on pages 2 through 28. NOTE THE OLDER TEMPLATE: this document has NO date field on its cover page at all, so the footer is the only source, and the version is printed only in that footer rather than in a cover 'Version #' box like the newer guidelines use. The date is printed numerically as 04.10.2021 with both components <= 12, but it is NOT ambiguous: the superseded date sits on the same footer line as 23.07.2020, and 23 cannot be a month, which fixes the whole block as dd.mm.yyyy. catalogue_editions_resolved.json records this as day_first at HIGH confidence, raised from the medium that catalogue_editions.json held it at 'on principle'. Recorded here at high on that basis. The source_url sits under an /uploads/2020/07/ path — that is the month of the SUPERSEDED July 2020 edition, not this one, and is a textbook instance of the section 7.12 rule about upload paths. The portal record date of 2021-10-04 happens to match the true issue date here, which is coincidence and not a reason to trust portal dates elsewhere. WHAT THIS DOCUMENT IS NOT: despite sitting in the Phase 5 people-and-competency group, GU99 contains almost no competency content. It names one competent person (for hazard identification and risk assessment) and defines that person nowhere, and it requires annual training of all employees with no certificate, no examination, no issuing body and NO VALIDITY PERIOD. Checked specifically per the Phase 3 lesson: the annual training is a RECURRENCE INTERVAL, not a competency validity. Nothing in GU99 expires. validity_months is null in both competencies below by evidence.",
+  "competencies": [
+    {
+      "role": "competent person conducting hazard identification and risk assessment",
+      "requirement": "Hazard identification and risk assessment — which determines whether safety signs are needed at all, and where — shall be conducted by a competent person or persons with appropriate knowledge of the work activity. This is the gateway duty for the entire guideline: signs are only used where elimination of the hazard is not possible and a significant residual risk remains after control measures. The document defines 'competent person' nowhere, sets no qualification, names no certifying or accrediting body, requires no registration and attaches no validity.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "determining whether and where to use safety signs in a workplace",
+      "source_page": 5,
+      "source_quote": "Hazard identification and Risk Assessment shall be conducted by a competent person(s) and appropriate knowledge of the work activity. (p5) To determine whether to use safety signs, the employer shall ensure to taken into account the results of hazard identification and risk assessment which includes control measures that needs to be undertaken. (p5)",
+      "confidence": "high"
+    },
+    {
+      "role": "employee required to understand safety signs",
+      "requirement": "All employees shall receive appropriate instruction and training in the meaning of safety signs, whether seen or heard, and in the control measures to be implemented in connection with them. The employer shall ensure the information, instruction and training each employee receives is relevant and understandable to that employee. Training assessment shall include explaining the meaning of any safety sign shown, the consequences of not following the warning or instruction the sign gives, and the measures to be taken in connection with safety signs. Delivery may be by induction or toolbox talk. NO certificate, NO examination pass mark, NO issuing or certifying body and NO validity period are specified — the requirement is an annual recurrence plus a five-year record, not a credential.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": "Training delivered regularly, at least once a year. This is a recurrence interval, not an expiry: nothing the employee holds lapses. Recorded null for validity_months deliberately, and the annual cycle is carried as an obligation instead.",
+      "trigger_event": "employment; induction; and at least annually thereafter",
+      "source_page": 15,
+      "source_quote": "Employer shall ensure that all employees receives appropriate instruction and training in the meaning of safety signs either seen or heard and the control measures to be implemented in connection with safety signs. Employer shall ensure that the provided information, instruction and training received by each employee on the measures to be taken in connection with safety signs are relevant and understandable. ... Ensure that the training are delivered regularly (at least once a year). Training assessment shall include explaining the meaning of any safety sign shown, consequences of not following the warning or instruction given by the sign and measures to be taken in connection with safety signs.",
+      "confidence": "high"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "acoustic_signal_above_ambient_noise",
+      "parameter_label": "Acoustic signal level above ambient noise",
+      "unit": "dB",
+      "min_val": 10,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "considerably higher than the ambient noise (i.e. 10 dB higher than the level of ambient noise)",
+      "qualifier_rule": "A RELATIVE limit, not an absolute one: the required level depends on the ambient noise measured at the point where the signal must be heard, so ambient noise must be measured first and the pass mark is ambient + 10 dB. The document also caps it qualitatively — 'ensure that the level is not excessive or painful' — with no number, so there is a stated upper bound that cannot be evaluated. Where a device can emit at variable frequencies, the variable frequency is to be used, set at 10 dB above ambient at the appropriate frequency, to indicate a higher level of danger or more urgent need for action. Acoustic signals are to be used only one at a time.",
+      "source_page": 12,
+      "source_quote": "Acoustic signals should be set at a level which is considerably higher than the ambient noise (i.e. 10 dB higher than the level of ambient noise). However, ensure that the level is not excessive or painful. In addition, it is important that the signals are easily recognizable, particularly in terms of pulse length and interval between pulses or group of pulses.",
+      "note": "Treated as an inclusive minimum: the parenthetical fixes 'considerably higher' at 10 dB, and a signal at exactly ambient + 10 dB meets the stated figure. The document uses no <, >, <= or >= glyph, so strict inclusivity is inferred from the phrasing rather than read off a symbol; flagged per rule 6. Note the verb is 'should', which weakens this relative to the 'shall' requirements elsewhere in the document. No frequency weighting (dB(A) or otherwise) and no measurement position are specified, which materially affects whether a given measurement passes.",
+      "confidence": "medium"
+    },
+    {
+      "parameter_key": "signal_word_letter_height_ratio",
+      "parameter_label": "Signal word letter height relative to the capital letter of the hazard text",
+      "unit": "percent greater",
+      "min_val": 50,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "Signal word letter height shall be at least 50% greater than the capital letter of the hazard text",
+      "qualifier_rule": "The signal word is the word in the safety header (DANGER, WARNING, CAUTION, NOTICE, SAFETY INSTRUCTIONS). The comparison is against the CAPITAL letter height of the hazard text, not its overall or lower-case height. So a hazard text with 10 mm capitals requires a signal word of at least 15 mm.",
+      "source_page": 11,
+      "source_quote": "Signal word letter height shall be at least 50% greater than the capital letter of the hazard text.",
+      "note": "Inclusive minimum by the 'at least' glyph, and a 'shall'. Page 11 was rendered and read to confirm this figure and the labelled DANGER / Hazardous voltage example that defines which element is the signal word and which the hazard text — the text layer alone does not make the pairing clear. One of the few genuinely mechanical checks in the whole Phase 5 set: measurable from a photograph of a sign.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "obstacle_marking_stripe_angle",
+      "parameter_label": "Angle of hazard striping used to mark workplace obstacles and dangerous locations",
+      "unit": "degrees",
+      "min_val": 45,
+      "max_val": 45,
+      "min_inclusive": true,
+      "max_inclusive": true,
+      "display": "yellow and black (or red and white) stripes at an angle of 45 degrees and more or less of equal size",
+      "qualifier_rule": "Applies to workplace obstacles and dangerous locations such as the edge of a raised platform or an area where objects may fall. Stripes must be of more or less equal size. Two colour pairings are permitted: yellow and black, or red and white. Distinct from access route marking, which is a continuous line, preferably yellow or white, chosen with regard to the colour of the ground surface — traffic routes in built-up areas outdoors need not be marked if suitable pavements or barriers already exist.",
+      "source_page": 14,
+      "source_quote": "Workplace obstacles and dangerous locations (e.g. edge of a raised platform, area where objects may fall, etc.) shall be marked consisting of yellow and black (or red and white) stripes at an angle of 450 and more or less of equal size (see Figure below).",
+      "note": "THE DEGREE SYMBOL IS LOST IN THE PDF TEXT LAYER, which renders this as '450'. It is 45 degrees, confirmed against the accompanying striping figure on the same page and consistent with the universal hazard-stripe convention. Recorded as an exact value rather than a bound, since the document specifies the angle rather than a range; a tolerance is implied by 'more or less' but that phrase attaches to stripe SIZE, not to the angle, so no tolerance is encoded. This is the same text-layer defect that produces '600' for 60 degrees on page 11 — worth remembering for any future DM extraction, because a bare '450' or '600' silently passed through as a number would be a plausible-looking error of exactly the kind section 7.12 warns about.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "flat_signboard_viewing_angle",
+      "parameter_label": "Maximum anticipated viewing angle from centre for which a flat signboard is recommended",
+      "unit": "degrees from centre",
+      "min_val": null,
+      "max_val": 60,
+      "min_inclusive": null,
+      "max_inclusive": false,
+      "display": "Flat safety signboards is recommended to be used in cases wherein the anticipated viewing angle is straight on or less than 60 degrees from center",
+      "qualifier_rule": "Selection rule for signboard style. Beyond this angle, panoramic or flag mounted styles are used to allow the signboard to be seen from an angle.",
+      "source_page": 11,
+      "source_quote": "Flat safety signboards is recommended to be used in cases wherein the anticipated viewing angle is straight on or less than 600 from center. Panoramic and flag mounted styles are used to allow the safety signboards to be seen from an angle (see Figures below).",
+      "note": "RECOMMENDED, NOT MANDATORY — the verb is 'is recommended to be used', so this must not drive a compliance verdict. Exclusive upper bound by the 'less than' glyph, per rule 6. Degree symbol again lost in the text layer ('600'); confirmed as 60 degrees by rendering page 11 and reading the Flat / Flag / Panoramic figures beneath it.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "annex_d_safe_viewing_distance_text_size_table",
+      "parameter_label": "Annex D Table 1 — minimum recommended safe viewing distance and corresponding minimum text size",
+      "unit": "m (distance) to mm (text height)",
+      "min_val": null,
+      "max_val": null,
+      "min_inclusive": null,
+      "max_inclusive": null,
+      "display": "14 distance rows, each with a minimum text size for favourable and for unfavourable reading conditions: 1.22 m -> 4.06/8.38 mm; 1.83 m -> 6.10/12.70 mm; 2.44 m -> 8.13/16.76 mm; 3.05 m -> 10.16/21.08 mm; 4.57 m -> 15.24/32.26 mm; 6.10 m -> 20.32/42.67 mm; 9.14 m -> 30.48/63.75 mm; 12.19 m -> 40.64/85.34 mm; 18.29 m -> 60.96/128.02 mm; 24.38 m -> 81.28/170.69 mm; 30.48 m -> 101.60/213.36 mm; 38.10 m -> 127.00/266.45 mm; 45.72 m -> 152.40/319.53 mm; 60.96 m -> 203.20/426.47 mm",
+      "source_page": 28,
+      "source_quote": "Table 1: Minimum Recommended Safe Viewing Distance and Text Size on Various Reading Conditions. Minimum Safe Viewing Distance | Minimum Text Size for Favorable Reading Conditions | Minimum Text Size for Unfavorable Reading Conditions. 1.22 meters (4 feet) | 4.06 mm. (0.16 in.) | 8.38 mm. (0.33 in.) ... 60.96 meters (200 feet) | 203.20 mm. (8.00 in.) | 426.47 mm. (16.79 in.)",
+      "note": "DELIBERATELY CARRIED AS ONE DOCUMENTED ENTRY RATHER THAN 28 SYNTHETIC LIMIT ROWS, and min_val/max_val are null because a two-input lookup (distance plus favourable/unfavourable condition, returning a text height) does not fit the single-parameter min/max shape these limit records use. Forcing it in would produce a table that looks machine-checkable and is not. If a GU99 module ever needs row-level resolution it should get its own lookup table keyed on distance and condition. FOUR REASONS THIS IS NOT A COMPLIANCE THRESHOLD: (1) the table is titled 'Minimum RECOMMENDED'; (2) Annex D opens by stating it reproduces ANSI Z535.2-2011 guidance, so the content is external and advisory rather than DM's own rule; (3) the annex expressly says that as best practice the letter size SHALL BE MADE LARGER than the tabulated values, for five listed reasons, so meeting the table is not the intended outcome; (4) whether conditions are 'favourable' or 'unfavourable' is explicitly left to the end user — 'Only the end user can consider the use environment and make this determination' — so the app cannot pick a column on the client's behalf. Pages 27 and 28 were rendered and read; the three-column mapping was verified by position, not by text order. Distances are the imperial series 4/6/8/10/15/20/30/40/60/80/100/125/150/200 feet with metric conversions, which is why the metric values are irregular.",
+      "confidence": "high"
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "competency",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "At least once a year. This is one of only two firm intervals in the document and the strongest recurring duty in it. Note carefully what it is NOT: it is a training recurrence, not a certificate validity, so nothing expires and there is no credential to renew. Delivery may be by induction or toolbox talk, and the assessment must cover the meaning of any safety sign shown, the consequences of disregarding it, and the measures to be taken in connection with it.",
+      "trigger_event": "employment and induction; and at least annually thereafter",
+      "applies_to": "All employees — instruction and training in the meaning of safety signs seen or heard and the control measures connected with them, relevant and understandable to each employee",
+      "source_quote": "Ensure that the training are delivered regularly (at least once a year). Training assessment shall include explaining the meaning of any safety sign shown, consequences of not following the warning or instruction given by the sign and measures to be taken in connection with safety signs. (p15)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No cadence, but a RETENTION PERIOD OF AT LEAST FIVE YEARS — the only stated retention period found anywhere in the Phase 5 set, and worth surfacing because GU131 by contrast requires certificates to be retained with no period at all. Records of any training, including induction and toolbox talks, must be kept and made readily available to DM OHS inspectors and other regulatory agencies on demand. Mapped to 'reporting' as the closest term in the closed vocabulary; the duty is really retain-and-produce-on-demand, which the vocabulary has no exact type for. Noted per rule 4.",
+      "trigger_event": "review by Dubai Municipality OHS inspectors or other regulatory agencies",
+      "applies_to": "Records of any safety sign training including induction and toolbox talks — retained at least five years",
+      "source_quote": "Records of any training including induction and tool box talks shall be properly kept for at least five (5) years and be made readily available to Dubai Municipality OHS inspectors and other regulatory agencies for review and demonstrate compliance with pertinent UAE and DM regulations. (p15)"
+    },
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No interval and no review cycle stated for the assessment itself. It is a precondition — signs may only be used where elimination of the hazard is not possible and significant residual risk remains despite control measures — rather than a periodic task. Honest null. Note the document is emphatic that a sign is an administrative control that does NOT replace engineering controls, proper work methods, safety instructions or accident prevention training, and is to be used in conjunction with them.",
+      "trigger_event": "determining whether and where safety signs are required",
+      "applies_to": "Employers at all workplaces in scope — hazard identification and risk assessment by a competent person with appropriate knowledge of the work activity, including the control measures to be undertaken, to establish residual risk",
+      "source_quote": "To determine whether to use safety signs, the employer shall ensure to taken into account the results of hazard identification and risk assessment which includes control measures that needs to be undertaken. If the control measures (e.g. engineering, isolation, substitution, etc.) does not eliminate the hazards and there is still a significant residual risk, then appropriate safety signs shall be used as an additional measure ... Hazard identification and Risk Assessment shall be conducted by a competent person(s) and appropriate knowledge of the work activity. (p5)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'At regular intervals' with NO interval stated, plus a risk-scaling rule that is also unquantified: 'Frequency of checking shall be increased for more critical and riskier work activities/workplaces.' So the document mandates the check, mandates that riskier sites be checked more often, and gives no number for either. A textbook honest null, and one where the app should let the client set both a baseline interval and a higher one for critical areas rather than inventing a default.",
+      "trigger_event": null,
+      "applies_to": "Acoustic signals and illuminated signs — checked to ensure proper functioning. Related standing requirement: where activated automatically or in line with other safety arrangements, they must remain on for as long as the danger exists or until receipt of any planned acknowledgement.",
+      "source_quote": "Acoustic signals and illuminated signs are required to be checked at regular intervals so as to ensure proper functioning. Frequency of checking shall be increased for more critical and riskier work activities/workplaces. (p12)"
+    },
+    {
+      "obligation_type": "maintenance",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No cadence — this is a condition-driven duty with an immediacy requirement. Safety signs and signals found damaged, worn out, missing or not properly functioning are to be IMMEDIATELY and suitably replaced or repaired as per the manufacturer's instructions. Signs requiring power must have a guaranteed supply or back-up in the event of power failure, unless the hazard is itself eliminated during the failure.",
+      "trigger_event": "sign or signal found damaged, worn out, missing or not properly functioning",
+      "applies_to": "Safety signboards, acoustic signals, illuminated signs and emergency lighting. Signboards shall additionally be made of durable material, free of sharp edges, securely fixed and properly maintained, with materials matched to indoor or outdoor conditions, fade resistance, lighting conditions, temperature extremes, emergency lighting conditions, graffiti resistance, adhesives, contamination, wash-down conditions and cleaning procedures.",
+      "source_quote": "Employer shall ensure that safety signs are to be appropriately maintained so as to ensure proper performance of its intended function. Safety signs and signals (e.g. emergency lighting, acoustic signals) which require some form of power for its operation, shall be provided with a guaranteed supply of power or back-up in the event of power failure (unless the hazard is itself eliminated during the power failure). (p14) Safety signs or signals which are found to be damaged, worn-out, missing or are not properly functioning are to be immediately and suitably replaced or repaired as per manufacturers' instructions. (p15)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing record-keeping duty, no cadence and — unlike the training records — NO stated retention period, which is a real asymmetry in the document rather than an extraction gap. Records of maintenance activities such as routine cleaning of signboards, regular or planned checking of illuminated signs and testing of acoustic signals must be kept and made readily available to DM OHS inspectors and other regulatory agencies. Mapped to 'reporting' as the closest vocabulary term for a retain-and-produce duty; noted per rule 4.",
+      "trigger_event": "review by Dubai Municipality OHS inspectors or other regulatory agencies",
+      "applies_to": "Records of safety sign maintenance activities — routine cleaning of signboards, regular or planned checking of illuminated signs, testing of acoustic signals",
+      "source_quote": "Employers shall ensure to properly keep records of any maintenance activities (e.g. routine cleaning of signboards, regular/planned checking of illuminated signs, testing of acoustic signals, etc.) and be made readily available to Dubai Municipality OHS inspectors and other regulatory agencies for review and demonstrate compliance with pertinent UAE and DM regulations. (p15)"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Shall be properly reviewed and revised' with no interval stated. Honest null.",
+      "trigger_event": null,
+      "applies_to": "Safety management systems — reviewed and revised to assess the effectiveness and suitability of all existing control measures. Employers are separately required to implement safe systems of work in every workplace, including information, training, instruction and supervision, properly communicated to all stakeholders and detailing potential hazards, duties and responsibilities, procedures and guidelines.",
+      "source_quote": "Safety management systems shall be properly reviewed and revised to assess effectiveness and suitability of all existing control measures. (p6)"
+    },
+    {
+      "obligation_type": "self_inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No cadence. Annex A supplies a ready-made sample checklist — the inspector walks the facility, notes the location of all existing safety signs, and answers seven yes/no items with remarks, recording inspector name, signature, work area and date of inspection. The annex is framed as 'included with the intent of providing additional information', so the checklist itself is guidance rather than a mandated form, but it is a complete, directly usable inspection artefact and is the obvious basis for a GU99 checklist module. The seven items are: sign clutter (multiple signs in one location); unnecessary signs needing removal or combination; missing or damaged signs; signs whose underlying hazard no longer exists; safety messages on paper taped to walls and doors as interim measures; out of date signs not matching the format, colours, contents and symbols of ISO 7010 and this guideline; and areas where new signs are needed.",
+      "trigger_event": null,
+      "applies_to": "Employers surveying existing safety signs in place across a work area (Annex A sample checklist)",
+      "source_quote": "ANNEX A: SAMPLE CHECKLIST FOR SAFETY SIGNS AT WORK ... SURVEY OF EXISTING SAFETY SIGNS IN PLACE. Inspector shall walk through the facility and note the location of all existing safety signs within the specific location/work area. (p16)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-driven, no cadence. Where the source of a hazard has been removed or the hazard no longer exists — a change in activity, equipment removal — the now-unnecessary signboard SHALL be removed so that misleading information is not displayed. This is the mirror image of the usual compliance question and is easy to miss: a site can be non-compliant for having too many signs, not only too few. Related placement duties: signs must be clearly seen or heard in all intended directions and unobstructed at all times; signboards must be strategically placed apart from one another to avoid confusion or information being overlooked; they must be adequately sized, understandable from the intended safe viewing distance, and not placed on or adjacent to moveable objects such as doors and windows; permanent signboards fixed as needed, temporary signboards used only where the hazard and work area are themselves temporary.",
+      "trigger_event": "removal of the hazard source; change in activity; equipment removal",
+      "applies_to": "Safety signboards whose underlying hazard no longer exists, and signboard placement generally",
+      "source_quote": "In cases wherein the source of hazard has been removed or hazard is no longer existent (e.g. change in activity, equipment removal, etc.), the unnecessary safety signboard shall be removed so that the misleading information is not displayed. (p10) Employer shall ensure that safety signs are to be clearly seen/heard in all intended directions and are not obstructed at all times. Employers shall ensure that signboards are strategically placed from one another (be placed not too close from each other) to avoid confusion or information being disseminated is overlooked. (p10)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing design requirement, no cadence. Graphical symbols shall comply with the shape, colour and design principles of ISO 7010: prohibition signs red, circle with diagonal line; mandatory signs blue, circle; warning signs yellow, equilateral triangle with rounded corners; safe condition signs green, square or rectangle; fire safety signs red, square. Where ISO 7010 contains no suitable symbol it is acceptable to design one, provided it conforms to the general principles in the guideline, with design guidance in BS ISO 3864-1:2011 and BS ISO 3864-4:2011 — the document's own worked example is the crescent as the generic emblem for medicine in the UAE. Signboards shall generally contain three essential elements: safety header (safety alert symbol plus signal word), safety symbol, and text message. Signal words are defined: DANGER for a hazardous situation which if not avoided WILL result in serious injury or death, to be used only in the most extreme situations; WARNING for one which COULD result in serious injury or death; CAUTION for one which COULD result in minor or moderate injury; NOTICE for important information not directly hazard related; SAFETY INSTRUCTIONS for safety procedures. The safety alert symbol is used only for DANGER, WARNING and CAUTION.",
+      "trigger_event": "design, procurement or replacement of a safety signboard",
+      "applies_to": "All safety signboards and the graphical symbols on them. Text message requirements: concise and clear, including where possible the type of hazard, the probable consequence of not avoiding it, and how to avoid it; matched in category to the symbol used (a mandatory symbol takes 'must', not 'should' or 'may'); in a language understandable and appropriate to the majority of the current workforce, taking account of languages spoken and read by the employees; upper and lower case letters, left alignment for English and right alignment for Arabic.",
+      "source_quote": "Graphical symbols or pictograms contained in safety signboards shall comply with the shape, color and design principles of ISO 7010 standard as shown below (p8). If ISO 7010 (as shown in Annex C) does not contain a suitable symbol then it is acceptable to design your own, providing it conforms to the general principles described in this technical guideline. (p8) Text message used in the safety signboard must be chosen to reflect the same safety symbol category. (p10) Language used in safety signs shall be understandable and appropriate to the majority of the current workforce (e.g. Arabic, English). (p9)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement, no cadence. Recorded chiefly to mark a SCOPE BOUNDARY, and it should be surfaced to the client as out of scope rather than silently omitted: labelling of containers, tanks, vessels and visible pipes containing or transporting dangerous goods, and signage of dangerous goods storage areas, are governed by the DM Code of Practice for the Management of Dangerous Goods in the Emirate of Dubai and the GHS standard — neither of which is in this corpus — with GU99 adding only placement advice. Note the same DM Code of Practice is the delegated authority for solvent storage segregation in GU43, so it is now a twice-cited missing dependency.",
+      "trigger_event": null,
+      "applies_to": "Containers, tanks, vessels and visible pipes containing or transporting dangerous goods; and all areas, rooms and enclosures storing significant quantities of dangerous goods. Placement guidance: avoid using too many signs on pipework; signs are most useful where employees are likely to be exposed to the contents — sampling or filling points, drain valves, flanged joints likely to need periodic breaking — with intermediate labels on long pipe runs; hazard class and warning signs for stores positioned conspicuously near storage areas or on doors leading into storage rooms.",
+      "source_quote": "Employers shall ensure that all containers, tanks and vessels including visible pipes in the workplace containing or transporting dangerous goods are labelled or affixed with the necessary hazard class and handling labels in accordance with the Dubai Municipality Code of Practice for the Management of Dangerous Goods in the Emirate of Dubai and Globally Harmonized System of Classification and Labeling of Chemicals (GHS) standard. (p13) All areas, rooms and enclosures used to store significant quantities of dangerous goods shall be provided with suitable hazard class and warning signs in accordance with the requirements of this Technical Guideline, Dubai Municipality Code of Practice ... and GHS standard. (p14)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement, no cadence. Recorded ONLY to mark the scope boundary — fire safety signs including exit and directional signs are governed by the UAE Fire and Life Safety Code of Practice, the Dubai Universal Design Code and other applicable UAE regulations, and section 3 SCOPE excludes fire and life safety signage from this guideline entirely. A GU99 module must NOT raise findings against fire exit signage; that is a different regulator's document and selling it inside a GU99 verdict would be the section 7.12 misrepresentation in miniature.",
+      "trigger_event": null,
+      "applies_to": "Fire safety signs including exit and directional signs at appropriate locations within workplace premises and buildings — governed externally",
+      "source_quote": "Employer shall ensure that fire safety signs including exit and directional signs are provided at appropriate locations within the workplace premises/building which is in accordance with the requirements of UAE Fire and Life Safety Code of Practice, Dubai Universal Design Code and other applicable UAE regulations. (p14) This technical guideline does not cover signs related on fire and life safety; and transport of materials as these are covered in other legislations/requirements (e.g. UAE Civil Defense, RTA, etc.) (p4)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing accessibility requirement, no cadence. Where employees' sight or hearing is impaired — including impairment caused by wearing PPE, and employees who are people of determination — additional measures should be taken so that they can see or hear the warning sign or signal, for example warning systems with visual indicators such as blinking lights, or increasing the sign's brilliance or volume. More than one type of safety sign may be used together to communicate a risk effectively. Recorded because it is a real duty that a sign-count audit would otherwise miss entirely: a workplace can have every required sign correctly designed and still fail this.",
+      "trigger_event": "employees whose sight or hearing is impaired, including by PPE, are present in the work area",
+      "applies_to": "Workplaces with employees of impaired sight or hearing, including people of determination and employees whose PPE impairs perception",
+      "source_quote": "In cases wherein the employees' sight or hearing is impaired (i.e. due to wearing personal protective equipment, employee is considered as people of determination/special needs), additional measures should be taken to ensure that the employees can see or hear the warning sign or signal (e.g. providing warning system with visual indicators such as blinking lights, increasing the warning signs brilliance or volume). (p9)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement for illuminated and flashing signs, no cadence. Illuminated signs must be bright enough to be seen without causing glare; several must not be used together where this could cause confusion, nor placed close to a similar light source. A flashing sign shall be used to indicate a higher level of danger or more urgent need for action. Flash duration and frequency must be chosen so the message is understood and not confused with other signs, and must be synchronised with any accompanying acoustic signal. Equipment choice must account for other risks — the document names epilepsy triggered by fast flicker rates and electronic pulses endangering certain explosives stores. Where flashing signs warn of impending danger, measures must be in place to quickly detect or prevent failure of the sign, for example duplicate bulbs.",
+      "trigger_event": null,
+      "applies_to": "Illuminated and intermittent or flashing signs, and their synchronisation with acoustic signals",
+      "source_quote": "If an illuminated sign can be either be continuously 'on' or operated intermittently (e.g. flash on and off), flashing sign shall be used to indicate a higher level of danger or a more urgent need of action or intervention. ... If a flashing sign is used together with an acoustic signal, it is important to synchronize the two. ... Where flashing signs are used to warn impending danger, it is important to ensure that measures are in place to either quickly detect the failure of the sign or to prevent its failure (e.g. by fitting duplicate bulbs, etc.) (p13)"
+    }
+  ]
+}

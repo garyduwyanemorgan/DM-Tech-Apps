@@ -1,0 +1,270 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU66-NSW2",
+    "guideline_no": 66,
+    "title": "Technical Guidelines for Night and Shift Work",
+    "version": "V 3.0",
+    "issued_on": "2026-07-04",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2021/05/DM-HSD_GU66_NSW2_Technical-Guideline-on-Night-and-Shift-Work-002.pdf",
+    "language": "en"
+  },
+  "module_kind": "monitoring",
+  "notes": "WHY module_kind = monitoring RATHER THAN compliance, which is the whole judgement in this file. GU66 is full of numbers — 12-hour and 8-hour shift ceilings, 54/108/215 lux illumination levels, seven to eight hours of sleep, two nights before a shift switch, 30 minutes of daily exercise — and it would be easy and wrong to sell them as compliance limits. Every one of them sits under a heading that says 'Recommended': section 4-2 is 'General Recommended Practices for Employers', section 4-3 is 'Recommended Practices for Workers/Individuals', and the lux table reads 'Three categories are recommended below' with 'the recommended average minimum-maintained luminance'. The controls are introduced with 'may be exercised as applicable'. A report that told an FM contractor it was NON-COMPLIANT for running a 13-hour shift would be asserting a rule DM did not make, which is exactly the misrepresentation section 7.12 warns about. What GU66 supports is a risk band plus a control obligation, which is the monitoring kind, the same shape as GU38. WHAT IS GENUINELY MANDATORY, and what makes the module worth selling despite the above: (1) section 4-1, night or shift activities 'shall only be performed after conducting appropriate risk assessment' with the eleven listed risk factors considered; (2) section 4-7, health screening of night shift workers through a DHA-approved clinic, which the document itself calls 'mandatory screening' and whose records 'shall' be made available to DM inspectors on demand; (3) section 4-6, organisations where night or shift work is practised 'shall prepare training plan and implement it', with training delivered AND its content verified by competent persons; (4) section 4-8, periodic emergency drills 'as per legislation'. Those four are trackable duties with a subject and an evidence artefact, and three of the four carry no stated frequency. THE VALIDITY-VERSUS-INTERVAL DISTINCTION, checked specifically as instructed: GU66 states NO competency validity period for anybody. It names competent persons for training delivery and content verification and a registered medical practitioner for health assessment, and defines the qualification of none of them, certifies none of them, and expires none of them. What it does state is an ASSESSMENT INTERVAL — six months for periodic health assessment — and even that is parenthetically hedged as '(recommended: to be done every six months)'. So this is another instance of the Phase 3 pattern: an interval exists, a validity does not, and validity_months is null throughout the competencies below by evidence rather than by omission. EDITION: version V 3.0 and issue date 4 July 2026 come from inside the document, not from the filename and not from the portal record date of 2026-07-16. Note the source_url sits under an /uploads/2021/05/ path and the file is named '...Night-and-Shift-Work-002.pdf' — the path predates this edition by five years and the name carries no version at all, a clean example of the section 7.12 rule that upload paths record when a file was uploaded and nothing about what is in it. The catalogue held version as null; the document prints V 3.0. THE DATE IS PRINTED NUMERICALLY BUT IS NOT AMBIGUOUS: catalogue_editions_resolved.json settles it day_first at HIGH confidence because the Document History Log's Date column carries '20/08/2025' against version 2.0 alongside '04/07/2026' against version 3.0, and 20 cannot be a month, so the column is dd/mm/yyyy and the issue date is 4 July 2026. This is a document about six weeks old at the time of extraction and is the newest guideline in the Phase 5 set. A SCOPING DEFINITION THAT THE PRODUCT NEEDS: section 3 defines Nighttime as the period between 6:00 PM and 7:00 AM the following day, and Night Work as any work carried out in that window. That single definition decides which of a client's workers the whole module applies to, and it is wider than most operational definitions of a night shift — an evening shift ending at 10 PM is night work under GU66. It is encoded as a limit below so the resolver can apply it rather than leaving it in prose.",
+  "competencies": [
+    {
+      "role": "competent person delivering night and shift work training",
+      "requirement": "Training on night and shift work risk must be delivered by competent persons, and the content of that training must be verified by competent persons as well. The training is to cover the risks associated with night and shift duties and their control measures as specified in the guideline, recognition of health symptoms that may occur while performing the work, the necessity or schedule of health check-ups, driving guidelines, emergency preparedness and security awareness. It may be delivered as induction, job-specific training or toolbox talks. The document defines 'competent person' nowhere, sets no qualification, names no certifying body, requires no registration and sets no validity.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "engagement of persons in night or shift duties",
+      "source_page": 12,
+      "source_quote": "The training is to be delivered by competent persons and contents of training must be verified by competent persons as well. This training can be given in various form such as induction; relevant essential job specific training and toolbox talks for workers if involved in night and shift duties. (p12) Industries/organisations where night and or shift work is in practice shall prepare training plan and implement it to ensure the required level of awareness is being created among the persons involved in this kind of duties. (p11)",
+      "confidence": "high"
+    },
+    {
+      "role": "DHA-approved clinic performing night worker health screening",
+      "requirement": "Health screening of night shift workers in the Emirate of Dubai must be carried out through a DHA-approved clinic, to determine fitness for work and assess health impacts. The screening includes physical examination and blood tests for chronic conditions, and possibly specialised tests such as ECG or spirometry depending on the role, targeting diabetes, cardiovascular disease and chronic chest conditions that night work may aggravate. This is the only place in the Phase 5 corpus so far where a named external regulator's approval — the Dubai Health Authority's — gates who may produce the evidence, which makes it the people-side analogue of the laboratory accreditation gate in section 4.7.",
+      "issuing_body": "Dubai Health Authority (DHA) — clinic approval",
+      "validity_months": null,
+      "renewal_requirement": "No validity period attaches to the clinic's approval in this document, and no DHA approval list, reference number or verification route is given. What recurs is the screening itself, not a credential: see the six-monthly health assessment obligation.",
+      "trigger_event": "employment of a night shift worker; and periodically thereafter",
+      "source_page": 12,
+      "source_quote": "In the emirate of Dubai night shift workers require health screening through a DHA-approved clinic to determine fitness for work and assess health impacts, including physical exams, blood tests for chronic conditions, and possibly specialized tests like ECG or spirometry, depending on the role. These periodic assessments, mandated to ensure worker well-being, help identify and monitor potential health problems like diabetes, cardiovascular diseases, and chronic chest conditions that may be aggravated by night work.",
+      "confidence": "high"
+    },
+    {
+      "role": "registered medical practitioner conducting periodic health assessment",
+      "requirement": "Periodic health assessment of night and shift workers, following the pre-employment medical examination, is to be conducted by a registered medical practitioner to verify any adverse health effects of night or shift work on the individual's health. The document does not say registered with whom, and does not state whether this is the same requirement as the DHA-approved clinic in the bullet above it or a second, looser one — the two bullets sit in the same section and are not reconciled.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "prior to employment, and periodically thereafter (recommended every six months)",
+      "source_page": 12,
+      "source_quote": "There could be a pre-existing medical conditions by which night work could affect adversely. Considering this, it is recommended to conduct medical examination of individual prior to employment and there after periodic health assessment by registered medical practitioner (recommended: to be done every six months) to verify any adverse health effects of night or shift work on the individual's health.",
+      "confidence": "high"
+    },
+    {
+      "role": "supervisor and team member with responsibility for shift working arrangements",
+      "requirement": "Supervisors and team members with responsibility for shift working arrangements must be aware of the risks of shift work and able to recognise problems caused by shift work. Separately, supervision is to be increased during periods of low alertness in nighttime work. No qualification, training syllabus, assessment or certificate is attached to this awareness requirement — it is stated as an outcome the employer must ensure, not a credential anybody holds.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "assignment of responsibility for shift working arrangements",
+      "source_page": 11,
+      "source_quote": "Provision for increasing supervision during the period of low alertness in nighttime work. Ensure supervisors and team members with responsibility for shift working arrangements are aware of the risks of shift work and can recognize problems caused by shift work.",
+      "confidence": "high"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "nighttime_window",
+      "parameter_label": "Definition of Nighttime for the purposes of this guideline",
+      "unit": "clock time",
+      "min_val": null,
+      "max_val": null,
+      "min_inclusive": null,
+      "max_inclusive": null,
+      "display": "the period between 6:00 PM and 7:00 AM following day",
+      "qualifier_rule": "Scoping definition, not a threshold: any work carried out in this window is Night Work and a worker engaged in it is a Night Worker, which is what brings the medical screening and the rest of the module into play. Encoded as a limit so the resolver can apply the window to a client's shift roster rather than leaving it in prose. min_val and max_val are null because the bound is a time of day, not a magnitude the numeric limit fields can hold.",
+      "source_page": 5,
+      "source_quote": "Nighttime: For the purpose of this technical guideline, the period between 6:00 PM and 7:00 AM following day. Night Work: Any work carried out in 'Nighttime'. Night Worker: Worker engaged in Night Work.",
+      "note": "Inclusivity of the endpoints is not stated and cannot be inferred from the glyph 'between', so a shift ending exactly at 18:00 or starting exactly at 07:00 is genuinely undetermined and must not be auto-classified either way, per rule 6. Note how wide this window is: 13 hours, capturing evening shifts that no operational vocabulary would call nights. Applying it literally will pull far more of a client's workforce into scope than they expect, and that is what the document says.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "maximum_shift_duration",
+      "parameter_label": "Maximum shift duration including overtime",
+      "unit": "hours",
+      "min_val": null,
+      "max_val": 12,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "Limit shifts to a maximum of twelve hours (including overtime)",
+      "qualifier_rule": "Applies to shifts generally, and expressly includes overtime in the count. Accompanied by an instruction to consider the needs of vulnerable workers, who are not defined.",
+      "source_page": 7,
+      "source_quote": "Limit shifts to a maximum of twelve hours (including overtime) and consider the needs of vulnerable workers.",
+      "note": "RECOMMENDED, NOT MANDATORY — it sits under the section 4-2 heading 'General Recommended Practices for Employers' and the section's own preamble says these controls 'may be exercised as applicable'. Must not drive a compliance verdict; see the module_kind reasoning in notes. Inclusive by the 'maximum of' glyph, so exactly 12 hours is within the recommendation.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "maximum_night_or_demanding_shift_duration",
+      "parameter_label": "Maximum duration of night shifts and of demanding, monotonous, dangerous or safety-critical shifts",
+      "unit": "hours",
+      "min_val": null,
+      "max_val": 8,
+      "min_inclusive": null,
+      "max_inclusive": true,
+      "display": "Limit night shifts or shifts where work is demanding monotonous, dangerous and/or safety critical to eight hours",
+      "qualifier_rule": "A tighter ceiling than the general 12-hour one, applying to night shifts AND to any shift whose work is demanding, monotonous, dangerous or safety critical whether or not it is at night. Where both apply the 8-hour figure governs. Corroborated in the risk factor list at section 4-1: 'Eight hours shift is considered adequate, anything more than this may create fatigue or other ill health issues'.",
+      "source_page": 7,
+      "source_quote": "Limit night shifts or shifts where work is demanding monotonous, dangerous and/or safety critical to eight hours. (p7) Shift duration - Eight hours shift is considered adequate, anything more than this may create fatigue or other ill health issues. (p6)",
+      "note": "RECOMMENDED, NOT MANDATORY — same section 4-2 caveat as the 12-hour limit. Inclusive at 8. The terms 'demanding', 'monotonous', 'dangerous' and 'safety critical' are not defined anywhere in the document, so which shifts fall under the 8-hour rather than the 12-hour figure is a judgement the app cannot make from a roster alone.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "night_work_illumination_level_1",
+      "parameter_label": "Nighttime work zone illumination — Level 1, crew in motion / low accuracy tasks",
+      "unit": "lux",
+      "min_val": 54,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "recommended average minimum-maintained luminance is 54 lux",
+      "qualifier_rule": "For areas where the work crew is in motion, moving from spot to spot; tasks requiring low accuracy, slow-moving equipment, large objects to be seen. Stated as an AVERAGE MINIMUM-MAINTAINED value, so it is neither a spot reading nor an as-installed figure — it must hold across the area and over the life of the lamps.",
+      "source_page": 9,
+      "source_quote": "Level 1: Illumination is important in areas where the work crew is in motion, moving from spot to spot. This level of luminance is appropriate for tasks requiring low accuracy, involving slow-moving equipment, and where there are large objects to be seen. The recommended average minimum-maintained luminance is 54 lux.",
+      "note": "RECOMMENDED, NOT MANDATORY. Inclusive minimum. The document uses 'luminance' where it means illuminance — lux is a unit of illuminance, and luminance is measured in candela per square metre. The intent is unambiguous and the unit given (lux) is the one to measure, but the wording is technically wrong in the source and is quoted as printed. The three levels are task categories, not a continuous band table, so there is no gap-to-NOT_ASSESSED problem: the assessor picks the level that matches the task.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "night_work_illumination_level_2",
+      "parameter_label": "Nighttime work zone illumination — Level 2, on or around construction equipment / moderate accuracy",
+      "unit": "lux",
+      "min_val": 108,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "recommended average minimum luminance is 108 lux",
+      "qualifier_rule": "For areas on or around construction equipment, to provide a safer environment for the workers operating it and allow tasks requiring a moderate level of accuracy.",
+      "source_page": 9,
+      "source_quote": "Level 2: Luminance is recommended for areas on or around construction equipment to provide a safer environment for the workers operating the equipment, allowing them to perform tasks that require a moderate level of accuracy. The recommended average minimum luminance is 108 lux.",
+      "note": "RECOMMENDED, NOT MANDATORY. Inclusive minimum. Exactly double Level 1, and Level 3 is almost exactly double this — the series 54/108/215 is the customary 5/10/20 foot-candle series converted to lux and rounded, which is consistent with the US Federal Highway Administration reference cited on p13. That origin is inferred from the numbers and is NOT asserted as sourced.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "night_work_illumination_level_3",
+      "parameter_label": "Nighttime work zone illumination — Level 3, high visibility or high difficulty tasks",
+      "unit": "lux",
+      "min_val": 215,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "recommended average minimum illumination is 215 lux",
+      "qualifier_rule": "For tasks requiring a greater level of visibility or with a higher level of difficulty. Note the document switches term here from 'luminance' to 'illumination', which is the correct word for a value in lux.",
+      "source_page": 10,
+      "source_quote": "Level 3: Luminance is appropriate for those tasks that require a greater level of visibility or for tasks with a higher level of difficulty. The recommended average minimum illumination is 215 lux.",
+      "note": "RECOMMENDED, NOT MANDATORY. Inclusive minimum. The document expressly declines to treat these three figures as sufficient: 'With not limiting to above recommendation, employers need to do required study to have appropriate and suitable illumination at such workplace to avoid glares and shadows and conduct work safely.' So even meeting 215 lux does not close the duty, which is a further reason this cannot be sold as a compliance verdict.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "sleep_duration",
+      "parameter_label": "Recommended sleep duration for night and shift workers",
+      "unit": "hours",
+      "min_val": 7,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "at least seven to eight hours sleep",
+      "qualifier_rule": "Advice addressed to the worker, not a duty on the employer — it sits in section 4-3, 'Recommended Practices for Workers/Individuals'. Not observable by an employer and not auditable; encoded for completeness of the module content only.",
+      "source_page": 8,
+      "source_quote": "Try to develop a regular sleep pattern including at least seven to eight hours sleep. Where sleep is not immediately achievable, adequate rest should still be taken. Suitable sleep timing should be identified and followed consistently.",
+      "note": "RECOMMENDED, AND ADDRESSED TO THE INDIVIDUAL. Only the 7 is encoded, as an inclusive floor by the 'at least' glyph; the 8 is the top of an advisory range and is not a ceiling, so max_val is left null rather than guessed. NEVER surface this as a compliance item against a worker.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "rest_nights_on_shift_switch",
+      "parameter_label": "Minimum full-sleep nights allowed when switching between day and night shifts",
+      "unit": "nights",
+      "min_val": 2,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "allow workers a minimum of two nights of full sleep",
+      "qualifier_rule": "Applies when switching a worker from day to night shifts or vice versa. Unlike the sleep-duration advice this one IS addressed to the employer and is schedulable, so it is the most operationally checkable of the recommended figures — a roster either does or does not leave two nights between the switch.",
+      "source_page": 7,
+      "source_quote": "When switching from day to night shifts or vice versa, allow workers a minimum of two nights of full sleep.",
+      "note": "RECOMMENDED, NOT MANDATORY — section 4-2 again. Inclusive minimum. Worth surfacing as a roster advisory even though it cannot carry a verdict.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "daily_exercise_duration",
+      "parameter_label": "Recommended daily physical activity for night and shift workers",
+      "unit": "minutes/day",
+      "min_val": 30,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "At least 30 minutes daily exercise is recommended, and this can be split into two if necessary",
+      "qualifier_rule": "Advice to the individual worker, section 4-3. May be split into two sessions.",
+      "source_page": 8,
+      "source_quote": "At least 30 minutes daily exercise is recommended, and this can be split into two if necessary. Exercise can be as simple and inexpensive as a walk, jog, and cycle or exercising at home.",
+      "note": "RECOMMENDED, AND ADDRESSED TO THE INDIVIDUAL. Inclusive minimum. Included because it is a stated number in the document, but it is personal health advice and has no place in any compliance output.",
+      "confidence": "high"
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "health_screening",
+      "cadence_months": 6,
+      "cadence_days": null,
+      "cadence_note": "Six months, but recorded with an important qualification: the interval is printed parenthetically as '(recommended: to be done every six months)', so the SCREENING is mandatory while its SIX-MONTHLY FREQUENCY is a recommendation. cadence_months is set to 6 because it is the only interval the document gives and a client needs something to schedule against, but the app must present it as the recommended interval, not as a regulatory deadline, and must not raise a NON-COMPLIANT verdict on a worker screened at seven months. The pre-employment examination is a separate one-off event captured by the trigger_event. Note this is an ASSESSMENT INTERVAL, not a validity period — nothing expires.",
+      "trigger_event": "prior to employment in night or shift work; and every six months thereafter",
+      "applies_to": "Night shift workers in the Emirate of Dubai — screening through a DHA-approved clinic to determine fitness for work, including physical examination, blood tests for chronic conditions and possibly ECG or spirometry depending on the role; follow-up assessments constitute health surveillance for detrimental effects of night work",
+      "source_quote": "In the emirate of Dubai night shift workers require health screening through a DHA-approved clinic to determine fitness for work and assess health impacts ... These periodic assessments, mandated to ensure worker well-being, help identify and monitor potential health problems like diabetes, cardiovascular diseases, and chronic chest conditions that may be aggravated by night work. ... it is recommended to conduct medical examination of individual prior to employment and there after periodic health assessment by registered medical practitioner (recommended: to be done every six months) to verify any adverse health effects of night or shift work on the individual's health. The follow up assessments are a form of health surveillance in that they seek to determine if the night work is having a detrimental effect on the night worker's health. The assessment must be covered by the employer and provided free of charge to the worker. (p12)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing record-keeping and production duty with no interval and no stated retention period. The organisation shall ensure availability of medical facility support to comply with the mandatory screening, and the screening record must be produced to DM inspectors on demand. The document supplies the record format itself: Annex A, 'Register of Workers Health Status', with columns for name, designation, date of joining, medical status prior to joining, current medical status, NEXT MEDICAL CHECK-UP DUE ON, name of health centre, any special medical condition, and the worker's supervisor's signature. That 'next due on' column is effectively DM specifying the due-date tracking this product exists to automate, which makes the register a natural first screen for the module. Mapped to 'reporting' as the closest term in the closed vocabulary; the actual duty is retain-and-produce-on-demand, for which the vocabulary has no exact type. Noted per rule 4.",
+      "trigger_event": "demand by a DM inspector",
+      "applies_to": "Employers of night and shift workers — Register of Workers Health Status (Annex A) recording each worker's medical status before joining, current medical status, next check-up due date, health centre and any special medical condition, countersigned by the worker's supervisor",
+      "source_quote": "Organization shall ensure availability of medical facility support, to ensure compliance with above mandatory screening. The record of the screening to be made available to DM inspectors on demand. (See Annex A, Register of workers' health status). (p12) Annex: REGISTER OF WORKERS HEALTH STATUS — Name of Worker | Designation | Date of Joining | Medical Status Prior to Joining | Current Medical Status | Next Medical Check-up Due On | Name of Health Center | Any Special Medical Condition | WORKER's Supervisor's Signature (p13)"
+    },
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "NO INTERVAL AND NO REVIEW CYCLE IS STATED — the assessment is a precondition of the work rather than a periodic task, and the document never says to repeat or review it. An honest null of the most consequential kind here: a client could do one assessment in 2026 and never revisit it without breaching anything GU66 says. This is the strongest 'shall' in the document and the natural anchor obligation for the module.",
+      "trigger_event": "before any work activity is performed during night or in shifts",
+      "applies_to": "All employers with work activities performed at night and/or in shifts, at commercial and industrial establishments, public and government institutions and construction project sites in Dubai. Eleven risk factors shall be considered: workload; work activity; shift pattern and shift rotation; shift timing; shift duration; rest breaks within and between shifts; physical environment (lighting, glare, temperature, ventilation, humidity); physical workplace conditions (excavation, ground levels, obstacles); management issues (overtime, shift swapping, standby and on-call duties, training, information, communication); individual factors (age, gender, lifestyle, attitude, behaviour); social and family factors; and health assessment.",
+      "source_quote": "All employers having their work activities which needs to be performed during night and/or in shifts work, shall only be performed after conducting appropriate risk assessment for these activities and implementing suitable defined controls to prevent ill health and injury at work. For appropriate risk assessment following risk factors related to night and shift work shall be considered: (p5)"
+    },
+    {
+      "obligation_type": "competency",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No frequency, no refresher interval and no expiry. The organisation shall prepare AND implement a training plan; the plan's own schedule is left entirely to the organisation. Honest null.",
+      "trigger_event": "night or shift work being in practice at the organisation",
+      "applies_to": "Persons involved in night and shift duties. Training shall cover the risks of night and shift duties and their control measures, recognition of health symptoms, the necessity or schedule of health check-ups, driving guidelines, emergency preparedness and security awareness; delivered by competent persons with content verified by competent persons; deliverable as induction, job-specific training or toolbox talks.",
+      "source_quote": "Industries/organisations where night and or shift work is in practice shall prepare training plan and implement it to ensure the required level of awareness is being created among the persons involved in this kind of duties. The training should cover the risk associated with night and shift duties and related control measures as specified in this guideline, recognize the health symptoms which may occur in individual while performing the work and necessity or schedule of health check-up (as needed), driving guidelines, emergency preparedness, security awareness. (p11) The training is to be delivered by competent persons and contents of training must be verified by competent persons as well. (p12)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-driven, no cadence. Where night work is essential the employer 'must prepare night work safety plan'. Separately, employers are 'recommended to prepare foolproof lighting plan' with a stated minimum content list, which makes the lighting plan a checkable document artefact even though the underlying lux figures are only recommendations. Mapped to 'process' as the closest vocabulary term; the duty is producing and holding a plan.",
+      "trigger_event": "scheduling of essential nighttime work",
+      "applies_to": "Night work safety plan; and lighting plan, which shall include as a minimum: a layout showing location of light towers, their spacing, lateral placement and mounting height and all lights necessary for the night work; description of light towers, attachments, fixtures and related power source; specific technical details of the lighting equipment; details of any hoods, louvers, shields or other means to control glare; and an illumination lighting calculation confirming the layout requirement",
+      "source_quote": "It is recommended that no work to be scheduled for nighttime unless essential. When essential the employer must prepare night work safety plan accordingly to ensure organized safety control on the activity performed during nighttime. (p11) To ensure adequate and sufficient illumination at workplace, employers are recommended to prepare foolproof lighting plan and shall include following information as a minimum requirement: (p10)"
+    },
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No interval stated. Recorded separately from the section 4-1 activity risk assessment because it is a distinct assessment with its own defined scope — lighting in the workplace — and could be commissioned separately, typically alongside the illumination measurements.",
+      "trigger_event": null,
+      "applies_to": "Assessment of workplace lighting, taking account of: adequacy of artificial lighting particularly where work equipment is in use; the procedure for measuring levels of illumination; presence of glare in its various forms; efficiency of light distribution; lighting maintenance and cleaning arrangements; and emergency lighting arrangements",
+      "source_quote": "Assessment of lighting in the workplace should take account of the following aspects: The adequacy of artificial lighting, particularly where work equipment is in use; Procedure for measuring levels of illumination; The presence of glare in its various forms; The efficiency of light distribution; Lightning maintenance and cleaning arrangements; and Emergency lighting arrangements. (p10)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Periodic emergency drills are required 'as per legislation' — GU66 sets no interval of its own and defers the frequency to legislation it does not name or cite. A delegating obligation inside a monitoring guideline: the duty is real, the cadence must come from the fire and civil defence regime rather than from this document, and it must NOT be invented here.",
+      "trigger_event": null,
+      "applies_to": "Employers with night and shift work — preparedness for medical, fire, traffic and security incidents and emergencies arising during night and shift work, through training and ensuring required resources are available; where lone working is unavoidable, all workers to be made aware of dealing with such emergencies",
+      "source_quote": "All employers to ensure they have prepared to mitigate with all kinds of medical/ fire/traffic/security incidents / emergencies, which may arise in due course of night and shift work through training and ensuring all required resources are available. In case of lone working (please note that lone working is not to be encouraged unless essential and not avoidable) or limited resources during night or shift work, all workers to be made aware of dealing with such emergencies. Periodic drills related to applicable emergencies to be conducted as per legislation to be conducted. (p12)"
+    },
+    {
+      "obligation_type": "self_inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Organizations MAY conduct periodic inspections/audits' — permissive, not mandatory, and with no period stated. The weakest duty in the document and recorded as such: it should be offered as an optional recurring task a client can switch on and schedule themselves, never as an overdue item raised against them. Section 4-9 is titled 'Monitoring', which is also why the whole guideline reads as the monitoring kind.",
+      "trigger_event": null,
+      "applies_to": "Organisations verifying implementation of the applicable parts of this guideline, and monitoring health issues, absenteeism and incidents alongside inspection and audit results to identify gaps, with corrective and preventive actions arising",
+      "source_quote": "Organizations may conduct periodic inspections/audits to verify implementation of these guidelines applicable to them. Deviation from the required control may lead to health issues, absenteeism and incidents in the organization. Monitoring these indirect results with inspection/audit results will help in identifying the gap in the existing system. Corrective and Preventive actions identified based on the guidance will result in improvising the situation and thus minimizing health issues and incidents in the organization due to night and shift work. (p13)"
+    }
+  ]
+}
