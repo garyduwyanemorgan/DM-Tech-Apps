@@ -31,8 +31,14 @@ Apply in this order, in the Supabase SQL editor:
 1. `db/migrations/000_base.sql` — `readings`, `predictions`, `deployment_identity`
 2. `db/schema.sql` — `organizations`, `sites`, adds `site_id` to both
 3. `db/schema_rls.sql` — `user_profiles`, `get_user_organization()`, `get_user_role()`, policies
-4. `db/migrations/001` … `028` in numeric order
+4. `db/migrations/001` … `029` in numeric order
 5. `python -m db.seed_standards --dry-run`, then without the flag
+
+Note that steps 3 and 4 briefly create policies that 029 then corrects. That is
+deliberate: 029 fixes forward rather than rewriting `schema_rls.sql` and eight
+historical migrations, because those files are the record of what was applied by
+hand to the existing database and rewriting them would not change it. Do not
+stop the run before 029.
 
 **000 refuses to run against a database that already has `readings` or
 `predictions`.** That is deliberate and is the guard against the one irreversible
@@ -58,8 +64,11 @@ python -m db.seed_standards --dry-run          # print the plan, write nothing
 python -m db.seed_standards --verified-by "…" --verified-on YYYY-MM-DD
 ```
 
-It needs the service role key — 022 restricts writes on all three tables to
-`super_admin`. It is idempotent and never deletes. Note that `min_inclusive`,
+It needs the service role key. 022 originally restricted writes on all three
+tables to `super_admin`; **029 removed that policy entirely**, so after 029 the
+service role is not merely the convenient way to seed them but the only way —
+no `authenticated` client can write `standards`, `specification_sets` or
+`spec_limits` at all. It is idempotent and never deletes. Note that `min_inclusive`,
 `max_inclusive` and `qualifier_rule` have no counterpart in `COMPLIANCE_LIMITS`
 and are declared in the seeder's own `BOUND_RULES` table; adding a parameter to
 `COMPLIANCE_LIMITS` without a matching rule aborts the seed rather than
@@ -106,6 +115,7 @@ header before running it.
 | 026 | `026_consumer_product_scope.sql` | Adds `consumer_product` to the scope CHECKs |
 | 027 | `027_module_obligations.sql` | `module_obligations` — the duties a guideline states, plus `obligations.module_obligation_id` |
 | 028 | `028_people_credentials.sql` | `people_credentials`, `credential_prerequisites`, `coverage_requirements`, `credential_valid_on()`, `credential_covers()` |
+| 029 | `029_rls_tenant_scope.sql` | Removes the cross-tenant `super_admin` clause from 41 policies; drops the write policies on the 9 global reference tables |
 
 Two files share the `002` and `006` prefixes. They are independent of each
 other, so either order within the pair is fine.
@@ -113,7 +123,10 @@ other, so either order within the pair is fine.
 ## Rolling back
 
 Apply the `_down` files in **reverse** numeric order. Read the one you intend to
-run first: several are lossy by design and say so in their header. `023_down`
+run first: several are lossy by design and say so in their header. `029_down`
+loses no data but **reintroduces a known cross-tenant vulnerability** — it is a
+faithful reversal, which is exactly the problem; there is no good reason to run
+it. `023_down`
 destroys entitlements, obligations and certificate evidence with no way back —
 export before running it. `028_down` is worse in kind rather than in degree: it
 destroys credential records about **named individuals**, including the reasons
@@ -135,3 +148,52 @@ governing-standard columns (the citations survive inside `raw_extraction`, which
 - Prefer `coalesce(col, '') = 'x'` over `col = 'x'` in a `CHECK`: with a NULL
   column a bare comparison yields NULL, and Postgres accepts a `CHECK` that is
   not FALSE, so the constraint silently permits what it was written to forbid.
+
+### RLS policies: never write `OR get_user_role() = 'super_admin'`
+
+**`super_admin` is a TENANT role, not a platform one.** `core/authz.py` calls it
+Executive Management, and `api_server.py` auto-provisions it to every user who
+signs in without an existing profile, each in a fresh organisation of their own.
+So a predicate of the form
+
+```sql
+organization_id = public.get_user_organization()
+OR public.get_user_role() = 'super_admin'    -- ← WRONG
+```
+
+does not mean "or the vendor's staff". It means "or the caller is an admin of
+*any* organisation on the platform, including one created thirty seconds ago" —
+a cross-tenant read on a `SELECT` and a cross-tenant write on a `FOR ALL`. The
+same applies to `USING (get_user_role() = 'super_admin')` with no organisation
+test at all.
+
+This was copied from migration to migration into 41 policies across 9 files
+before anyone noticed (security review H2, fixed by 029). It was easy to miss
+because the backend connects as `service_role`, which bypasses RLS entirely, so
+no policy here has ever actually executed — a wrong one costs nothing until the
+day a JWT-carrying client ships, and then fails silently and completely.
+
+Write one of these two shapes instead:
+
+```sql
+-- Tenant table (has an organization_id, or joins to one):
+organization_id = public.get_user_organization()
+AND public.get_user_role() IN ('admin', 'super_admin')
+
+-- Global reference table (no organization_id — vendor-curated data):
+--   a select_… USING (true) policy, and NO write policy whatsoever.
+--   The CLI loaders write these as service_role and bypass RLS.
+```
+
+`tests/test_rls_tenant_scope.py` scans every `.sql` file here and fails on
+either defect shape, so this is enforced rather than merely recommended. The
+historical files are listed in its `SUPERSEDED_BY_029` allowlist; do not add to
+that list to make a new migration pass.
+
+One more consequence worth knowing: these policies resolve identity through
+`auth.uid()` against `user_profiles.id`, which references `auth.users(id)`. This
+app authenticates with **Clerk** and keys profiles on `clerk_id`, so
+`get_user_organization()` returns NULL for every real user and the policies match
+nothing. They are correct-but-inert. **Re-keying those two helper functions onto
+the Clerk subject is a prerequisite for any client-side Supabase access** — and
+must happen after 029, never before, or the cross-tenant clauses would activate.

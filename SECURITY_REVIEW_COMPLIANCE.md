@@ -10,6 +10,81 @@ Review only. No code was changed.
 
 ---
 
+## Status — updated 2026-08-15, after the fixes
+
+The findings below are left exactly as written, including the "Fix:" lines and
+the recommended order. They are the record of the review as conducted; this
+block records what happened to each afterwards. Where a fix departed from the
+recommendation, the departure is named.
+
+| | Finding | Status | Where |
+|---|---|---|---|
+| H1 | `DELETE /sites/{name}` destroys other tenants' readings | **Fixed** | `2e3ff09` |
+| M3 | `POST /users/invite` confirms an email exists in another tenant | **Fixed** | `ca4376e` |
+| M1 | Entitlement audit omits the fields that decide monitoring | **Fixed** | `ca4376e` |
+| M2 | `first_due_on` is unbounded | **Fixed** | `ca4376e` |
+| L2 | Unbounded `price_agreed` / `notes` return 500 | **Fixed** | `ca4376e` |
+| L4 | Clerk token validation checks neither `iss` nor `azp` | **Fixed** | `ca4376e` |
+| H2 | RLS `super_admin` is a cross-tenant hole | **Fixed, not yet applied** | migration `029` |
+| L1 | Site-scope enforcement off by default | Open — a deliberate default | — |
+| L3 | GET endpoints create sites, bypassing the plan limit | Open | — |
+
+**H2 needs an action that the others did not.** `029_rls_tenant_scope.sql` is a
+hand-applied file. Until it is run in the Supabase SQL editor the holes are open
+in the live project. Applying it changes no runtime behaviour today, because the
+backend connects as `service_role` and bypasses RLS either way — which is why it
+should be applied now rather than in a hurry later.
+
+**Two corrections to this review, found while fixing it:**
+
+1. **H2's blast radius was understated.** The review cites `022`, `023`, `027`
+   and `schema_rls.sql`. The real count is **41 policies across 9 files**, also
+   including `016`, `017`, `020`, `024` (18 on its own) and `028` — which was
+   written the same day as this review. The pattern was still being copied into
+   new migrations, so `tests/test_rls_tenant_scope.py` now fails the build on
+   either defect shape, and `db/migrations/README.md` explains why.
+
+2. **H2 is two findings, not one.** The 41 sites split exactly on whether the
+   table has an `organization_id`. On tenant tables the clause is pure
+   cross-tenant reach and was stripped. On the 9 global reference tables
+   (`standards`, `laboratories`, `guideline_modules`, `module_obligations`,
+   `severity_scales`, `severity_scale_values`, `checklist_templates`,
+   `checklist_items`, `coverage_requirements`) it let any customer's admin
+   rewrite vendor-curated data — the catalogue's `status`, `provenance` and
+   `list_price_monthly` — and those write policies were **dropped outright**
+   rather than re-scoped. No `platform_staff` table or JWT claim was introduced:
+   the only writers that have ever existed are the CLI loaders, which run as
+   `service_role`. The review's "decide what `super_admin` means" framing
+   suggested a new predicate was needed; it was not.
+
+   Where `super_admin` was the *sole* predicate on a mutation, deleting the
+   clause would have left no valid predicate and locked tenants out of their own
+   rows. Those 14 are re-scoped to
+   `organization_id = get_user_organization() AND get_user_role() = …`. The bug
+   was the missing organisation test, not the role.
+
+**Deliberately still open, and why.** The `auth.uid()` half of H2 is untouched:
+the helper functions still resolve identity through Supabase auth while the app
+authenticates with Clerk, so the policies are now correct-but-inert. Re-keying
+them onto the Clerk subject remains a prerequisite for any client-side Supabase
+access, and must happen **after** 029 — doing it first would have activated all
+41 holes at once.
+
+**New residual risks introduced by the M3 and L4 fixes** (neither is a
+regression; both are limits of the fix):
+
+- `/users/invite` is now audited but not rate-limited, and its timing still
+  separates the cross-tenant case from an unknown address. A per-actor limit is
+  the real control.
+- Email matching is `strip().lower()` only, so plus-addressing can still produce
+  the two-pending-profiles ambiguity that the cross-tenant refusal exists to
+  prevent. Needs one canonicalisation policy shared with `get_user_profile`.
+- L4's `azp` allow-list is inert until `CLERK_AUTHORIZED_PARTIES` is set. It
+  fails open by design so fresh checkouts do not 401 wholesale, which means it
+  **must be configured before go-live**. The `iss` check is live unconditionally.
+
+---
+
 ## 0. The central fact — verified, and it is correct
 
 **The backend connects to Supabase as `service_role`, and therefore bypasses RLS entirely.**
@@ -339,6 +414,9 @@ These were checked and found correct — recording them so they are not re-litig
 ---
 
 ## Recommended order of work
+
+*(As recommended at review time. It was followed; see the Status block at the
+top for what remains.)*
 
 1. **H1** — one-line data-destruction bug, reachable by any admin today. Fix first.
 2. **M3** — trivial fix, ongoing disclosure.
