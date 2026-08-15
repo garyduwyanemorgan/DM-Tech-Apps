@@ -1483,10 +1483,35 @@ def remove_sludge_zone(site: str, zone_name: str, profile: dict = Depends(get_cu
     return {"deleted": True, "message": msg}
 
 
+def _require_site(site: str, profile: dict) -> None:
+    """404 unless `site` already exists in the caller's own organisation.
+
+    These GETs used to resolve the name through get_or_create_site_id, so
+    /readings/{anything} and /status/{anything} inserted a row in `sites` — the
+    plan/site limit is enforced on POST /sites alone, so a query string could
+    mint billable rows. Resolution is now select-only and the answer is stated
+    here rather than as an empty month list, so the two endpoints do not report
+    "no readings stored yet" about a site nobody ever created.
+
+    The lookup is org-scoped, so another tenant's site is reported exactly as a
+    site that does not exist — the wording matches _resolve_site_filter, which
+    is the same disclosure decision on the obligations registry.
+    """
+    org_id = profile.get("organization_id")
+    if not org_id:
+        # Org-less callers never resolved a site id anyway; they read the
+        # legacy site_name path and are unaffected by this check.
+        return
+    from db.queries import find_site_id
+    if not find_site_id(site, org_id):
+        raise HTTPException(status_code=404, detail="Site not found in your organisation.")
+
+
 @app.get("/readings/{site}", tags=["Compliance"])
 def site_readings(site: str, year: int = 2026, _=Security(_check_key), profile: dict = Depends(get_current_user_profile)):
     """Return the raw monthly readings for a site (all 14 parameters per month),
     ordered by month. Drives the live Water Quality Monitoring data log."""
+    _require_site(site, profile)
     try:
         from db.queries import get_readings_for_site
         readings = get_readings_for_site(site, year=year, organization_id=profile["organization_id"], token=profile["token"])
@@ -1649,6 +1674,7 @@ def site_status(site: str, year: int = 2026, _=Security(_check_key), profile: di
     legacy monthly `readings` table, so an uploaded certificate never reached
     the dashboard.
     """
+    _require_site(site, profile)
     try:
         from db.queries import get_readings_for_site
         readings = get_readings_for_site(site, year=year, organization_id=profile["organization_id"], token=profile["token"])

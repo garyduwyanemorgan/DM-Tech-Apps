@@ -57,7 +57,13 @@ def _row_to_reading(row: dict):
 # ── Reads ─────────────────────────────────────────────────────────────────────
 
 def get_or_create_site_id(site_name: str, organization_id: str | None = None, token: str | None = None) -> str | None:
-    """Resolve site name and organization ID to site UUID. Auto-creates site if missing."""
+    """Resolve site name and organization ID to site UUID. Auto-creates site if missing.
+
+    WRITE PATH ONLY. This inserts into `sites`, so calling it from a read makes
+    every GET a site factory: the plan/site limit is enforced on POST /sites
+    alone, and a name in a query string would mint a billable row. Reads use
+    _read_site_id() below, which is select-only.
+    """
     client = get_client()
     if not client or not organization_id:
         return None
@@ -78,13 +84,35 @@ def get_or_create_site_id(site_name: str, organization_id: str | None = None, to
     return None
 
 
+def _read_site_id(site_name: str, organization_id: str | None) -> tuple[str | None, bool]:
+    """Resolve a site for a READ. Returns (site_id, exists).
+
+    Three cases, and the middle one is the finding:
+      * organization_id given, name known   -> (id, True)
+      * organization_id given, name unknown -> (None, False); the caller must
+        return its empty result. It must NOT fall back to a `site_name` filter:
+        `readings`, `predictions` and friends carry no organization_id, so a
+        name-only filter reads every tenant with a site of that name — the same
+        shape as the H1 delete. A site in another org therefore looks exactly
+        like a site that does not exist.
+      * no organization_id -> (None, True); the legacy single-tenant callers
+        (agent_server, ui/predictive) keep the site_name behaviour they had.
+    """
+    if not organization_id:
+        return None, True
+    site_id = find_site_id(site_name, organization_id)
+    return site_id, site_id is not None
+
+
 def get_readings_for_site(site_name: str, year: int | None = None, organization_id: str | None = None, token: str | None = None) -> List:
     """Return WaterReading list ordered by month. Empty list on failure."""
     client = get_client()
     if not client:
         return []
     try:
-        site_id = get_or_create_site_id(site_name, organization_id, token)
+        site_id, exists = _read_site_id(site_name, organization_id)
+        if not exists:
+            return []
         if site_id:
             q = client.table("readings").select("*").eq("site_id", site_id)
         else:
@@ -132,7 +160,9 @@ def reading_exists(site_name: str, year: int, month: int, organization_id: str |
     if not client:
         return False
     try:
-        site_id = get_or_create_site_id(site_name, organization_id, token)
+        site_id, exists = _read_site_id(site_name, organization_id)
+        if not exists:
+            return False
         if site_id:
             q = client.table("readings").select("id").eq("site_id", site_id).eq("year", year).eq("month", month)
         else:
@@ -231,7 +261,12 @@ def validate_open_predictions(site_name: str, year: int, month: int, fields: dic
     if not client:
         return 0
     try:
-        site_id = get_or_create_site_id(site_name, organization_id, token)
+        # Called from insert_reading, after the site has been created. Lookup
+        # only: the name fallback below would otherwise UPDATE every tenant's
+        # predictions for a site of the same name.
+        site_id, exists = _read_site_id(site_name, organization_id)
+        if not exists:
+            return 0
         if site_id:
             resp = (client.table("predictions").select("*")
                     .eq("site_id", site_id).eq("year", year).eq("month", month)
@@ -274,7 +309,9 @@ def get_validated_predictions(site_name: str | None = None, organization_id: str
     try:
         q = client.table("predictions").select("*").not_.is_("actual", "null")
         if site_name:
-            site_id = get_or_create_site_id(site_name, organization_id, token)
+            site_id, exists = _read_site_id(site_name, organization_id)
+            if not exists:
+                return []
             if site_id:
                 q = q.eq("site_id", site_id)
             else:
@@ -405,7 +442,9 @@ def get_site_reading_count(site_name: str, organization_id: str | None = None, t
     if not client:
         return 0
     try:
-        site_id = get_or_create_site_id(site_name, organization_id, token)
+        site_id, exists = _read_site_id(site_name, organization_id)
+        if not exists:
+            return 0
         if site_id:
             res = client.table("readings").select("id", count="exact").eq("site_id", site_id).execute()
         else:
@@ -466,7 +505,7 @@ def get_sludge_zones(site_name: str, organization_id: str | None = None,
     if not client:
         return []
     try:
-        site_id = get_or_create_site_id(site_name, organization_id, token)
+        site_id, _ = _read_site_id(site_name, organization_id)
         if not site_id:
             return []
         res = (client.table("sludge_surveys").select("*")
@@ -513,7 +552,8 @@ def delete_sludge_zone(site_name: str, zone_name: str, organization_id: str | No
     client = get_client()
     if not client:
         return False, "Supabase not configured."
-    site_id = get_or_create_site_id(site_name, organization_id, token)
+    # Deleting is never a reason to create: an unknown name refuses.
+    site_id, _ = _read_site_id(site_name, organization_id)
     if not site_id:
         return False, "Site not found for this organization."
     try:
@@ -560,7 +600,7 @@ def get_open_data_requests(site_name: str, organization_id: str | None = None,
     if not client:
         return []
     try:
-        site_id = get_or_create_site_id(site_name, organization_id, token)
+        site_id, _ = _read_site_id(site_name, organization_id)
         if not site_id:
             return []
         res = (client.table("data_requests").select("*")
@@ -578,7 +618,8 @@ def dismiss_data_request(request_id: str, site_name: str,
     client = get_client()
     if not client:
         return False, "Supabase not configured."
-    site_id = get_or_create_site_id(site_name, organization_id, token)
+    # Fulfilling an existing request cannot need a new site.
+    site_id, _ = _read_site_id(site_name, organization_id)
     if not site_id:
         return False, "Site not found for this organization."
     try:
