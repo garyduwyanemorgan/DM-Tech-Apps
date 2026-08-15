@@ -27,7 +27,7 @@ recommendation, the departure is named.
 | L4 | Clerk token validation checks neither `iss` nor `azp` | **Fixed** | `ca4376e` |
 | H2 | RLS `super_admin` is a cross-tenant hole | **Fixed, not yet applied** | migration `029` |
 | L1 | Site-scope enforcement off by default | Open — a deliberate default | — |
-| L3 | GET endpoints create sites, bypassing the plan limit | Open | — |
+| L3 | GET endpoints create sites, bypassing the plan limit | **Fixed** | `75642e8` |
 
 **H2 needs an action that the others did not.** `029_rls_tenant_scope.sql` is a
 hand-applied file. Until it is run in the Supabase SQL editor the holes are open
