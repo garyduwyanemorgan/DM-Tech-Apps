@@ -31,7 +31,7 @@ Apply in this order, in the Supabase SQL editor:
 1. `db/migrations/000_base.sql` — `readings`, `predictions`, `deployment_identity`
 2. `db/schema.sql` — `organizations`, `sites`, adds `site_id` to both
 3. `db/schema_rls.sql` — `user_profiles`, `get_user_organization()`, `get_user_role()`, policies
-4. `db/migrations/001` … `029` in numeric order
+4. `db/migrations/001` … `030` in numeric order
 5. `python -m db.seed_standards --dry-run`, then without the flag
 
 Note that steps 3 and 4 briefly create policies that 029 then corrects. That is
@@ -116,6 +116,7 @@ header before running it.
 | 027 | `027_module_obligations.sql` | `module_obligations` — the duties a guideline states, plus `obligations.module_obligation_id` |
 | 028 | `028_people_credentials.sql` | `people_credentials`, `credential_prerequisites`, `coverage_requirements`, `credential_valid_on()`, `credential_covers()` |
 | 029 | `029_rls_tenant_scope.sql` | Removes the cross-tenant `super_admin` clause from 41 policies; drops the write policies on the 9 global reference tables |
+| 030 | `030_clerk_identity.sql` | Re-keys `get_user_organization()`/`get_user_role()` onto the Clerk subject; adds `clerk_subject()` and `get_user_profile_id()`; fixes the 3 policies comparing `auth.uid()` |
 
 Two files share the `002` and `006` prefixes. They are independent of each
 other, so either order within the pair is fine.
@@ -190,10 +191,52 @@ either defect shape, so this is enforced rather than merely recommended. The
 historical files are listed in its `SUPERSEDED_BY_029` allowlist; do not add to
 that list to make a new migration pass.
 
-One more consequence worth knowing: these policies resolve identity through
-`auth.uid()` against `user_profiles.id`, which references `auth.users(id)`. This
-app authenticates with **Clerk** and keys profiles on `clerk_id`, so
-`get_user_organization()` returns NULL for every real user and the policies match
-nothing. They are correct-but-inert. **Re-keying those two helper functions onto
-the Clerk subject is a prerequisite for any client-side Supabase access** — and
-must happen after 029, never before, or the cross-tenant clauses would activate.
+## Identity: the Clerk subject, never `auth.uid()`
+
+Until 030, these policies resolved identity through `auth.uid()` against
+`user_profiles.id`. That never matched anything: this app authenticates with
+**Clerk**, `002_clerk.sql` dropped `user_profiles`' foreign key to `auth.users`,
+and profiles are keyed on `clerk_id`. Both helpers returned NULL for every real
+user, so all 50 policies were correct-but-inert.
+
+**030 re-keys them onto `clerk_id = public.clerk_subject()`**, where
+`clerk_subject()` is `auth.jwt() ->> 'sub'`. It also adds
+`get_user_profile_id()` for the "you may always see your own row" arms — those
+compare a foreign key to `user_profiles(id)`, a surrogate uuid that shares no
+value space with `auth.uid()`, so they were broken in a second and quieter way.
+
+When writing a new policy:
+
+```sql
+organization_id = public.get_user_organization()   -- the tenant boundary
+public.get_user_role() IN ('admin', 'super_admin') -- a TENANT role, always
+some_user_fk = public.get_user_profile_id()        -- never = auth.uid()
+```
+
+`tests/test_rls_clerk_identity.py` fails the build on any new policy comparing
+`auth.uid()`, and exercises the helpers against real Postgres as the
+`authenticated` role with a real claim set.
+
+030 had to land **after** 029, never before: re-keying identity onto working
+policies is a small change, but re-keying it onto the pre-029 policies would
+have activated all 41 cross-tenant clauses at once.
+
+### This is still not switched on
+
+`db/client.py` connects with `SERVICE_ROLE_KEY`, which bypasses RLS entirely, so
+no policy here executes in normal operation and 030 changes nothing about how
+the application behaves today. Enforcement remains the API layer's
+`_ensure_permission` checks and the `.eq("organization_id", …)` filters in
+`db/queries.py`.
+
+Two things must be configured in Clerk and Supabase before a client can hold a
+token these policies understand — neither expressible in SQL:
+
+1. Supabase must accept Clerk as a JWT issuer, so a Clerk session token
+   populates `request.jwt.claims`.
+2. That token must carry `"role": "authenticated"`, or PostgREST leaves the
+   caller as `anon` and every policy fails closed regardless of the subject.
+
+Until both are done, `auth.jwt()` is NULL for real users and the helpers return
+NULL — the same fail-closed result as before 030, reached honestly rather than
+by accident.
