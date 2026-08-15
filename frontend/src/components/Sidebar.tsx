@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import {
   LogOut, Settings, Waves, X, ChevronDown, PanelLeftClose, PanelLeftOpen,
-  Home, FileUp, Activity, Wrench, FileText, FlaskConical, BookOpen,
+  Home, FileUp, Activity, Wrench, FileText, FlaskConical, BookOpen, ClipboardCheck,
   type LucideIcon,
 } from 'lucide-react'
 import { RoleBadge } from './RoleBadge'
@@ -76,6 +76,18 @@ const NAV: NavEntry[] = [
     children: [
       { id: 'dashboard',  label: 'Executive Dashboard' },
       { id: 'monitoring', label: 'Water Quality Monitoring' },
+    ],
+  },
+  {
+    // Phase 1 §6 — the obligation registry and the module catalogue. No feature
+    // flag: this is the core compliance product, not an optional library, and a
+    // registry that can be switched off is a registry nobody trusts. Both are
+    // read-gated on reports.read; the tick/un-tick ACTIONS inside the catalogue
+    // are separately gated on entitlements.manage by the page itself.
+    icon: ClipboardCheck, label: 'Compliance Obligations',
+    children: [
+      { id: 'obligations', label: 'Obligation Registry', permission: 'reports.read' },
+      { id: 'modules',     label: 'Module Catalogue', permission: 'reports.read' },
     ],
   },
   {

@@ -23,6 +23,7 @@ export type Permission =
   | 'users.read' | 'users.invite' | 'users.role.assign'
   | 'users.executive.assign' | 'users.sites.assign' | 'users.remove'
   | 'billing.read' | 'billing.manage'
+  | 'entitlements.manage'
   | 'organization.configure' | 'audit.read' | 'permissions.configure'
   | 'demo.activate'
 
@@ -62,6 +63,11 @@ const SUPER_ADMIN: Permission[] = [
   'analytics.portfolio.read', 'analytics.executive.read',
   'organization.configure', 'permissions.configure',
   'demo.activate',
+  // Ticking and un-ticking guideline modules — Executive Management only,
+  // mirroring core/authz.py::_SUPER_ADMIN. Un-ticking is the dangerous
+  // direction: it stops monitoring (§7.5), so it is not offered to the role
+  // most likely to want an overdue duty to stop being tracked.
+  'entitlements.manage',
 ]
 
 const BUNDLES: Record<Role, Set<Permission>> = {

@@ -29,6 +29,8 @@ import { CorrectiveActions } from './components/CorrectiveActions'
 import { Inventory } from './components/Inventory'
 import { Assets } from './components/Assets'
 import { ManagementKPIs } from './components/ManagementKPIs'
+import { Obligations } from './components/Obligations'
+import { ModuleCatalogue } from './components/ModuleCatalogue'
 import { Home } from './components/Home'
 import { Settings } from './components/Settings'
 
@@ -38,6 +40,8 @@ const TAB_TITLES: Record<string, string> = {
   upload: 'Log Lab Report',
   simulation: 'Digital Twin',
   compliance: 'Compliance Report',
+  obligations: 'Obligation Registry',
+  modules: 'Module Catalogue',
   actions: 'Corrective Actions',
   inventory: 'Inventory & Chemicals',
   assets: 'Assets & Maintenance',
@@ -147,6 +151,8 @@ function AppContent() {
           {activeTab === 'upload'      && <UploadReport activeSite={activeSite} />}
           {activeTab === 'simulation'  && <ScienceSimulation activeSite={activeSite} />}
           {activeTab === 'compliance'        && <ComplianceReport activeSite={activeSite} />}
+          {activeTab === 'obligations' && <Obligations activeSite={activeSite} />}
+          {activeTab === 'modules'     && <ModuleCatalogue />}
           {activeTab === 'actions'     && <CorrectiveActions />}
           {activeTab === 'inventory'   && <Inventory />}
           {activeTab === 'assets'      && <Assets />}
