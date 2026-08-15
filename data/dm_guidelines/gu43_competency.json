@@ -1,0 +1,150 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU43-SUOS2",
+    "guideline_no": 43,
+    "title": "Technical Guidelines on Safe Use of Industrial Organic Solvents",
+    "version": "V 4.0",
+    "issued_on": "2024-05-09",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/07/DM-HSD-GU43-SUOS2_Technical-Guidelines-for-Safe-Use-of-Industrial-Organic-Solvents_V4.pdf",
+    "language": "en"
+  },
+  "module_kind": "delegating",
+  "notes": "THE EXPECTATION THAT THIS DOCUMENT CARRIES EXPOSURE LIMITS IS WRONG, and this is the single most important finding in the file. All 10 pages were rendered and read. GU43 states NOT ONE numeric exposure value — no ppm, no mg/m3, no TWA, no STEL, no ceiling, for any solvent. Section 5-1 'Exposure Standards' does not print a table; it points at somebody else's: 'Threshold Limit Values for Chemical Substances in the Work area adopted by ACGIH, followed in the Health and Safety Department Standards for the Emirate of Dubai'. The reference list on p10 confirms it, citing only the ACGIH TLV publication. That makes GU43 a textbook section 7.12 DELEGATING guideline, the same shape as GU10 -> ASHRAE 62.1: the obligation to monitor is DM's, the number that decides pass or fail is ACGIH's and is not reproduced anywhere in the DM document. COMMERCIAL CONSEQUENCE, flagged for the module catalogue: a GU43 module cannot emit a COMPLIANT / NON-COMPLIANT verdict from DM content alone. To sell a verdict-bearing GU43 module the product must license or otherwise obtain the ACGIH TLV list, which is copyrighted and sold by ACGIH — an external content dependency with a real cost and a licence question, not an extraction gap that more reading would close. Until then GU43 is sellable only as an obligations module (annual medicals, periodic sampling, MSDS availability, training). This is exactly the risk section 7.1 describes: content is the product line, and here the content is not DM's to give. FURTHER DELEGATION: storage is delegated in the same way to 'the Code of Practice for the Management of Dangerous Goods in the Emirate of Dubai' (p8, cited twice), which is a separate document not in the guideline catalogue; transport is delegated to unnamed 'International Standards' (p9); glove selection to unnamed 'international standards' (p7); and extinguishing media, spill procedure, first aid and disposal are all delegated to the product MSDS. Version 'V 4.0' and issue date 09/05/2024 come from the document cover page, not the filename or the portal record date 2024-07-25. THE DATE IS AMBIGUOUS AS PRINTED AND THE CONFIDENCE IS MEDIUM: '09/05/2024' has both components <= 12, so day-first (9 May 2024) versus month-first (5 September 2024) cannot be settled from this document. Day-first is recorded because it matches the DM template convention, but the superseded date printed alongside it, 05/01/2020, is equally ambiguous and offers no proof either way — unlike GU42, GU66 and GU99, where the superseded date has a day above 12 and settles the order. Per rule 2 this is stated rather than guessed silently: if a staleness warning ever fires on GU43 close to a boundary, check the date first. NOTE this document was catalogued with evidence_type 'laboratory'. That is half right — it does require work-area sampling and analysis, so laboratory evidence is genuinely involved — but with no limits published there is nothing to judge the results against inside DM's own corpus.",
+  "competencies": [
+    {
+      "role": "competent person for work area sampling and analysis",
+      "requirement": "Work area sampling and analysis should be undertaken at regular intervals by competent persons to ensure that exposure standards are not exceeded. The document gives no qualification, no accreditation, no certifying body and no definition of 'competent' for this role, and does not require the analysing laboratory to hold any accreditation.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "at regular intervals (interval not stated) wherever industrial organic solvents are used",
+      "source_page": 5,
+      "source_quote": "Work area sampling and analysis should be undertaken at regular intervals by competent persons to ensure that exposure standards are not exceeded.",
+      "confidence": "high"
+    },
+    {
+      "role": "Medical Officer prescribing the periodic medical examination",
+      "requirement": "The tests making up the mandatory 12-monthly medical examination are prescribed by the Medical Officer with reference to the nature of the individual's exposure. The document does not define who qualifies as a Medical Officer, does not require DHA registration or any other licence in terms, and does not list the tests.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "each 12-monthly medical examination of a solvent-exposed employee",
+      "source_page": 5,
+      "source_quote": "Employees engaged in the manufacture, formulation, handling, or use of organic solvents shall be medically examined at least once in every 12 calendar months in accordance with tests prescribed by the Medical Officer with reference to the nature of the individual exposure.",
+      "confidence": "high"
+    },
+    {
+      "role": "employee working with organic solvents (hazard information and training)",
+      "requirement": "All employees working with organic solvents must be informed of the hazards from exposure to the contaminants and the precautions necessary to prevent damage to their health, and should be trained in appropriate procedures to safeguard themselves and fellow workers. Separately, workers must be trained in the correct use and maintenance of their personal protective equipment. No syllabus, no duration, no assessment, no certificate and no refresher interval is stated for any of this training — contrast GU131, which specifies all of them.",
+      "issuing_body": null,
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "employment in work with organic solvents",
+      "source_page": 8,
+      "source_quote": "All employees working with organic solvents must be informed of the hazards from exposure to the contaminants and the precautions necessary to prevent damage to their health. Employees should be trained in appropriate procedures to ensure that they carry out their work safeguarding against the exposure to themselves and fellow workers. (p8) Personal protective equipment must be appropriately selected, checked periodically and workers trained in their correct use and maintenance. (p7)",
+      "confidence": "high"
+    }
+  ],
+  "limits": [],
+  "obligations": [
+    {
+      "obligation_type": "health_screening",
+      "cadence_months": 12,
+      "cadence_days": null,
+      "cadence_note": "At least once in every 12 calendar months. The strongest and clearest duty in the document — 'shall', with an express interval. Note the wording is 'at least once in every 12 calendar months', so 12 months is a ceiling on the gap, not a target date. The content of the examination is not fixed by the guideline: the tests are prescribed case by case by the Medical Officer according to the individual's exposure, so the app can track that a medical happened and when it next falls due, but cannot check what was tested.",
+      "trigger_event": null,
+      "applies_to": "Employees engaged in the manufacture, formulation, handling or use of organic solvents",
+      "source_quote": "Employees engaged in the manufacture, formulation, handling, or use of organic solvents shall be medically examined at least once in every 12 calendar months in accordance with tests prescribed by the Medical Officer with reference to the nature of the individual exposure. (p5)"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'At regular intervals' — the interval is not stated anywhere in the document. An honest null of the kind section 6 of the brief describes: the duty to sample is unambiguous, the frequency simply is not published. A client must set its own interval, and the app cannot compute an overdue date for this obligation from DM content. Compounding it, the exposure standards the sampling is measured against are not in this document either (see notes).",
+      "trigger_event": null,
+      "applies_to": "Work areas in commercial and industrial establishments, public or government institutions and construction-related project sites in Dubai where industrial organic solvents are used",
+      "source_quote": "Work area sampling and analysis should be undertaken at regular intervals by competent persons to ensure that exposure standards are not exceeded. (p5)"
+    },
+    {
+      "obligation_type": "sampling",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No interval stated. Recorded separately from work-area sampling because it is a different sample matrix and a different subject: personal monitoring at each work location, plus biological monitoring of the worker where the risk of exposure is substantial. 'Substantial risk of exposure' is not defined and no threshold triggers it, so the applicability test is a judgement call the app cannot make.",
+      "trigger_event": "worker has a substantial risk of exposure (term undefined in the document)",
+      "applies_to": "Personal monitoring at each work location, and biological monitoring of workers with a substantial risk of exposure",
+      "source_quote": "In addition to monitoring of the work area and personal monitoring at each work location, biological monitoring of the worker should be done for workers with a substantial risk of exposure. (p5)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "PPE must be 'checked periodically' — no period stated. Honest null.",
+      "trigger_event": null,
+      "applies_to": "Personal protective equipment issued for solvent work: respiratory protective devices, solvent-resistant gloves conforming to international standards (for example PVC) with coverall or overall, solvent-resistant boots, apron, and safety glasses, goggles or face shields",
+      "source_quote": "Personal protective equipment must be appropriately selected, checked periodically and workers trained in their correct use and maintenance. (p7) Solvent resistant gloves conforming to international standards, for example PVC gloves with coverall or overall, solvent resistant boots and apron should always be worn. The type of gloves chosen need to be effective against the specific solvent being used. (p7)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing requirement, no cadence. An MSDS must be held for each material and be available for reference and inspection by DM Inspectors or Officers on demand; where solvents are imported the MSDS must be obtained from the supplier. Mapped to 'process' as the closest term in the closed vocabulary — the duty is really document availability, for which the vocabulary has no exact type. Noted per rule 4.",
+      "trigger_event": "before handling organic solvents; on import of solvents or dangerous goods; on inspection by DM",
+      "applies_to": "Any person or company using or storing organic solvents or dangerous goods — an appropriate current Material Safety Data Sheet for each material",
+      "source_quote": "A person or company using or storing organic solvents or dangerous goods shall ensure that an appropriate Material Safety Data Sheet is available for each material for reference and inspection by Inspectors/Officers from Dubai Municipality. (p5)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing labelling requirement, no cadence. Closest vocabulary term is 'process'; the duty is labelling and placarding. Noted per rule 4.",
+      "trigger_event": "receipt, storage or transport of organic solvents",
+      "applies_to": "All organic solvents and chemicals — approved class label plus approved subsidiary risk label for secondary risks; containers labelled with contents, hazards and storage precautions; storage areas placarded 'Flammable Material' and 'No Smoking'; tanks, pipelines and supply valves labelled; warning labels to allow for language and illiteracy with pictorial as well as written information",
+      "source_quote": "All organic solvents or chemicals shall be labeled according to their class of risk by affixing an approved class label and an approved subsidiary risk label for any secondary risks. (p5) Areas where organic solvents are stored should be placarded with 'Flammable Material', 'No Smoking'. (p8) The design of warning labels should consider languages and the illiterate pictorial warning in addition to written information should be provided. (p8)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing storage-control requirement. Stored amounts 'should be regularly monitored and kept to a minimum' — 'regularly' is not quantified, another honest null. Segregation by dangerous goods class is delegated to the Code of Practice on the Management of Dangerous Goods in the Emirate of Dubai, which is not in this corpus.",
+      "trigger_event": null,
+      "applies_to": "Organic solvent storage areas — cool, well ventilated, isolated from the workplace and secured, away from ignition sources and away from food, drink and therapeutic substances, equipped with appropriate firefighting devices, accessible to emergency vehicles, no smoking, stored separately from other classes of chemicals and segregated by dangerous goods class",
+      "source_quote": "Amounts stored should be regularly monitored and kept to a minimum. (p8) Organic solvents shall be segregated in storage according to their dangerous goods class as required under the Code of Practice on the Management of Dangerous Goods in the Emirate of Dubai. (p8)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing engineering-control requirement, no cadence and — notably — NO inspection, testing or thorough-examination interval for the local exhaust ventilation. Contrast GU42, which does set an LEV examination interval for spray booths. If a client runs both, the GU42 cadence does not automatically extend to GU43 plant.",
+      "trigger_event": null,
+      "applies_to": "Local exhaust ventilation controlling hazardous atmospheric contaminants at source; air from LEV must not be re-circulated into the workroom; air conditioning inlets or compressors supplying air must be distant from exhaust ventilation systems; hazardous processes isolated and where practicable totally enclosed",
+      "source_quote": "Hazardous atmospheric contaminants should be effectively controlled at their source by means of a local exhaust system. ... Air from local exhaust ventilation system should not be re-circulated into the workroom. Air conditioning inlets or compressors supplying air should be distant from the exhaust ventilation systems. (p6)"
+    },
+    {
+      "obligation_type": "process",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing provision requirement. No inspection, flushing or testing cadence is set for the showers or eye wash stations here — GU72 is the eyewash and showers guideline and is the place to look for that. 'Significant use/storage' is not defined, so the trigger for needing them is a judgement call.",
+      "trigger_event": "workplace has significant use or storage of organic solvents",
+      "applies_to": "Safety showers and eye wash stations at the workplace, plus first-aid procedures for the specific solvents used",
+      "source_quote": "Safety showers and eye wash stations must be available at workplace where there is significant use/storage of organic solvents. First-aid procedures for specific solvents used in workplaces should also be available. (p10)"
+    },
+    {
+      "obligation_type": "isolation_and_notification",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-driven, no cadence. Both halves of the vocabulary term are genuinely present here: confine the spill, cordon off the area or isolate the ventilation, then notify. Notification targets depend on the size and location of the spill — Civil Defence fire brigade, Police and/or emergency contact — and the Health and Safety Department is to be contacted to confirm the necessary actions. No reporting deadline is stated.",
+      "trigger_event": "spill or leak of organic solvent",
+      "applies_to": "Any establishment where a solvent spill or leak occurs — close off the source where safe, confine, avoid inhalation and skin or eye contact, wear PPE, exclude ignition sources, transfer or remove material, absorb residues with sand or earth, prevent entry to drains or sewers, then notify",
+      "source_quote": "Confine the spill or leak; cordon off the area or isolate the ventilation. ... Do not allow the spillage to enter drains or sewers. Depending on the size and location of the spill, notify the Civil Defense fire Bridge, Police and /or Emergency contact. ... Contact the Health and Safety Department to ensure about the necessary actions. (p9)"
+    },
+    {
+      "obligation_type": "risk_assessment",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No cadence and no prescribed method. Two distinct assessment duties are combined here because the document sets neither as a periodic task: determination of the flammable and explosive risk by examining flash point, explosive or flammability limits and auto-ignition temperature; and assessment of TOTAL solvent exposure where a worker is exposed to two or more solvents, whose effects may be additive or worse than additive. The second is important to the resolver: judging each solvent separately against its own standard is expressly not sufficient, and the document gives no mixture formula to do it with.",
+      "trigger_event": "handling of organic solvents; exposure of a worker to two or more solvents",
+      "applies_to": "Flammability and explosion risk determination; and combined exposure assessment where two or more solvents are in use",
+      "source_quote": "When the body is exposed to two or more solvents, the effect of different hazards may be either additive or a combination that exceed the sum of individual effects. Assessment of exposure must consider total solvent exposure. (p5) The flammable and explosive risk should be determined by examination of: - Flash point - Explosive or flammability limits - Auto ignition temperature. (p9)"
+    }
+  ]
+}

@@ -1,0 +1,361 @@
+{
+  "standard": {
+    "code": "DM-HSD-GU131-CSLA2",
+    "guideline_no": 131,
+    "title": "Certification Scheme for Health and Safety Officer in Laborer Accommodations",
+    "version": "V 1.1",
+    "issued_on": "2024-10-16",
+    "source_url": "https://dmpmedia.dm.gov.ae/uploads/2024/10/DM-HSD-GU131-CSLA2_Certification-Scheme-For-Health-and-Safety-Officer-in-Laborer-Accommodations_V1.1.pdf",
+    "language": "en"
+  },
+  "module_kind": "compliance",
+  "notes": "Version and issue date taken from inside the document, not the filename or the portal record date. The cover (p1), the page-2 Document History Log and every page footer all print 'Version #: 1.1' and 'Issue Date: 16th October 2024', with 'Superseded Issue Date: 8th May 2024'. Both dates are printed in long form ('16th October 2024'), so there is NO day/month ambiguity here and confidence on the edition is high. This is the exception to the section 7.12 date trap rather than an instance of it. The catalogue's portal record date of 2024-10-17 is one day later than the stated issue date, which is the usual CMS-upload offset. NOTE ON THE HISTORY LOG: the log's own 'Version #' column numbers the two rows 1 and 2, while the cover, the footers and the log's second row body all call this edition 1.1. The log column is a row counter, not a version number; V 1.1 is correct. WHY module_kind = compliance. Unlike GU39 and GU50, this document sets a countable, checkable requirement against a facility: clause 1.1 requires at least one certified HSO on site at all times, and the clause 2.8 table fixes the required number by room count (two above 100 rooms, one for 51-100, none at 50 or below). A report can therefore state COMPLIANT / NON-COMPLIANT for a labour accommodation by comparing headcount of unexpired HSO certificates against the room count, with no interpretation. This is the first Phase 5 document that supports a verdict. THE VALIDITY PERIOD IS REAL AND EXPLICIT, and it is the thing the Phase 3 lessons said to check for specifically: clause 2.2 states a certificate 'valid for a period of Three years from the date of issuance' (36 months) and clause 2.3 requires recertification BEFORE the end of the third year. That is a true competency validity, not merely an examination interval, and it is the first one found in this corpus. Contrast the five Phase 3 certificate guidelines, which stated intervals and no validity. WHAT COULD NOT BE OBTAINED: the document names no list of approved Certification Bodies, gives no certificate numbering format, and gives no way to verify a certificate other than retaining a copy on site (clause 1.3). Accreditation is delegated to EIAC under ISO 17024, so the accreditation register is external to DM and outside this document. SCOPE LIMIT: pages 19-21 are Annexe 1, a seven-module training syllabus (importance of H&S, design and layout, hygiene and sanitation, fire safety and emergency preparedness, public safety/occupational health, psychological wellbeing, management role). It is course content, sets no obligation and no limit, and is deliberately not encoded. Page 21-22 is a reference list. OBLIGATION TYPE VOCABULARY: this file uses the closed vocabulary given for Phase 5 (competency, examination, reporting, review, inspection, ...). The three competency files written earlier in this phase (gu35, gu39, gu50) used free-text obligation_type values instead and should be normalised before load; see competency_group_notes.md.",
+  "competencies": [
+    {
+      "role": "Certified Health and Safety Officer (HSO) in a labour accommodation",
+      "requirement": "Complete the approved Health and Safety Certification Course appropriate to labour accommodations, then pass the Health and Safety Examination conducted by the Certification Body under secure conditions, scoring not less than 20 out of 30. Attending the training course is optional; passing the examination is mandatory. A copy of the competency certificate issued by the EIAC-accredited certification body must be retained at the accommodation and produced to Dubai Municipality H&S Department representatives on request.",
+      "issuing_body": "Certification Body registered with the DM Health and Safety Department and accredited by Emirates International Accreditation Center (EIAC) to ISO 17024",
+      "validity_months": 36,
+      "renewal_requirement": "Recertification before the end of the third year after certification, by passing the recertification examination approved by the Health and Safety Department and fulfilling all scheme requirements. Recertification (retraining and assessment) may also be forced early by an inspection outcome — see the trigger_event on the recertification obligation.",
+      "trigger_event": "appointment as HSO at a labour accommodation; and again before the end of the third year after certification",
+      "source_page": 7,
+      "source_quote": "2.1.1. Completing the approved Health and Safety Certification Course appropriate to the Labors Accommodations (HSO). 2.1.2. Successfully completing the Health and Safety Examination conducted by the Certification Body under secure conditions. Each certified Health and Safety officer shall possess knowledge of Health and Safety principles and practices as demonstrated by passing an examination acceptable by Health and Safety Department. The nominated (HSO) should score not less than 20 out of 30 for the examination. 2.2. Each (HSO) passing an acceptable examination and fulfilling all the scheme requirements as outlined in this document and defined by the accredited Certification Bodies shall receive a certificate valid for a period of Three years from the date of issuance. (p7) 2.3. The Health and Safety officer shall undergo a recertification process before the end of the third year after certification. (p8)",
+      "confidence": "high"
+    },
+    {
+      "role": "Health and Safety trainer (HSO course trainer)",
+      "requirement": "Certified by an accredited Certification Body to conduct training AND registered with the DM Health and Safety Department. Must hold a verifiable Degree, Diploma or Advanced Certificate covering Environmental/Public Health/Safety, Health and Safety Establishment Management or Health Science, of at least 6 months course duration; at least two years' Health and Safety experience in supervision, consultancy, regulatory work, quality assurance, H&S training or equivalent professional membership; a teaching qualification (Certificate or Degree in Education, or a certified Train the Trainer); and must pass a certification examination conducted by the Awarding Body. Online trainers must also complete the training course offered by the Certification Body. Approval is a joint assessment by the H&S Department and the EIAC-accredited Certification Body. Trainers may be required to demonstrate training competence at initial approval or on ongoing assessment.",
+      "issuing_body": "Accredited Certification Body jointly with the DM Health and Safety Department; trainer must also be registered with the Health and Safety Department",
+      "validity_months": null,
+      "renewal_requirement": "No validity period or renewal interval is stated for trainer approval. What is stated instead is an annual reporting duty: training details must be submitted to the Health and Safety Department on or before 31 December each year, plus open-ended Continuing Professional Development. Approval is withdrawn on non-compliance rather than by expiry — trainers who do not meet the requirements are stopped from providing training without prior notice, and approval is suspended for poor delivery until full competency is demonstrated. Recorded null honestly: this is an activity duty, not a validity period.",
+      "trigger_event": "before conducting HSO training",
+      "source_page": 15,
+      "source_quote": "5.1.1 Health and Safety trainer shall be certified by the Accredited Certification Bodies to conduct training and shall be registered with the Health and Safety Department. (p14) 5.4.1. Trainers should hold a verifiable Degree, Diploma or an Advanced Certificate that encompasses one or more of the following topics: - Environmental/Public Health/Safety - Health and Safety Establishment Management. - Health Science. (The minimum duration of the certificate course should be 6 months) ... 5.5 Trainers should have at least two years' experience in Health and Safety ... 5.6 Trainers should hold a teaching qualification. Either a Certificate or a Degree in Education, or a certified Train the Trainer should be sufficient. 5.7 Trainers shall be certified to train Health and Safety officer(s) through completion of an examination conducted by the Awarding Body. (p15)",
+      "confidence": "high"
+    },
+    {
+      "role": "Health and Safety trainer — experience exemption route",
+      "requirement": "A trainer without a formal Health and Safety qualification may be exempted if they have more than 5 years of relevant experience and can demonstrate sufficient knowledge and skills through a practical assessment conducted jointly by the Health and Safety Department and the Certification Bodies.",
+      "issuing_body": "DM Health and Safety Department jointly with the Certification Bodies",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "application for trainer approval without a formal H&S qualification",
+      "source_page": 16,
+      "source_quote": "5.9 Exemption to a formal Health and Safety Qualification. An exemption can be obtained if the trainer has more than 5 years of relevant experience and can demonstrate sufficient knowledge and skills through a practical assessment conducted jointly by the Health and Safety Department and the Certification Bodies.",
+      "confidence": "high"
+    },
+    {
+      "role": "Certification application reviewer (Certification Body staff)",
+      "requirement": "Diploma or bachelor's degree or higher in a relevant field; specific training in the certification process, standards and best practices for reviewing applications, undertaken through a certifying body or other professional development programme; 2 years' experience in a relevant field such as education or technology.",
+      "issuing_body": "Certification Body (internal appointment; criteria set by this scheme)",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "appointment as a certification application reviewer",
+      "source_page": 12,
+      "source_quote": "4.4 Requirements for Certification Application Reviewers: Education: Diploma or bachelor's degree or higher in a relevant field is often required. Training: Specific training related to the certification process, standards, and best practices for reviewing applications. This training must be undertaken through a certifying body or through other professional development programs. Experience(years): 2Years. Experience (field): This could include fields such as education, technology, or other specialized areas.",
+      "confidence": "high"
+    },
+    {
+      "role": "Examiner (Certification Body staff)",
+      "requirement": "Bachelor's or master's degree or higher in a relevant field; specific training in Health and Safety advanced programmes, the certification process, standards and best practices, undertaken through recognised international accredited entities; 3 to 5 years' experience in a field such as education or Health and Safety.",
+      "issuing_body": "Certification Body (internal appointment; criteria set by this scheme); training via recognised international accredited entities",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "appointment as an examiner",
+      "source_page": 12,
+      "source_quote": "Requirements for Examiners: Education: bachelor's or master's degree or higher in a relevant field is often required. Training: Specific training related to Health and Safety advanced programs, certification process, standards, and best practices. This training must be undertaken through recognized International accredited entities. Experience (years): 3 - 5 Years. Experience (field): This could include fields such as education, Health and Safety etc.",
+      "confidence": "high"
+    },
+    {
+      "role": "Invigilator (examination supervision)",
+      "requirement": "High School or Diploma or higher, and/or NEBOSH/IOSH approved invigilators are also accepted. Any invigilator training must be undertaken through a certifying body or other development programme. Experience is explicitly not compulsory, in years or in field. At least one invigilator is required for every 20 candidates. Invigilators must supervise candidates throughout the entire examination and must not undertake any other activity while invigilating, including acting as reader or writer for a candidate or providing translation or interpretation.",
+      "issuing_body": "Awarding Body / Certification Body appoints; certifying body or development programme provides the training",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "appointment to invigilate a certification examination",
+      "source_page": 13,
+      "source_quote": "Requirements for Invigilators: Education: High School or Diploma or higher is often required and / or (NEBOSH/IOSH) Approved Invigilators also accepted. Training: Any training related to Invigilator courses shall be undertaken through a certifying body or through other development programs. Experience (years): Not compulsory. Experience (field): Not compulsory. (p13) 4.5.3 The Awarding Body should appoint trained personnel to act as invigilators. Invigilators must arrive at the venue in good time and there should be at least one invigilator for every 20 candidates. (p13)",
+      "confidence": "high"
+    },
+    {
+      "role": "Certification decision-maker (Certification Body)",
+      "requirement": "Comprehensive knowledge and experience of working with certification; specific training in Health and Safety, the certification process, standards and best practices, undertaken through recognised international accredited entities; 3 to 5 years' experience in a field such as education or Health and Safety.",
+      "issuing_body": "Certification Body (internal appointment; criteria set by this scheme)",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "appointment as a certification decision-maker",
+      "source_page": 13,
+      "source_quote": "Requirements for certification decision-makers: Education: Comprehensive knowledge and experience in working with Certification. Training: Specific training related to Health and Safety, certification process, standards, and best practices. This training must be undertaken through recognized International accredited entities. Experience (years): 3 - 5 Years. Experience (field): This could include fields such as education, Health, and Safety etc.",
+      "confidence": "high"
+    },
+    {
+      "role": "Certification body technical committee / scheme review committee member",
+      "requirement": "Comprehensive knowledge and experience of the certification process and scheme reviewing; specific training in Health and Safety, the certification process, standards and scheme assessing, undertaken through recognised international accredited entities; above 5 years' experience as an expert or specialist in Health and Safety.",
+      "issuing_body": "Certification Body (internal appointment; criteria set by this scheme)",
+      "validity_months": null,
+      "renewal_requirement": null,
+      "trigger_event": "appointment to the technical or scheme review committee",
+      "source_page": 13,
+      "source_quote": "Requirements for certification bodies' technical committee/scheme review committee: Education: Comprehensive knowledge and experience of working with certification process and scheme reviewing. Training: Specific training related to Health and Safety, certification process, standards, and scheme assessing. Trainings must be undertaken through recognized International accredited entities. Experience (years): Above 5 Years. Experience (field): This could include fields such as experts, specialists in Health and Safety etc.",
+      "confidence": "high"
+    },
+    {
+      "role": "Certification Body (organisation, not an individual)",
+      "requirement": "Registered with the DM Health and Safety Department and accredited by Emirates International Accreditation Center (EIAC) as per ISO 17024. Must develop an up-to-date question bank, training material and approved trainers, all approved by the H&S Department before being offered; must offer certification in more than three languages including Arabic, English, Urdu, Hindi and Chinese, with the question bank and training material developed in those languages; must maintain a candidate database shared with the H&S Department regularly, a documented system of cancelled certifications, and must give the H&S Department access to records, examination papers, scripts and marking records.",
+      "issuing_body": "Emirates International Accreditation Center (EIAC) accreditation to ISO 17024; registration with the DM Health and Safety Department",
+      "validity_months": null,
+      "renewal_requirement": "No accreditation validity period is stated in this document. EIAC's own ISO 17024 accreditation cycle governs and is not reproduced here. Recorded null honestly rather than assuming the common four-year ISO cycle.",
+      "trigger_event": "before offering certified Health and Safety officer qualifications in Dubai",
+      "source_page": 10,
+      "source_quote": "4.1.1 Certification Bodies that are registered by the Health and Safety Department and accredited by Emirates International Accreditation Center (EIAC) can offer certified Health and Safety officer qualifications in Dubai. 4.1.2 The accreditation will be granted as per ISO 17024 Standard by Emirates International Accreditation Center (EIAC).",
+      "confidence": "high"
+    }
+  ],
+  "limits": [
+    {
+      "parameter_key": "hso_required_large_accommodation",
+      "parameter_label": "Certified HSOs required — labour accommodation of 101 rooms and above",
+      "unit": "persons",
+      "min_val": 2,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "Two HSO",
+      "qualifier_rule": "Applies where the total number of rooms inside the accommodation exceeds 100 (the definitions section on p6 defines 'large' as exceeding 100 rooms; the clause 2.8 table expresses the same band as '101 room and above'). Permanent or temporary accommodation alike.",
+      "source_page": 8,
+      "source_quote": "Labors Accommodations: 101 room and above | HSO required: Two HSO | Accommodations type: Permanent or temporary",
+      "note": "Minimum staffing count, not a ceiling. Page 8 was rendered and read to confirm the column-to-value mapping by position rather than by text order — the text layer returns the rows in a misleading sequence. The rendered table reads left to right: room band, HSO required, accommodation type.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "hso_required_medium_accommodation",
+      "parameter_label": "Certified HSOs required — labour accommodation of 51 to 100 rooms",
+      "unit": "persons",
+      "min_val": 1,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "One HSO",
+      "qualifier_rule": "Applies where the total number of rooms is between 51 and 100 inclusive. Permanent or temporary accommodation alike.",
+      "source_page": 8,
+      "source_quote": "Labors Accommodations: 51-100 room | HSO required: One HSO | Accommodations type: Permanent or temporary",
+      "note": "Band boundaries are inclusive on both sides — the definitions on p6 read 'between 51-100 rooms' for medium and '50 rooms or less' for small, so the bands abut with no gap and no overlap. Unlike the band tables warned about in section 7.12, this table has no gaps: every possible room count falls in exactly one band.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "hso_required_small_accommodation",
+      "parameter_label": "Certified HSOs required — labour accommodation of 50 rooms and below",
+      "unit": "persons",
+      "min_val": 0,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "Not required",
+      "qualifier_rule": "Applies where the total number of rooms is 50 or fewer.",
+      "source_page": 8,
+      "source_quote": "Labors Accommodations: 50 room and below | HSO required: Not required | Accommodations type: Permanent or temporary",
+      "note": "CONFLICT WITHIN THE DOCUMENT, FLAGGED NOT RESOLVED. Clause 1.1 on p7 states unconditionally that 'Labors Accommodations shall have always at least one certified Health and Safety officer on-site', while this table row says an accommodation of 50 rooms or fewer requires none. Clause 1.1 does cross-refer to clause 2.9 — but the document has no clause 2.9; the numbering stops at 2.8, which is the table itself. The intended reading is almost certainly that clause 1.1 is subject to the table, but the cross-reference that would prove it points at a clause that does not exist, exactly the section 7.14 cross-reference failure. The resolver must NOT auto-apply clause 1.1 to small accommodations; only DM can close this.",
+      "confidence": "medium"
+    },
+    {
+      "parameter_key": "hso_examination_pass_mark",
+      "parameter_label": "HSO certification examination pass mark",
+      "unit": "marks out of 30",
+      "min_val": 20,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "not less than 20 out of 30",
+      "qualifier_rule": "Applies to the nominated HSO sitting the certification examination conducted by the Certification Body.",
+      "source_page": 7,
+      "source_quote": "The nominated (HSO) should score not less than 20 out of 30 for the examination.",
+      "note": "Inclusive: 'not less than' 20 means 20 passes. Taken from the document glyph per rule 6.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "invigilator_to_candidate_ratio",
+      "parameter_label": "Minimum invigilators per candidates at a certification examination",
+      "unit": "invigilators per 20 candidates",
+      "min_val": 1,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "at least one invigilator for every 20 candidates",
+      "qualifier_rule": "Applies to the Awarding Body conducting a certification examination.",
+      "source_page": 13,
+      "source_quote": "The Awarding Body should appoint trained personnel to act as invigilators. Invigilators must arrive at the venue in good time and there should be at least one invigilator for every 20 candidates.",
+      "note": "Inclusive minimum ('at least'). Expressed as a ratio; the document does not say whether a part-block of candidates rounds up.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "examination_desk_separation",
+      "parameter_label": "Minimum separation between candidate desks at a certification examination",
+      "unit": "m",
+      "min_val": 1.25,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "not less than 1.25 metres (measured from the centre of the desk)",
+      "qualifier_rule": "Measured from the centre of the desk. Where candidates share a large desk or the distance cannot be provided, multiple versions of the question paper must be used instead.",
+      "source_page": 13,
+      "source_quote": "Candidates should be seated at separate desks that should normally be placed at not less than 1.25 meters apart (measured from the center of the desk). In circumstances where candidates share a large desk or the recommended distance cannot be provided, multiple versions of the question paper should be used.",
+      "note": "Inclusive minimum ('not less than'). Note the hedge 'should normally' plus an explicit stated alternative, so this is a conditional rather than an absolute limit.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "hso_training_learning_hours",
+      "parameter_label": "Minimum HSO training duration",
+      "unit": "learning hours",
+      "min_val": 20,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "not less than 20 learning hours, excluding the examination",
+      "qualifier_rule": "Excludes examination time. The instructor should expand the hours where participants have learning disabilities, language barriers or other inhibiting factors.",
+      "source_page": 17,
+      "source_quote": "6.5.1. Training providers shall provide training not less than 20 learning hours' time excluding the examination.",
+      "note": "Inclusive minimum ('not less than'). Numbering defect in the source: section 6.4 'Delivery of Training' contains clauses numbered 6.5.1 and 6.5.2, which then collide with the separate section 6.5 'Assessment' on the next page. Quoted as printed.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "trainer_course_minimum_duration",
+      "parameter_label": "Minimum duration of the trainer's qualifying certificate course",
+      "unit": "months",
+      "min_val": 6,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "The minimum duration of the certificate course should be 6 months",
+      "qualifier_rule": "Applies to the Degree, Diploma or Advanced Certificate held by a Health and Safety trainer.",
+      "source_page": 15,
+      "source_quote": "(The minimum duration of the certificate course should be 6 months)",
+      "note": "Inclusive minimum.",
+      "confidence": "high"
+    },
+    {
+      "parameter_key": "trainer_minimum_experience",
+      "parameter_label": "Minimum Health and Safety experience of a trainer",
+      "unit": "years",
+      "min_val": 2,
+      "max_val": null,
+      "min_inclusive": true,
+      "max_inclusive": null,
+      "display": "at least two years' experience",
+      "qualifier_rule": "In one or more of: supervision of H&S related establishments, H&S consultancy, regulatory authority work with H&S responsibilities, quality assurance or control in an H&S establishment, H&S training at an appropriate level, or relevant professional membership.",
+      "source_page": 15,
+      "source_quote": "Trainers should have at least two years' experience in Health and Safety in one or more of the following areas",
+      "note": "Inclusive minimum ('at least'). The separate exemption route on p16 requires MORE THAN 5 years — strictly exclusive at 5 by the document's own glyph — and is recorded as a competency rather than a limit because it is an alternative qualification route, not a threshold applied to everyone.",
+      "confidence": "high"
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_type": "competency",
+      "cadence_months": 36,
+      "cadence_days": null,
+      "cadence_note": "Certificate valid three years from date of issuance; recertification must be completed BEFORE the end of the third year, so the practical due date is earlier than the 36-month expiry and the app should warn ahead of expiry rather than at it. This is a genuine competency validity period, not an examination interval.",
+      "trigger_event": "expiry approaching (before the end of the third year after certification); or a D or F grade at routine H&S inspection attributed to HSO mismanagement; or a recommendation by the H&S Inspection Officer that the HSO is ineffective",
+      "applies_to": "Certified Health and Safety Officer in a labour accommodation",
+      "source_quote": "2.2. Each (HSO) passing an acceptable examination and fulfilling all the scheme requirements ... shall receive a certificate valid for a period of Three years from the date of issuance. (p7) 2.3. The Health and Safety officer shall undergo a recertification process before the end of the third year after certification. The recertification can be obtained by passing the recertification examination approved by the Health and Safety Department and fulfilling all the scheme requirements, as outlined in this document. (p8)"
+    },
+    {
+      "obligation_type": "competency",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing staffing requirement with no interval — the accommodation must have the required number of certified HSOs on site at all times. It becomes due only when a post falls vacant or a certificate expires. This is a state to be maintained, not a periodic task.",
+      "trigger_event": "operation of a labour accommodation; vacancy in the HSO post; certificate expiry",
+      "applies_to": "Labour accommodation operator — number required set by room count per the clause 2.8 table (see limits)",
+      "source_quote": "1.1 Labors Accommodations shall have always at least one certified Health and Safety officer on-site. (Refer to clause 2.9) (p7)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Annual but anchored to a fixed calendar date rather than to an elapsed interval from the last submission: on or before 31 December each year. cadence_months is left null deliberately because a 12-month rolling interval would drift off the stated fixed deadline.",
+      "trigger_event": "31 December each year",
+      "applies_to": "Approved Health and Safety trainers — submission to the DM Health and Safety Department listing all training covered in that year",
+      "source_quote": "5.11.1. The details of the training should be submitted to the Health and Safety Department on or before 31st of December each year and should list all the training covered in that year. (p16)"
+    },
+    {
+      "obligation_type": "competency",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Continuing Professional Development is required of trainers but NO number of hours, points or activities and NO period is stated. This is one of the honest-null obligations: the duty is real, the frequency is simply not published.",
+      "trigger_event": null,
+      "applies_to": "Approved online Health and Safety trainers — maintenance of professional competence, enhancement of existing knowledge and skills, development of new knowledge and skills",
+      "source_quote": "5.10 Continuing Professional Development for online trainers. Trainers should strive to continually update and improve their knowledge of issues and developments within Health and Safety and apply that knowledge for training in - Maintenance of professional competence. - Enhancement of existing knowledge and skills. - Development of new knowledge and skills. (p16)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-driven, no interval. Course plan and schedule are due at least 5 working days before the training is conducted; subsequent schedule changes are due 'without delay', which is not quantified.",
+      "trigger_event": "at least 5 working days before an online training course is conducted; and immediately on any change to the planned schedule",
+      "applies_to": "Trainer submitting the online training course plan and session schedule to the Awarding Body and the DM Health and Safety Department (dates and timings, virtual meeting platform and link, number of trainees, course language, examination time)",
+      "source_quote": "6.3.1 The trainer shall provide the online training course plan and the schedule of online training sessions to the Awarding Body and Health and Safety Department at least 5 working days before the training is conducted. ... 6.3.2 Any changes in the planned schedule shall be reported to the Certification Bodies without delay. (p17)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "The document says the candidate database is to be shared with the H&S Department 'on a regular basis' and nowhere defines what regular means. Honest null — an unquantified cadence, not a missed extraction.",
+      "trigger_event": null,
+      "applies_to": "Certification Bodies — candidate registration database (age, gender, nationality, language skills, qualifications, experience)",
+      "source_quote": "4.2.7 Certification Bodies shall provide a registration for the candidates. The registration form should be designed to collect information regarding age, gender, nationality, language skills, qualifications, and experience of the candidate. A database of candidates shall be maintained by the Certification Bodies and shared with the Health and Safety dept. on a regular basis. (p10)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Event-driven notification, no interval.",
+      "trigger_event": "a trainer or training company fails to comply with the requirements of this document",
+      "applies_to": "Certification Bodies notifying the DM Health and Safety Department of trainer or training-company non-compliance",
+      "source_quote": "4.2.9 The Certification Bodies should formally notify the Health and Safety Department if the trainers or training companies fail to comply with the requirements stipulated in this document. (p11)"
+    },
+    {
+      "obligation_type": "review",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "'Periodically' — the document requires periodic review of training material in coordination with the H&S Department but does not state the period. Honest null. The same word is used of the document itself in the general terms ('The document will be updated periodically'), also unquantified.",
+      "trigger_event": "change in Health and Safety standards, regulations or best practices; feedback from learners and trainers",
+      "applies_to": "Certification Bodies — review and update of HSO training material",
+      "source_quote": "4.3.9. Regular Updates: Certification Bodies must review and update the training material periodically in coordination with the Health and Safety Department to ensure it remains aligned with changing Health and Safety standards, regulations, or best practices and solicit feedback from learners and trainers to identify areas that need improvement or require additional content. (p12)"
+    },
+    {
+      "obligation_type": "examination",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "No interval; the examination is the certification event itself. Recorded separately from the competency obligation because the scheme makes the examination mandatory while the training course is explicitly optional — a candidate may sit the exam without attending training, so the two are not the same event.",
+      "trigger_event": "application for HSO certification or recertification",
+      "applies_to": "HSO candidates — examination conducted by the Certification Body on behalf of the DM Health and Safety Department, under secure conditions",
+      "source_quote": "4.5.1 Candidates can take the exam directly without attending the training course. (p13) 6.5 Assessment. Examinations and assessment of candidates shall be conducted by the Certification Bodies on behalf of the Health and Safety Department. (The online training course is optional. As for the exam, passing is mandatory to obtain accreditation) (p18)"
+    },
+    {
+      "obligation_type": "inspection",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "The document refers to 'routine Health and Safety inspections' of labour accommodations and to their letter grades (D or F being failing), but sets no inspection frequency — that lives in the labour accommodation inspection regime, not in this scheme document. Honest null.",
+      "trigger_event": null,
+      "applies_to": "Labour accommodations — routine H&S inspection graded A to F; a D or F grade attributable to HSO mismanagement forces HSO recertification and may trigger withdrawal of the certificate",
+      "source_quote": "2.4. Health and Safety officer of Labors Accommodations that obtain a D or F grade in the routine Health and Safety inspections; will be considered incompetent; if there is evidence available that poor grade is resulted due to the mismanagement of the Health and Safety officer. The Health and Safety inspection officer shall also recommend recertification (retraining and assessment) during the inspection. (p8) 1.4 The Health and Safety Inspection Officer assigned to inspect the labor accommodations can recommend the withdrawal of the certificate, retraining and recertification, if the Health and Safety officer (HSO) is found to be ineffective in managing the Health and Safety requirements. (p7)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing record-retention and production duty, no interval and no stated retention period. Closest available obligation_type is 'reporting'; the specific wording is a retain-and-produce-on-demand duty, which the closed vocabulary has no exact term for. Noted per rule 4.",
+      "trigger_event": "request by a representative of the DM Health and Safety Department",
+      "applies_to": "Labour accommodation — retention on site of a copy of each HSO competency certificate issued by the EIAC-accredited certification body, and production to DM H&S Department representatives on request",
+      "source_quote": "1.3 The copy of the competency certificate issued by the EIAC accredited certification body for the Health and Safety officers shall be retained in the Labors Accommodations and shall be provided to the representatives from the Health and Safety Department of Dubai Municipality, when required. (p7)"
+    },
+    {
+      "obligation_type": "reporting",
+      "cadence_months": null,
+      "cadence_days": null,
+      "cadence_note": "Standing access duty with no interval. Again mapped to the closest vocabulary term; the actual duty is granting the regulator access to records rather than submitting a report.",
+      "trigger_event": "request by officials nominated by the Director of the Health and Safety Department",
+      "applies_to": "Certification Bodies — access for the H&S Department to records and documentation on trainers, qualifications and audits, and for nominated officials to examination question papers, scripts, marking records and associated documents",
+      "source_quote": "4.5.8 Certification Bodies shall provide the Health and Safety Department with access to records and documentation relating to trainers, qualifications, and audits. The officials specifically nominated by the Director of the Health and Safety Department shall have access to examination question papers, examination scripts, records of marking and any other relevant documents associated with the training program. (p14)"
+    }
+  ]
+}

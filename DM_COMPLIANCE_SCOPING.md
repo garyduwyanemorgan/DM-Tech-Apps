@@ -800,6 +800,33 @@ loaded:
   **must never be loaded into `standards.issued_on`.** Doing so would feed
   `citation_is_stale` a fabricated date and produce exactly the wrong-staleness
   warnings §7.1 exists to prevent. Issue dates come from inside the PDF only.
+
+  Worse than first recorded: **25 rows differ from the real issue date in the
+  *year*,** and GU115's portal date falls a year *earlier* than its issue date,
+  so it is not even a safe upper bound.
+
+  80 of 81 editions have since been read off the PDFs themselves
+  (`catalogue_editions.json`), each with a page and the printed line. Only GU78
+  could not be — its link redirects to the DM home page.
+
+- **The day/month ambiguity is bounded, and less dangerous than it looks.**
+  Thirteen editions print their date numerically with both components ≤ 12, so
+  that document alone cannot fix the convention. Seven were settled from internal
+  evidence and none of the seven changed a date. The important structural point:
+  **all thirteen carry a four-digit year in third position, so transposing day
+  and month cannot move the year** — and `citation_is_stale` compares years only.
+  The false "your citation is out of date" warning §7.1 forbids is therefore
+  *impossible* for this set, resolved or not.
+
+  The residual exposure is the `sampled_at < current_issue` guard, which is a
+  full-date comparison. The widest unresolved window is GU67 at three months, and
+  none of the six unresolved documents is in `KNOWN_EDITIONS` yet.
+
+  Two findings from that pass worth acting on: **GU120's cover contains a one-day
+  typo** — it reads 12/03/2024 where the history log and all seven page footers
+  say "11th March 2024", eight printings against one, so the log is kept and DM
+  should be asked to correct the cover. And GU99 was recorded as an internal
+  disagreement but has none; its cover simply carries no date field.
 - **GU78 (ionizing radiation) is a dead link** — it redirects to the DM home page
   with no PDF and no code. It is a Phase 2 module, so it needs chasing with DM
   directly rather than waiting to be found.
