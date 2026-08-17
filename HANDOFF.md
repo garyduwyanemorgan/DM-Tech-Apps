@@ -5,34 +5,42 @@ shutdown on 2026-08-15. Records verified state, not intended state: everything
 marked "verified" was checked against the live stack on the date above, and
 everything still open is named with the reason it is open.
 
-Branch `feat/dm-compliance-phase-1`, version 1.8.0. Seven commits added this
-session, all pushed:
+Branch `feat/dm-compliance-phase-1`, **version 1.9.0**. Fourteen commits added
+this session. **The v1.9.0 tag does NOT exist and nothing is pushed** — see §8.
 
 | Commit | What |
 |---|---|
 | `84621ab` | Reads run under the caller's token; anon key closes the fail-open hole |
-| `dc3a999`, `f0dc90b` | This handoff — reads scoped; the Clerk claim proven |
 | `454f0e0` | Observability layers 0-2 — correlation, reason codes, workflow spine |
 | `4d694a4` | The read side — `/system/*` endpoints and the System Health screen |
 | `b0cb0c3` | Layer 3 — crash reporting, inert unless a DSN is set |
-| `85c60a0` | This handoff — the observability system |
 | `4892237` | A partial reading is INCOMPLETE, and no longer a 500 |
+| `4f1c9aa` | The correlation id is something a user can quote |
+| `b8a420a` | A failed read is no longer indistinguishable from empty data |
+| `da5ccbf` | The dashboards stop asserting verdicts they do not know |
+| `3222ff0` | Alerts fixed, Vitest added, migration 032 drafted |
+| `e675f3e` | `chore(release): v1.9.0` |
+| `24f0b83`, `c585687` | Strip the parent build's identity from this repo (§9) |
+| `dc3a999`, `f0dc90b`, `8b70d1a` | This handoff |
 
-Two bodies of work. Scoped reads are **verified end to end against a real
-Clerk user** (§2.1), which closed the last unproven link in that chain. Then
-the observability system (§3), built because the app could not report where or
-why it broke.
+Three bodies of work. Scoped reads, **verified end to end against a real Clerk
+user** (§2.1). The observability system (§3), built because the app could not
+report where it broke. And the UI honesty work (§4), because it turned out the
+app would state compliance verdicts it had never established.
 
-**Tests: 785 passed, 10 skipped.** Baseline at session start was 674/10. Run
-with `python -m pytest -q`. Some tests hit the live stack, so it must be up.
+**Tests: 804 Python passed / 10 skipped, and 16 Vitest passed.** At session
+start: 674 Python, and no frontend test framework at all. Run with
+`python -m pytest -q` and, in `frontend/`, `npx vitest run`. Some Python tests
+hit the live stack, so it must be up.
 
-One habit worth keeping, because it earned its place repeatedly today: **a test
-is not believed until it fails against a deliberately broken implementation.**
-That caught a scoped-read regression guard (12 of 17 failed on revert) and a
-tenant-isolation guard (2 failed when the org filter was removed). It also
-caught a *false* verification — the first mutation attempt did not match the
-code, everything passed, and that is indistinguishable from a real pass unless
-you confirm the mutation actually landed.
+One habit worth keeping, because it earned its place repeatedly: **a test is not
+believed until it fails against a deliberately broken implementation.** It
+caught a scoped-read guard (12 of 17 failed on revert), a tenant-isolation guard
+(2 failed), and the partial-reading fix (15 of 16). It also caught two *false*
+verifications, which is the subtler lesson: once where the mutation string did
+not match the code, and once where it matched but changed no behaviour. Both
+look exactly like a passing test. **Confirm the mutation landed AND that it
+altered semantics.**
 
 ---
 
@@ -75,7 +83,7 @@ for k in ('dev_secret_key','secret_key','dev_publishable_key'):
 
 The previous handoff listed "nothing sends a Clerk token yet" as the top open
 item. That is now half-closed: **reads are scoped, writes are not.** This was a
-deliberate split, not a partial job — see §4 for why writes cannot follow yet.
+deliberate split, not a partial job — see §5 for why writes cannot follow yet.
 
 ### The state that was found, and was worse than filed
 
@@ -126,7 +134,7 @@ Done after the commit, against the live stack with the dev servers up
 passes the `iss`/`azp` checks. Before this, every test had used a self-signed
 token.
 
-It also confirms §4: the bootstrap succeeded **because writes are still
+It also confirms §5: the bootstrap succeeded **because writes are still
 service_role**. Under RLS both inserts would have been denied.
 
 **Step 2 — the scoped read, under that token.** A throwaway site plus one
@@ -152,7 +160,7 @@ calls `get_client()` unscoped, so a site appears there whether RLS works or
 not. It will report a false pass. Use `/status/{site}` or `/readings/{site}`,
 and insert an actual reading first — an empty result is ambiguous.
 
-The 500 itself was a genuine pre-existing bug, unrelated to tokens; see §6e.
+The 500 itself was a genuine pre-existing bug, unrelated to tokens; see §7e.
 
 ### The tests were mutation-checked
 
@@ -260,7 +268,85 @@ surfaced under direct testing:
 
 ---
 
-## 4. Why writes deliberately stayed on service_role
+## 4. The UI honesty work — three fabricated-verdict paths
+
+Found by auditing the frontend for the same failure class as §3: a failed read
+presented as a fact. All three are fixed. This mattered more than the backend
+half, because these screens can inform what a contractor reports to a regulator.
+
+**The governing rule, and the one to defend in review: the UI must never present
+a compliance verdict, alert level, or risk figure that the system does not
+actually know. "We could not find out" must be visibly distinct from "everything
+is fine" and from "nothing has been submitted yet."** Those are three states,
+not two.
+
+| Was | Consequence |
+|---|---|
+| `Dashboard.tsx` — no `res.ok` check; `catch` set `alertLevel = 1` | A green "compliant" chip during an outage |
+| `lib/status.ts` — a failed per-site fetch became `'blue'` | An executive rollup that under-reported risk: `needsAttention` fell, `avgCompliancePct` was diluted |
+| `Alerts.tsx` — no `res.ok` check | **A live Level 3/4 emergency could go unshown** while the page read as a calm reference document |
+
+The third is the worst: it suppresses an escalation rather than blanking a
+number.
+
+`TrafficLight` gained `'unavailable'`. It could not reuse what existed —
+`'blue'` means *awaiting lab results* and `'grey'` means *a reading exists but
+carries no usable verdict*. Neither means *we could not find out*, and borrowing
+one would have moved the conflation rather than removed it. Because
+`LIGHT_STYLE` is a `Record<TrafficLight, …>`, the compiler forced every consumer
+to account for the new case.
+
+`rollup()` excludes unavailable sites from the `avgCompliancePct` **denominator**
+rather than scoring them 0 or 100, and reports `compliancePctBasis` — how many
+sites actually contributed a number. That is deliberately NOT `total -
+unavailable`: a blue site is reachable but contributes nothing, so quoting the
+reachable count overstates the sample the figure rests on.
+
+### Five defects caught reviewing those fixes, four inside the fixes themselves
+
+1. The traffic-light chip was gated but the larger **"Current Alert Level" badge**
+   still rendered the stale level — the same fabricated verdict in a bigger font,
+   two elements below the card announcing the failure.
+2. State was not cleared when `activeSite` changed between two non-empty sites,
+   so one lagoon's verdict rendered under another's name until the new fetch
+   resolved.
+3. `ProjectDashboard` showed **"Outstanding actions: 0" in compliant-green** for
+   an unreadable site, contradicting the "could not be checked" line directly
+   beneath it. Unknown is not zero.
+4. The KPI captions said "of N reachable" while the average covered only sites
+   that returned a number — the first fix's own caption quietly reintroduced a
+   smaller version of the bug it fixed.
+5. The outage card used `tier="critical"`, the exact palette of a **confirmed**
+   critical alert, leaving copy as the only thing distinguishing "we don't know"
+   from "confirmed bad".
+
+Finding 1 is the same shape as the partial-reading 500 in §7e: fixing the site
+named in the report rather than the property. **`tsc` now enforces part of it** —
+`alertLevel` is `null` until known, so `ALERT_BG[alertLevel]` fails to compile
+if the badge is not gated.
+
+### Vitest exists now
+
+`frontend/` had no test framework at all. It now has Vitest + jsdom +
+@testing-library, `npx vitest run`, 16 tests pinning the guarantees above rather
+than the code that implements them. Mutation-checked.
+
+### Sample data is a FEATURE, not a bug
+
+`show_sample_data` is a persisted user preference with a toggle and a Settings
+page. The bug was never that sample data exists — it was that *"you asked for
+demo data"* and *"your data failed to load"* were the same state. On a failed
+read `useMonthlySeries` now shows **nothing** rather than the sample baseline:
+substituting demo figures at the moment we know the real ones are missing is the
+worst possible time, and it is pixel-identical to the deliberate feature.
+
+Only 3 of the 6 sample-data components consume that hook. `Chemistry`, `Ecology`
+and `Drivers` attempt no live read at all — they always compute from the static
+baseline — so `'unavailable'` cannot arise there.
+
+---
+
+## 5. Why writes deliberately stayed on service_role
 
 Not laziness — the policies genuinely deny them, and two of the denials are
 structural.
@@ -305,7 +391,7 @@ Do not "finish the job" by adding a token there.
 
 ---
 
-## 5. Verified state of the environment
+## 6. Verified state of the environment
 
 The database is the **self-hosted Supabase stack at `C:\AI\supabase\docker`**.
 The lagoon database is never touched. The gateway is on **port 54321**, not 8000.
@@ -342,17 +428,25 @@ it is wrong.
 
 ---
 
-## 6. Open, in the order I would take them
+## 7. Open, in the order I would take them
 
-Quick list, expanded below:
+Quick list. The first three need access this session did not have.
 
-1. `CLERK_DEV_SECRET_KEY` (§1) — still unset, still 503s `/users/invite`.
-2. Migration 031 in production — applied locally only.
-3. The bootstrap break (§4) — blocks any future move of writes onto RLS.
-4. Surfacing observability to the user: nothing yet shows a request id in the
-   UI, so a user cannot quote one to support. The API returns it on every
-   response and `SystemHealth.tsx` reads run ids — the missing piece is showing
-   it on an error toast.
+1. **Finish the v1.9.0 tag and push (§8)** — needs the GPG passphrase. Do this
+   first; the repo is sitting on an unreleased release commit.
+2. **`CLERK_DEV_SECRET_KEY` (§1)** — still unset, still 503s `/users/invite`.
+   Needs the Clerk dashboard. Carried across four handoffs now.
+3. **Apply migrations 031 and 032 in production** — both are applied to the
+   LOCAL dev stack only (031), or not applied anywhere (032). Hand-applied by
+   convention.
+4. **Decide `render.yaml`'s service name (§9)** and check whether a Render
+   service auto-deploys from this repo.
+5. **Wire 032 into `_create_super_admin_profile()`** — the function exists
+   unused, deliberately. Only worth wiring when writes actually move onto RLS.
+6. **The request id is surfaced only on `SystemHealth` and the screens fixed in
+   §4.** Most components still hand-roll their own fetch and show no id.
+   `frontend/src/lib/requestId.ts` is the seam for that; there is still no
+   central fetch wrapper, and building one is a separate, riskier job.
 
 ### a. ~~Nobody has ever seen a real Clerk token~~ — CLOSED 2026-08-17
 
@@ -366,15 +460,26 @@ Do not re-open this on the strength of `get_user_from_token` extracting only
 `sub` and `email`. That is true, and irrelevant: the claim's consumer is
 PostgREST, not Python.
 
-### b. A failed read is invisible in the UI
+### b. A failed read is invisible in the UI — MOSTLY FIXED in §4, one gap left
 
-If RLS denies `GET /sites` it returns `{"sites": []}`. `Sidebar.tsx:208` only
-sets `activeSite` when `names.length > 0`, and `Home.tsx`, `Dashboard.tsx`,
-`Alerts.tsx`, `Community.tsx`, `Sludge.tsx` and `ScienceSimulation.tsx` then
-fall back to **sample data** or generic copy. A broken switch renders as a
-healthy-looking demo. No component distinguishes "no sites" from "denied".
+Largely closed. `Dashboard.tsx`, `Alerts.tsx`, `Monitoring.tsx`,
+`ComplianceReport.tsx` and the three role dashboards now distinguish a failed
+read from an empty one, and `useMonthlySeries` no longer substitutes sample data
+for a failure.
 
-This is why the flip cannot be validated by looking at the app.
+**The remaining gap is `Sidebar.tsx:198-218`**, which has no `res.ok` check: a
+401 or 500 on `GET /sites` leaves the site list silently empty, and
+`activeSite` is only set when `names.length > 0`. Downstream screens then show
+their (now honest) "no site selected" state without saying the site list itself
+failed to load. Ranked lower than the other three because it cannot fabricate a
+verdict — it blanks the app rather than asserting something false — but it is
+the same class and the audit flagged it.
+
+Also unfixed: `Home.tsx`, `Community.tsx`, `Sludge.tsx` and
+`ScienceSimulation.tsx` still fall back to generic copy on an empty site list.
+
+So it is no longer true that the RLS flip cannot be validated by looking at the
+app — but validate it on a screen from §4, not on the sidebar.
 
 ### c. The swallows now mask denials
 
@@ -391,7 +496,7 @@ Unchanged from the previous handoff; the recommendation is still the status quo.
 assignments resolves to an empty frozenset that denies everything. `GET /sites`
 is the consequential call site, and admins are hit harder than operators.
 Prerequisites before the default could flip: confirm `007` is applied; write the
-backfill; give the frontend an empty-scope state (see §6b — same gap); assign
+backfill; give the frontend an empty-scope state (see §7b — same gap); assign
 sites at invite time; make the flag per-org rather than a process-wide env var.
 
 ### e. ~~`/status/{site}` 500s on a partially-filled reading~~ — FIXED `4892237`
@@ -449,11 +554,94 @@ Left for its own commit rather than smuggled into the RLS work.
 
 ---
 
-## 7. Gotchas worth not rediscovering
+## 8. The v1.9.0 release is half-cut — finish it before anything else
+
+`scripts/release.sh auto` chose **minor → v1.9.0** (48 commits since v1.8.0, many
+`feat:`; the script's default is `patch`, which would have been wrong). It got as
+far as:
+
+- `VERSION` and `frontend/package.json` → 1.9.0
+- CHANGELOG section written
+- commit `e675f3e chore(release): v1.9.0`
+
+Then it **stalled and was killed**. `tag.gpgsign = true` in the user's global
+`~/.gitconfig` (key `CF222D00358DC9E9`), so `git tag -a` needs a GPG passphrase
+and a non-interactive shell has no TTY to prompt on. The log ends with
+`error: unable to sign the tag`.
+
+**The tag does not exist and nothing is pushed.** To finish, in an interactive
+terminal:
+
+```bash
+git tag -a v1.9.0 -m "Release v1.9.0"
+git push origin feat/dm-compliance-phase-1 --follow-tags
+```
+
+**Do NOT re-run `scripts/release.sh`** — the release commit already exists, so it
+would bump to v1.10.0. A dry run confirms it now offers exactly that.
+
+Signing was not bypassed with `--no-sign`. Signed tags are a deliberate choice
+of the repo owner's and not something to work around; if an unsigned tag is
+acceptable, that needs to be said explicitly.
+
+---
+
+## 9. This repo is a fork of the LOS/DECCA build, and inherited its identity
+
+**Read this before running any script that talks to the outside world.**
+`C:\AI\DM-Tech-Apps` was created by copying the completed build at
+`C:\AI\LOS`, and the copy brought the parent's constants with it. The repo
+owner spotted this; the release script had already been run without reading them.
+
+| Constant | Pointed at | What it would do |
+|---|---|---|
+| `REPO_URL` in `scripts/release.sh` | `garyduwyanemorgan/DECCA-Lagoons-App` | Wrote CHANGELOG compare links into the frozen repo — 24 of them, every release since v1.6.0 |
+| `API_URL` in `scripts/release.sh` | `lagoons.gdm-enviro.com` | `--verify` polls it to decide whether THIS release is live. A green verify would have been **the other app answering** |
+| `RENDER_SERVICE` | `srv-d91t1ofavr4c73fv52d0` (`lagoon-saas`) | Printed in the rollback hint on a failed verify — a command naming another project's service, pasted during an incident |
+| `create_checkout_webhook.py`, `create_stripe_webhook.py` | `lagoons.gdm-enviro.com` | Registers a **payment provider webhook** against a host this deployment does not control |
+
+Nothing reached the other project: the push targets `origin` (DM-Tech-Apps),
+`--verify` was never passed, and neither webhook script was run. Real damage was
+24 dead links, now repointed.
+
+`REPO_URL` is now **derived** from `git remote get-url origin`, so a future fork
+cannot inherit a stale identity the same way. `RELEASE_VERIFY_URL` and
+`PUBLIC_BASE_URL` are now **required with no default** — the first fix defaulted
+them to `https://app.gdm-enviro.com`, inferred from `CLERK_AUTHORIZED_PARTIES`,
+and a DNS check showed **that host has no record at all**. A default pointing at
+another project and a default that cannot resolve are the same mistake: letting
+a script run against a host nobody verified. There is no safe default, so there
+is none.
+
+### Still carrying the parent's identity — a decision, not an oversight
+
+`render.yaml:13` declares `name: lagoon-app`, and its header comment names
+`lagoons.gdm-enviro.com` as the custom domain. **Left deliberately unchanged.**
+Renaming a service in a Render Blueprint does not rename the running service —
+Render treats it as a new one and can orphan the existing deployment. That needs
+an explicit decision by someone who can see the Render dashboard.
+
+### Where this app actually runs
+
+Verified 2026-08-17: **localhost only.** API on `127.0.0.1:8010` and Vite on
+`[::1]:5173`, both loopback. Neither `app.gdm-enviro.com` (no DNS record) nor
+`lagoons.gdm-enviro.com` (resolves to a Render address, serves nothing) answers,
+and outbound connectivity from this machine works, so those are real results.
+
+Two caveats. The **Supabase containers bind `0.0.0.0`** — gateway 54321, Postgres
+54322, pooler 6543 — so they are reachable from the local network, unlike the app
+itself. And it could **not** be verified from here whether a Render service is
+connected to this repo with auto-deploy; `render.yaml` says Render deploys on
+push, and this branch was pushed several times on 2026-08-17. Check the Render
+dashboard.
+
+---
+
+## 10. Gotchas worth not rediscovering
 
 - **The gateway is port 54321.** Port 8000 is container-internal and 404s from
   the host.
-- **`docker exec supabase-rest` is broken**; use `docker inspect` (§5).
+- **`docker exec supabase-rest` is broken**; use `docker inspect` (§6).
 - **`db/queries.py` does `from .client import get_client`**, binding the name
   into the queries module. Patching `db.client.get_client` alone leaves tests
   talking to the live stack and passing for the wrong reason — patch both. See
@@ -477,6 +665,17 @@ Left for its own commit rather than smuggled into the RLS work.
   500 had two crash sites; guarding the first left the endpoint still failing,
   and the unit tests passed because the fixture set the field the second site
   read. Re-run the original end-to-end reproduction, not just the tests.
+- **Read a script's constants before running it.** This repo is a copy of the
+  LOS/DECCA build (§9) and inherited that project's repo URL, production host,
+  Render service id and payment-webhook base URL. Checking *where a release
+  pushes* is not the same as checking *what the script thinks it is releasing*.
+- **`git checkout -- <file>` discards uncommitted work.** Used it to undo a
+  mutation test and it wiped the real, uncommitted fix in the same file. Back up
+  to a scratchpad and restore from there.
+- **A mutation test can pass for two different wrong reasons**: the replacement
+  string did not match, or it matched and changed no behaviour. Both look
+  identical to a green suite. Assert the mutation landed, then assert it altered
+  semantics.
 - **Test the payload, not your own logic.** The Sentry scrubber passed 15 unit
   tests while the real SDK still shipped every probe secret, because the values
   also live in the source lines the SDK attaches. Capture a real event through
