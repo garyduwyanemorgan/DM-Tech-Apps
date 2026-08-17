@@ -439,8 +439,8 @@ Quick list. The first three need access this session did not have.
 3. **Apply migrations 031 and 032 in production** — both are applied to the
    LOCAL dev stack only (031), or not applied anywhere (032). Hand-applied by
    convention.
-4. **Decide `render.yaml`'s service name (§9)** and check whether a Render
-   service auto-deploys from this repo.
+4. **Rename `render.yaml`'s service (§9)** — cosmetic now that there is
+   confirmed to be no Render service, but it still says `lagoon-app`.
 5. **Wire 032 into `_create_super_admin_profile()`** — the function exists
    unused, deliberately. Only worth wiring when writes actually move onto RLS.
 6. **The request id is surfaced only on `SystemHealth` and the screens fixed in
@@ -613,13 +613,17 @@ another project and a default that cannot resolve are the same mistake: letting
 a script run against a host nobody verified. There is no safe default, so there
 is none.
 
-### Still carrying the parent's identity — a decision, not an oversight
+### Still carrying the parent's identity — safe to fix, just not done yet
 
 `render.yaml:13` declares `name: lagoon-app`, and its header comment names
-`lagoons.gdm-enviro.com` as the custom domain. **Left deliberately unchanged.**
-Renaming a service in a Render Blueprint does not rename the running service —
-Render treats it as a new one and can orphan the existing deployment. That needs
-an explicit decision by someone who can see the Render dashboard.
+`lagoons.gdm-enviro.com` as the custom domain.
+
+It was left unchanged during the session on the assumption that renaming a
+service in a Render Blueprint can orphan a running deployment — Render treats a
+renamed service as a new one. **The repo owner then confirmed there is no Render
+service for this app at all**, so there is nothing to orphan and the rename is
+purely cosmetic. Still unchanged only because it was not re-approved after that
+became clear.
 
 ### Where this app actually runs
 
@@ -628,12 +632,15 @@ Verified 2026-08-17: **localhost only.** API on `127.0.0.1:8010` and Vite on
 `lagoons.gdm-enviro.com` (resolves to a Render address, serves nothing) answers,
 and outbound connectivity from this machine works, so those are real results.
 
-Two caveats. The **Supabase containers bind `0.0.0.0`** — gateway 54321, Postgres
+One caveat: the **Supabase containers bind `0.0.0.0`** — gateway 54321, Postgres
 54322, pooler 6543 — so they are reachable from the local network, unlike the app
-itself. And it could **not** be verified from here whether a Render service is
-connected to this repo with auto-deploy; `render.yaml` says Render deploys on
-push, and this branch was pushed several times on 2026-08-17. Check the Render
-dashboard.
+itself.
+
+**There is no Render deployment for this app** — confirmed by the repo owner on
+2026-08-17, after the DNS evidence above suggested it. So `render.yaml` is an
+unused blueprint, the pushes on that date deployed nothing, and the rollback
+hint in `scripts/release.sh` has no service to name. Nothing about this app has
+ever been reachable from the internet.
 
 ---
 
