@@ -84,6 +84,13 @@ app.add_middleware(
     allow_origins=["*"],       # tighten to n8n host in production
     allow_methods=["*"],
     allow_headers=["*"],
+    # allow_headers governs REQUEST headers; a browser can only read RESPONSE
+    # headers that are named here, and there is no wildcard default. Without
+    # this, res.headers.get('X-Request-Id') is null for any cross-origin
+    # caller — the correlation id would reach the browser and be unreadable,
+    # failing silently. Same-origin (the Vite proxy in dev, the mounted SPA in
+    # production) works either way, which is exactly what would hide it.
+    expose_headers=["X-Request-Id"],
 )
 
 # ── Optional API key auth (set API_KEY env var to enable) ────────────────────
@@ -3405,6 +3412,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-Id"],   # see the inner app's note
 )
 
 # Mount the FastAPI endpoints under the /api prefix

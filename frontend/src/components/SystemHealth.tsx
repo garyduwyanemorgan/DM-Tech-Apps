@@ -20,7 +20,8 @@ import { useAuth } from '../context/AuthContext'
 import { PageHeader } from './PageHeader'
 import { tableHeaderStyle, tableCellStyle, labelStyle } from '../lib/ui'
 import { COLORS as TOKENS } from '../lib/tokens'
-import { AlertCard, Button, StatusBadge } from './ui'
+import { AlertCard, Button, RequestIdChip, StatusBadge } from './ui'
+import { lastRequestId, readRequestId } from '../lib/requestId'
 import { RefreshCw, ChevronDown, ChevronRight } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -92,7 +93,7 @@ interface RunTimelineResponse {
 type Fetched<T> =
   | { state: 'loading' }
   | { state: 'ok'; data: T }
-  | { state: 'unavailable'; message: string }
+  | { state: 'unavailable'; message: string; requestId?: string | null }
 
 const RANGE_OPTIONS: { label: string; hours: number }[] = [
   { label: 'Last 1h', hours: 1 },
@@ -173,7 +174,16 @@ const RunTimeline: React.FC<{
   if (run.state === 'unavailable') {
     return (
       <div style={{ padding: '0.75rem 1.1rem' }}>
-        <AlertCard tier="critical" title="Could not load this run's timeline" description={run.message} />
+        <AlertCard
+          tier="critical"
+          title="Could not load this run's timeline"
+          description={
+            <>
+              {run.message}
+              <RequestIdChip requestId={run.requestId ?? null} />
+            </>
+          }
+        />
       </div>
     )
   }
@@ -252,13 +262,14 @@ export const SystemHealth: React.FC = () => {
     try {
       const headers = await makeHeaders()
       const res = await fetch('/api/system/health', { headers })
+      const requestId = readRequestId(res)
       if (!res.ok) {
-        setHealth({ state: 'unavailable', message: `Health endpoint returned ${res.status}. The pipeline status cannot be verified right now.` })
+        setHealth({ state: 'unavailable', requestId, message: `Health endpoint returned ${res.status}. The pipeline status cannot be verified right now.` })
         return
       }
       const data = (await res.json()) as Partial<SystemHealthSummary>
       if (!data || !Array.isArray(data.counts) || !data.reason_codes) {
-        setHealth({ state: 'unavailable', message: 'Health endpoint returned an unexpected shape. Refusing to guess at pipeline status.' })
+        setHealth({ state: 'unavailable', requestId, message: 'Health endpoint returned an unexpected shape. Refusing to guess at pipeline status.' })
         return
       }
       setHealth({
@@ -271,7 +282,7 @@ export const SystemHealth: React.FC = () => {
         },
       })
     } catch {
-      setHealth({ state: 'unavailable', message: 'Network error reaching the health endpoint. Pipeline status is unknown, not clean.' })
+      setHealth({ state: 'unavailable', requestId: lastRequestId(), message: 'Network error reaching the health endpoint. Pipeline status is unknown, not clean.' })
     }
   }, [makeHeaders])
 
@@ -280,18 +291,19 @@ export const SystemHealth: React.FC = () => {
     try {
       const headers = await makeHeaders()
       const res = await fetch(`/api/system/failures?since_hours=${sinceHours}&limit=50`, { headers })
+      const requestId = readRequestId(res)
       if (!res.ok) {
-        setFailures({ state: 'unavailable', message: `Failures endpoint returned ${res.status}. Recent failures cannot be confirmed — this is not the same as "no failures".` })
+        setFailures({ state: 'unavailable', requestId, message: `Failures endpoint returned ${res.status}. Recent failures cannot be confirmed — this is not the same as "no failures".` })
         return
       }
       const data = (await res.json()) as Partial<SystemFailuresResponse>
       if (!data || !Array.isArray(data.failures)) {
-        setFailures({ state: 'unavailable', message: 'Failures endpoint returned an unexpected shape. Refusing to render it as an empty list.' })
+        setFailures({ state: 'unavailable', requestId, message: 'Failures endpoint returned an unexpected shape. Refusing to render it as an empty list.' })
         return
       }
       setFailures({ state: 'ok', data: { failures: data.failures } })
     } catch {
-      setFailures({ state: 'unavailable', message: 'Network error reaching the failures endpoint. Recent failures are unknown, not zero.' })
+      setFailures({ state: 'unavailable', requestId: lastRequestId(), message: 'Network error reaching the failures endpoint. Recent failures are unknown, not zero.' })
     }
   }, [makeHeaders, sinceHours])
 
@@ -312,18 +324,19 @@ export const SystemHealth: React.FC = () => {
     try {
       const headers = await makeHeaders()
       const res = await fetch(`/api/system/runs/${encodeURIComponent(runId)}`, { headers })
+      const requestId = readRequestId(res)
       if (!res.ok) {
-        setRunTimelines(prev => ({ ...prev, [runId]: { state: 'unavailable', message: `Run endpoint returned ${res.status}.` } }))
+        setRunTimelines(prev => ({ ...prev, [runId]: { state: 'unavailable', requestId, message: `Run endpoint returned ${res.status}.` } }))
         return
       }
       const data = (await res.json()) as Partial<RunTimelineResponse>
       if (!data || !Array.isArray(data.events)) {
-        setRunTimelines(prev => ({ ...prev, [runId]: { state: 'unavailable', message: 'Run endpoint returned an unexpected shape.' } }))
+        setRunTimelines(prev => ({ ...prev, [runId]: { state: 'unavailable', requestId, message: 'Run endpoint returned an unexpected shape.' } }))
         return
       }
       setRunTimelines(prev => ({ ...prev, [runId]: { state: 'ok', data: { run_id: runId, events: data.events! } } }))
     } catch {
-      setRunTimelines(prev => ({ ...prev, [runId]: { state: 'unavailable', message: 'Network error loading this run.' } }))
+      setRunTimelines(prev => ({ ...prev, [runId]: { state: 'unavailable', requestId: lastRequestId(), message: 'Network error loading this run.' } }))
     }
   }
 
@@ -379,7 +392,19 @@ export const SystemHealth: React.FC = () => {
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontWeight: 700, color: TOKENS.ink, marginBottom: 8, fontSize: '0.95rem' }}>Pipeline</div>
         {health.state === 'unavailable' && (
-          <AlertCard tier="critical" title="Pipeline status unavailable" description={health.message} />
+          <AlertCard
+            tier="critical"
+            title="Pipeline status unavailable"
+            description={
+              <>
+                {health.message}
+                <RequestIdChip
+                  requestId={health.requestId ?? null}
+                  approximate={!health.requestId && !!lastRequestId()}
+                />
+              </>
+            }
+          />
         )}
         {health.state === 'loading' && (
           <div style={{ fontSize: '0.85rem', color: TOKENS.slate }}>Loading pipeline status…</div>
@@ -412,7 +437,19 @@ export const SystemHealth: React.FC = () => {
         </div>
 
         {failures.state === 'unavailable' && (
-          <AlertCard tier="critical" title="Recent failures unavailable" description={failures.message} />
+          <AlertCard
+            tier="critical"
+            title="Recent failures unavailable"
+            description={
+              <>
+                {failures.message}
+                <RequestIdChip
+                  requestId={failures.requestId ?? null}
+                  approximate={!failures.requestId && !!lastRequestId()}
+                />
+              </>
+            }
+          />
         )}
 
         {failures.state === 'loading' && (
