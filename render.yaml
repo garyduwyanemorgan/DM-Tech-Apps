@@ -1,7 +1,13 @@
 # Render Blueprint — deploys the Compliance Intelligence Platform.
+#
+# NOT IN USE. No Render service exists for this app (confirmed 2026-08-17); it
+# runs on localhost only. This file is a template for the day it deploys, not a
+# description of anything running.
+#
 # In Render: New + → Blueprint → connect this repo. Then fill in every
-# `sync: false` value in the dashboard, and add the custom domain
-# lagoons.gdm-enviro.com.
+# `sync: false` value in the dashboard, and add this app's own custom domain.
+# It previously named lagoons.gdm-enviro.com here — that is the frozen
+# DECCA/LOS app this repo was copied from, not this one. See HANDOFF.md §9.
 #
 # There is no secrets.toml and no .env on Render — every secret arrives as an
 # environment variable declared below. A name that is missing here can never be
@@ -10,7 +16,11 @@
 services:
   # ── Unified Application: React Frontend + FastAPI Backend ──
   - type: web
-    name: lagoon-app
+    # Renamed from `lagoon-app`, inherited from the DECCA/LOS build. Safe to
+    # change only because no Render service exists yet — renaming a service in
+    # a live Blueprint makes Render treat it as a NEW one and can orphan the
+    # running deployment. If this ever deploys, do not rename it casually.
+    name: dm-compliance-app
     runtime: python
     plan: free                      # upgrade to 'starter' ($7/mo) to keep it always-on
     buildCommand: pip install -r requirements.txt && npm --prefix frontend ci && npm --prefix frontend run build
@@ -67,7 +77,7 @@ services:
 
   # ── Deprecated Streamlit Service (Legacy) ──
   # - type: web
-  #   name: lagoon-dashboard
+  #   name: dm-compliance-dashboard
   #   runtime: python
   #   plan: free
   #   buildCommand: pip install -r requirements.txt

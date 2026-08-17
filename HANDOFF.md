@@ -580,6 +580,20 @@ git push origin feat/dm-compliance-phase-1 --follow-tags
 **Do NOT re-run `scripts/release.sh`** — the release commit already exists, so it
 would bump to v1.10.0. A dry run confirms it now offers exactly that.
 
+### The tag history was local-only until 2026-08-17
+
+All 22 tags (`v0.1.0` … `v1.8.0`) came with the copied `.git` directory and had
+**never been pushed to this repo** — `git ls-remote --tags origin` returned
+nothing. They are valid here (every one is an ancestor of HEAD, since the fork
+carries the full history), but their absence on the remote broke two things:
+
+- the 23 CHANGELOG compare links, repointed to DM-Tech-Apps in `24f0b83`, all
+  resolved to tags that did not exist there;
+- a fresh clone had no tags at all, so `release.sh` could not compute the next
+  version — it derives the bump from the last tag.
+
+All 22 were pushed. `v1.9.0` is still missing and is the only gap left.
+
 Signing was not bypassed with `--no-sign`. Signed tags are a deliberate choice
 of the repo owner's and not something to work around; if an unsigned tag is
 acceptable, that needs to be said explicitly.
