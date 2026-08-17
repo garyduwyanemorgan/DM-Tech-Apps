@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { ALERT_COLORS, ALERT_LABELS, ALERT_THRESHOLDS, ALERT_FG, TREATMENT_ACTIONS } from '../constants'
 import { PageHeader } from './PageHeader'
-import { AlertCard } from './ui'
+import { AlertCard, RequestIdChip } from './ui'
 import { useAuth } from '../context/AuthContext'
+import { lastRequestId, readRequestId } from '../lib/requestId'
 
 interface AlertsProps {
   activeSite: string
@@ -40,30 +41,52 @@ interface LiveState {
   compliancePct: number
 }
 
+/** Fetch outcome for this site's live status, kept distinct on purpose:
+ *  'empty' (genuinely no readings yet — a fine, calm state) must never be
+ *  reached by a failure path. A non-OK response, an unusable body, or a
+ *  thrown error all land in 'unavailable' instead. */
+type Status = 'idle' | 'loading' | 'ok' | 'empty' | 'unavailable'
+
 export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
   const { organizationId, token } = useAuth()
   const [live, setLive] = useState<LiveState | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [checked, setChecked] = useState(false)
+  const [status, setStatus] = useState<Status>('idle')
+  const [error, setError] = useState<{ message: string; requestId: string | null } | null>(null)
 
   useEffect(() => {
+    // Clear immediately on any site change — including switching between two
+    // non-empty sites — so a previous site's alert level never renders under
+    // the new site's name while the fetch for it is in flight.
+    setLive(null)
+    setError(null)
     if (!activeSite) {
-      setLive(null)
-      setChecked(true)
+      setStatus('idle')
       return
     }
     let cancelled = false
+    setStatus('loading')
     const run = async () => {
-      setLoading(true)
-      setChecked(false)
       try {
         const headers: HeadersInit = {}
         if (organizationId) headers['X-Organization-ID'] = organizationId
         if (token) headers['Authorization'] = `Bearer ${token}`
         const res = await fetch(`/api/status/${encodeURIComponent(activeSite)}`, { headers })
+        const requestId = readRequestId(res)
+        if (!res.ok) {
+          if (!cancelled) {
+            setStatus('unavailable')
+            setError({ message: `Status endpoint returned ${res.status}. The live alert level for ${activeSite} could not be confirmed.`, requestId })
+          }
+          return
+        }
         const data = await res.json()
         if (cancelled) return
-        if (data.readings && data.readings.length > 0) {
+        if (!data || !Array.isArray(data.readings)) {
+          setStatus('unavailable')
+          setError({ message: 'Status endpoint returned an unexpected shape. Refusing to guess at the alert level.', requestId })
+          return
+        }
+        if (data.readings.length > 0) {
           const latest = data.readings[data.readings.length - 1]
           const lvl = (latest.alert_level ?? 1) as 1 | 2 | 3 | 4
           setLive({
@@ -73,15 +96,14 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
             failing: latest.failing_params ?? [],
             compliancePct: latest.compliance_pct ?? 0,
           })
+          setStatus('ok')
         } else {
-          setLive(null)
+          setStatus('empty')
         }
       } catch {
-        if (!cancelled) setLive(null)
-      } finally {
         if (!cancelled) {
-          setLoading(false)
-          setChecked(true)
+          setStatus('unavailable')
+          setError({ message: 'Network error reaching the status endpoint. The live alert level is unknown, not clear.', requestId: lastRequestId() })
         }
       }
     }
@@ -91,7 +113,8 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
     }
   }, [activeSite, organizationId, token])
 
-  const liveLevel = live?.level ?? null
+  const liveLevel = status === 'ok' ? (live?.level ?? null) : null
+  const loading = status === 'loading'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -147,7 +170,7 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
         </div>
       )}
 
-      {!loading && live && (
+      {!loading && status === 'ok' && live && (
         <div
           style={{
             display: 'flex',
@@ -195,11 +218,33 @@ export const Alerts: React.FC<AlertsProps> = ({ activeSite }) => {
         </div>
       )}
 
-      {!loading && checked && !live && (
+      {/* A failed read must never be presented as "no readings yet" — that reads
+          as calm and all-clear, and could hide a live Level 3/4 emergency. */}
+      {!loading && status === 'unavailable' && (
+        <AlertCard
+          tier="awaiting"
+          title="Alert status unavailable — this is not a compliance verdict"
+          description={
+            <>
+              {error?.message ?? 'The live alert level could not be loaded.'} The reference protocol below is shown for context only — it is not confirmation that {activeSite || 'this site'} has no active alert.
+              <RequestIdChip
+                requestId={error?.requestId ?? null}
+                approximate={!error?.requestId && !!lastRequestId()}
+              />
+            </>
+          }
+        />
+      )}
+
+      {!loading && status === 'empty' && (
         <div style={{ padding: '1rem 1.25rem', background: '#EFF6FF', border: '1px solid #bfdbfe', borderRadius: 10, color: '#1e3a5c', fontSize: '0.9rem', lineHeight: 1.5 }}>
-          {activeSite
-            ? <>No submitted readings for <strong>{activeSite}</strong> yet — showing the reference protocol below. Upload a lab report to activate a live alert level.</>
-            : <>No site selected — showing the reference protocol below. Choose a site in the sidebar to see its live alert status.</>}
+          No submitted readings for <strong>{activeSite}</strong> yet — showing the reference protocol below. Upload a lab report to activate a live alert level.
+        </div>
+      )}
+
+      {!loading && status === 'idle' && !activeSite && (
+        <div style={{ padding: '1rem 1.25rem', background: '#EFF6FF', border: '1px solid #bfdbfe', borderRadius: 10, color: '#1e3a5c', fontSize: '0.9rem', lineHeight: 1.5 }}>
+          No site selected — showing the reference protocol below. Choose a site in the sidebar to see its live alert status.
         </div>
       )}
 
