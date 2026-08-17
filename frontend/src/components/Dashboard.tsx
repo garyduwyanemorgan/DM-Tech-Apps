@@ -5,7 +5,7 @@ import { COMPLIANCE_LIMITS, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS, ALERT_
 import { LIGHT_STYLE, type TrafficLight } from '../lib/status'
 import { tableHeaderStyle as TH, tableCellStyle as TD } from '../lib/ui'
 import { MetricCard } from './ui'
-import { useMonthlySeries, NoData, SampleBanner, fmt, type ParamKey } from '../lib/sampleData'
+import { useMonthlySeries, NoData, SampleBanner, UnavailableBanner, fmt, type ParamKey } from '../lib/sampleData'
 // One rendering path for certificates, shared with Water Quality Monitoring, so the
 // two pages can never disagree about a verdict or a review state.
 import { SiteCertificates } from './Monitoring'
@@ -50,7 +50,7 @@ function riskStyle(pct: number, pass: boolean): React.CSSProperties {
 
 export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
   const { organizationId, token } = useAuth()
-  const { series, source, loading, liveMonths } = useMonthlySeries(activeSite)
+  const { series, source, loading, liveMonths, requestId, requestIdApproximate } = useMonthlySeries(activeSite)
   const [alertLevel, setAlertLevel] = useState<1 | 2 | 3 | 4>(1)
 
   // /api/status is the alert-level source. It carries NO parameter values — those
@@ -122,7 +122,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
         icon="🏝️"
       />
 
-      {!isLive && <SampleBanner />}
+      {source === 'unavailable' ? <UnavailableBanner requestId={requestId} approximate={requestIdApproximate} /> : !isLive && <SampleBanner />}
 
       {loading && <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading data…</div>}
 

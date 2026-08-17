@@ -5,7 +5,7 @@ import { StatusBadge } from './ui'
 import { COLORS, tableHeaderStyle, tableCellStyle } from '../lib/ui'
 import { MONTH_NAMES } from '../constants'
 import {
-  useMonthlySeries, NoData, SampleBanner, fmt, meanOf, maxOf, minOf, type ParamKey,
+  useMonthlySeries, NoData, SampleBanner, UnavailableBanner, fmt, meanOf, maxOf, minOf, type ParamKey,
 } from '../lib/sampleData'
 import {
   XAxis, YAxis, CartesianGrid, Tooltip,
@@ -221,7 +221,7 @@ export const Monitoring: React.FC<{ activeSite: string }> = ({ activeSite }) => 
   // Table, trend charts, and annual statistics all read the SAME series. Previously the
   // charts and stats were hardwired to the sample baseline while the table showed live
   // readings, so a site with real data got real rows under synthetic trend lines.
-  const { series, source } = useMonthlySeries(activeSite)
+  const { series, source, requestId, requestIdApproximate } = useMonthlySeries(activeSite)
 
   const hasLive = source === 'live'
 
@@ -318,7 +318,7 @@ export const Monitoring: React.FC<{ activeSite: string }> = ({ activeSite }) => 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <PageHeader title="Water Quality Monitoring" subtitle={`Monthly Data Log — ${activeSite || 'Sample data'}`} />
 
-      {!hasLive && <SampleBanner />}
+      {source === 'unavailable' ? <UnavailableBanner requestId={requestId} approximate={requestIdApproximate} /> : !hasLive && <SampleBanner />}
 
       {/* SECTION 0: LABORATORY CERTIFICATES (real uploaded lab reports) */}
       <SiteCertificates activeSite={activeSite} />

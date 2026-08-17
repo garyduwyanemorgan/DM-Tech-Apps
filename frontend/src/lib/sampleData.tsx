@@ -18,6 +18,8 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { MONTHLY_DATA } from '../constants'
+import { readRequestId, lastRequestId } from './requestId'
+import { RequestIdChip } from '../components/ui'
 
 /** Parameter keys of a monthly series — matches MONTHLY_DATA. */
 export type ParamKey = keyof typeof MONTHLY_DATA
@@ -25,7 +27,18 @@ export type ParamKey = keyof typeof MONTHLY_DATA
 /** 12 slots (Jan–Dec). `null` = no reading for that month. Never a sample stand-in. */
 export type Series = Record<ParamKey, (number | null)[]>
 
-export type SeriesSource = 'live' | 'sample' | 'none'
+/**
+ * - `live`        — real readings from the API.
+ * - `sample`       — user asked for sample data, and there were genuinely zero live rows.
+ * - `none`         — sample data is off, and there were genuinely zero live rows.
+ * - `unavailable`  — the read FAILED (network throw, non-OK response, or a malformed
+ *   body). `series` is null: a failed read shows NOTHING rather than substituting the
+ *   sample baseline, because fabricated figures are least acceptable at precisely the
+ *   moment we know the real ones are missing. Reported regardless of the user's
+ *   sample-data preference, so "you asked for demo data" and "your data failed to
+ *   load" are never the same state.
+ */
+export type SeriesSource = 'live' | 'sample' | 'none' | 'unavailable'
 
 export interface MonthlySeries {
   /** null when there is nothing legitimate to show. */
@@ -34,6 +47,11 @@ export interface MonthlySeries {
   loading: boolean
   /** Month indices (0–11) that carry a real reading. Empty for sample data. */
   liveMonths: number[]
+  /** True when `requestId` is the last id this browser saw rather than this
+   *  request's own — the case where the fetch threw and produced no Response. */
+  requestIdApproximate?: boolean
+  /** Correlation id for a failed read. Only ever populated when source is 'unavailable'. */
+  requestId?: string | null
 }
 
 const PARAM_KEYS = Object.keys(MONTHLY_DATA) as ParamKey[]
@@ -102,17 +120,22 @@ function sampleSeries(): Series {
 export function useMonthlySeries(activeSite: string, year = new Date().getFullYear()): MonthlySeries {
   const { organizationId, token, showSampleData } = useAuth()
   const [live, setLive] = useState<{ series: Series; liveMonths: number[] } | null>(null)
+  // Set only when the read itself FAILED (not when it succeeded with zero rows).
+  // Kept distinct from `live` so a failure can never be silently read as "no data".
+  const [failed, setFailed] = useState<{ requestId: string | null; approximate: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!activeSite) {
       setLive(null)
+      setFailed(null)
       return
     }
     let cancelled = false
     setLoading(true)
 
     const load = async () => {
+      let capturedRequestId: string | null = null
       try {
         const headers: HeadersInit = {}
         if (organizationId) headers['X-Organization-ID'] = organizationId
@@ -121,11 +144,34 @@ export function useMonthlySeries(activeSite: string, year = new Date().getFullYe
           `/api/readings/${encodeURIComponent(activeSite)}?year=${year}`,
           { headers },
         )
+        capturedRequestId = readRequestId(res)
         const json = await res.json()
-        const rows: ReadingRow[] = res.ok && Array.isArray(json.rows) ? json.rows : []
-        if (!cancelled) setLive(rows.length > 0 ? seriesFromRows(rows) : null)
+        if (!res.ok || !Array.isArray(json?.rows)) {
+          // A real response came back, but it was not a usable one — a 500, a 4xx,
+          // or a malformed body. This is a failure, not "zero readings".
+          if (!cancelled) {
+            setLive(null)
+            setFailed({ requestId: capturedRequestId, approximate: false })
+          }
+          return
+        }
+        const rows: ReadingRow[] = json.rows
+        if (!cancelled) {
+          // Genuinely zero rows is a successful read, not a failure.
+          setLive(rows.length > 0 ? seriesFromRows(rows) : null)
+          setFailed(null)
+        }
       } catch {
-        if (!cancelled) setLive(null)
+        // Thrown before or during the fetch/parse — no reliable Response to read the
+        // id from, so fall back to the last one this browser saw.
+        if (!cancelled) {
+          setLive(null)
+          setFailed({
+            requestId: capturedRequestId ?? lastRequestId(),
+            // Exact only if a Response was reached before the throw.
+            approximate: capturedRequestId === null,
+          })
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -137,6 +183,28 @@ export function useMonthlySeries(activeSite: string, year = new Date().getFullYe
     }
   }, [activeSite, organizationId, token, year])
 
+  if (failed) {
+    // A failed read shows NOTHING, never the sample baseline.
+    //
+    // Substituting demo figures here would put fabricated numbers on screen at
+    // exactly the moment we know the real ones are unavailable — on a product
+    // whose output reaches a regulator. It is also indistinguishable, pixel for
+    // pixel, from the deliberate sample-data feature the user can switch on.
+    //
+    // The rejected alternative was to keep the last successfully-loaded series
+    // and mark it stale. That is defensible for a failed refresh, but it needs
+    // the data to be tied to the site and year it was fetched for, or a failure
+    // after switching sites shows one lagoon's readings under another's name.
+    // Not worth that risk for a screen the user can simply reload.
+    return {
+      series: null,
+      source: 'unavailable',
+      loading,
+      liveMonths: [],
+      requestId: failed.requestId,
+      requestIdApproximate: failed.approximate,
+    }
+  }
   if (live) {
     return { series: live.series, source: 'live', loading, liveMonths: live.liveMonths }
   }
@@ -209,5 +277,32 @@ export const SampleBanner: React.FC = () => (
   >
     <strong>Sample data — not lab readings.</strong> These values are a built-in demonstration
     baseline. Select a site with submitted readings for live figures.
+  </div>
+)
+
+/**
+ * Shown wherever a live read FAILED — as opposed to succeeding with zero rows.
+ * The figures on screen are the sample baseline, standing in only because the
+ * live read could not be completed, not because the user asked for a demo.
+ */
+export const UnavailableBanner: React.FC<{
+  requestId?: string | null
+  approximate?: boolean
+}> = ({ requestId, approximate }) => (
+  <div
+    style={{
+      background: '#FDE2E2',
+      color: '#7F1D1D',
+      padding: '0.65rem 1rem',
+      borderRadius: 6,
+      fontSize: '0.875rem',
+      border: '1px solid #F87171',
+    }}
+  >
+    <strong>Could not load readings — no figures are being shown.</strong> This is not the same
+    as a site with no readings: the request failed, so we do not know what the readings are.
+    Nothing below is substituted from the demonstration baseline. Try again shortly; if it
+    persists, quote the reference id.
+    <RequestIdChip requestId={requestId ?? null} approximate={approximate} />
   </div>
 )

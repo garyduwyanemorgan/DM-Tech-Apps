@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { COLORS, tableHeaderStyle, tableCellStyle } from '../lib/ui'
 import { MONTH_NAMES, COMPLIANCE_LIMITS } from '../constants'
 import {
-  useMonthlySeries, NoData, SampleBanner, fmt, meanOf, maxOf, minOf,
+  useMonthlySeries, NoData, SampleBanner, UnavailableBanner, fmt, meanOf, maxOf, minOf,
   type Series, type ParamKey,
 } from '../lib/sampleData'
 
@@ -323,7 +323,7 @@ function marginBg(pct: number | null): string {
 
 export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite }) => {
   const { token, organizationId } = useAuth()
-  const { series, source, loading } = useMonthlySeries(activeSite)
+  const { series, source, loading, requestId, requestIdApproximate } = useMonthlySeries(activeSite)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
 
@@ -423,7 +423,7 @@ export const ComplianceReport: React.FC<{ activeSite: string }> = ({ activeSite 
 
       <PageHeader title="Regulatory Compliance Report" subtitle={`Reporting Period: 2026 — ${activeSite || 'All Sites'}`} />
 
-      {!isLive && <SampleBanner />}
+      {source === 'unavailable' ? <UnavailableBanner requestId={requestId} approximate={requestIdApproximate} /> : !isLive && <SampleBanner />}
 
       {!isLive && (
         <div style={{ background: '#FFF5F5', color: '#9C0006', border: '1px solid #f87171', borderRadius: 6, padding: '0.65rem 1rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
