@@ -148,6 +148,38 @@ def test_execute_granted_to_authenticated_not_anon():
     assert re.search(
         r"REVOKE ALL ON FUNCTION public\.%s\(\)\s+FROM\s+PUBLIC\s*;" % FUNC, body
     ), "PUBLIC's default EXECUTE grant must be revoked explicitly"
+    # REVOKE FROM PUBLIC is not enough on Supabase: its ALTER DEFAULT PRIVILEGES
+    # grants EXECUTE on new public functions to anon directly, and revoking
+    # PUBLIC leaves that entry in place. Caught only by reading the live ACL
+    # after the first apply. See test_anon_really_cannot_execute_it below — this
+    # static check exists so the line is not deleted as redundant.
+    assert re.search(
+        r"REVOKE ALL ON FUNCTION public\.%s\(\)\s+FROM\s+anon\s*;" % FUNC, body
+    ), "anon's default EXECUTE grant must be revoked explicitly, not just PUBLIC's"
+
+
+def test_anon_really_cannot_execute_it():
+    """Assert the resulting ACL, not the SQL text.
+
+    The static test above passed while `anon` held EXECUTE, because the file
+    genuinely grants only to `authenticated` — Supabase's default privileges had
+    already granted anon separately at CREATE FUNCTION time. Reading the
+    migration can never reveal that; only the database can. This is the
+    difference between testing what we wrote and testing what exists.
+    """
+    out = _psql(
+        "SELECT has_function_privilege('anon', 'public.%s()', 'EXECUTE'),"
+        "       has_function_privilege('authenticated', 'public.%s()', 'EXECUTE');"
+        % (FUNC, FUNC)
+    )
+    if "does not exist" in out:
+        pytest.skip("032 is not applied to this database")
+    anon, authed = [p.strip() for p in out.strip().split("|")]
+    assert authed == "t", "authenticated must be able to call the provisioning function"
+    assert anon == "f", (
+        "anon can EXECUTE the provisioning function — REVOKE FROM PUBLIC does not "
+        "remove Supabase's default grant to anon; revoke from anon explicitly"
+    )
 
 
 def test_down_drops_what_up_creates():
@@ -337,8 +369,12 @@ def test_a_caller_with_no_clerk_subject_is_refused():
 def test_nothing_persists_after_the_transaction_rolls_back():
     """Confidence check on the harness itself: rollback really rolled back.
 
-    Runs the positive-case script, then in a FRESH connection confirms the
-    function, and any organisation this test created, do not exist.
+    Asserts on the ROWS this test creates, not on whether the function exists.
+    It originally asserted the function was absent afterwards, which silently
+    encoded "032 has not been applied to this database" — true when written,
+    false the moment 032 was applied to the local stack, and the test then
+    failed for a reason that had nothing to do with rollback. A test that
+    breaks when unrelated state changes is testing the wrong thing.
     """
     subject = _subject()
     sql = (
@@ -351,11 +387,12 @@ def test_nothing_persists_after_the_transaction_rolls_back():
     )
     _psql(sql)
 
+    # The subject is unique per run, so any row bearing it can only have come
+    # from the transaction above — which rolled back.
     out = _psql(
-        "SELECT coalesce(to_regprocedure("
-        "'public.bootstrap_self_serve_profile()')::text, 'NULL');"
+        "SELECT count(*) FROM public.user_profiles WHERE clerk_id = '%s';" % subject
     )
-    assert _row(out) == "NULL", (
-        "the function must not exist outside the test's own rolled-back "
-        "transaction — if it does, the migration leaked into the database"
+    assert _row(out) == "0", (
+        "a profile created inside the rolled-back transaction survived it — "
+        "the harness is committing when it believes it is not"
     )

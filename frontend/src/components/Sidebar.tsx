@@ -18,6 +18,7 @@ import {
 import { RoleBadge } from './RoleBadge'
 import { COLORS } from '../lib/tokens'
 import { hasPermission, type Permission } from '../lib/permissions'
+import { readRequestId, lastRequestId } from '../lib/requestId'
 import { useFeatures, type FeatureKey } from '../context/FeaturesContext'
 
 interface SidebarProps {
@@ -161,6 +162,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { signOut, role, organizationId, user, showSampleData, getToken, email } = useAuth()
   const { features } = useFeatures()
   const [sites, setSites] = useState<string[]>([])
+  // Set only when the site list could not be LOADED. Kept separate from an
+  // empty `sites`, because "this tenant has no sites" and "we could not find
+  // out" are different facts and the status line below must not merge them.
+  const [sitesError, setSitesError] = useState<{ requestId: string | null } | null>(null)
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem(COLLAPSED_KEY) === 'true' } catch { return false }
@@ -205,15 +210,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
       if (organizationId) headers['X-Organization-ID'] = organizationId
       if (email) headers['X-User-Email'] = email
       const res = await fetch('/api/sites', { headers })
-      const data = await res.json()
-      if (data.sites) {
-        // API returns [{name, reading_count}] — normalise to string[]
-        const names: string[] = data.sites.map((s: any) => (typeof s === 'string' ? s : s.name))
-        setSites(names)
-        if (names.length > 0 && !activeSite) setActiveSite(names[0])
+      const requestId = readRequestId(res)
+      if (!res.ok) {
+        // A 401 or 500 here used to leave `sites` empty and silent, which the
+        // status line then reported as "No sites configured yet" — the app
+        // blanked itself and told the user their account was empty.
+        console.error('Failed to fetch sites: HTTP', res.status)
+        setSitesError({ requestId })
+        return
       }
+      const data = await res.json()
+      if (!data || !Array.isArray(data.sites)) {
+        console.error('Failed to fetch sites: unexpected response shape')
+        setSitesError({ requestId })
+        return
+      }
+      // API returns [{name, reading_count}] — normalise to string[]
+      const names: string[] = data.sites.map((s: any) => (typeof s === 'string' ? s : s.name))
+      setSitesError(null)
+      setSites(names)
+      if (names.length > 0 && !activeSite) setActiveSite(names[0])
     } catch (err) {
       console.error('Failed to fetch sites:', err)
+      // No Response to read an id from, so fall back to the last one seen.
+      setSitesError({ requestId: lastRequestId() })
     }
   }
 
@@ -378,12 +398,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* "Showing sample data" tracks the account's sample-data flag — it
               must never appear while the flag is off (the label previously
               keyed off an empty site list, which is unrelated). */}
-          <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', marginTop: '0.3rem', paddingLeft: '2px' }}>
-            {showSampleData
-              ? 'Showing sample data'
-              : sites.length === 0
-                ? 'No sites configured yet'
-                : `${sites.length} site${sites.length > 1 ? 's' : ''} available`}
+          <div style={{ fontSize: '0.72rem', color: sitesError ? '#FCA5A5' : 'rgba(255,255,255,0.45)', marginTop: '0.3rem', paddingLeft: '2px' }}>
+            {sitesError
+              ? 'Could not load sites — this is not "no sites"'
+              : showSampleData
+                ? 'Showing sample data'
+                : sites.length === 0
+                  ? 'No sites configured yet'
+                  : `${sites.length} site${sites.length > 1 ? 's' : ''} available`}
           </div>
         </div>
       )}

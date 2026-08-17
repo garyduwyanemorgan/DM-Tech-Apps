@@ -162,7 +162,22 @@ COMMENT ON FUNCTION public.bootstrap_self_serve_profile() IS
   'currently called by any application code; db/client.py still writes as '
   'service_role. See migration 032 header for the full threat analysis.';
 
+-- REVOKE FROM PUBLIC alone is NOT sufficient on a Supabase database, and the
+-- difference is invisible in this file. Supabase ships
+--   ALTER DEFAULT PRIVILEGES IN SCHEMA public
+--     GRANT ALL ON FUNCTIONS TO postgres, anon, authenticated, service_role;
+-- so the moment CREATE FUNCTION runs, `anon` already holds EXECUTE as an
+-- explicit grant. Revoking from PUBLIC strips only the PUBLIC entry and leaves
+-- that one intact: checked live after the first apply, the ACL read
+--   postgres=X/postgres | anon=X/postgres | authenticated=X/postgres | ...
+-- i.e. the unauthenticated PostgREST role could call the provisioning function.
+--
+-- Reading this file would not have caught it — the GRANT line below says
+-- `authenticated` and means it. Only `has_function_privilege('anon', ...)`
+-- against a real database shows the truth, which is why the test asserts the
+-- ACL rather than the SQL text.
 REVOKE ALL ON FUNCTION public.bootstrap_self_serve_profile() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.bootstrap_self_serve_profile() FROM anon;
 GRANT EXECUTE ON FUNCTION public.bootstrap_self_serve_profile() TO authenticated;
 
 COMMIT;
