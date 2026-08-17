@@ -86,7 +86,10 @@ def main():
         sys.exit(1)
 
     # Step 2: Configure Webhook URL
-    base_url = "https://lagoons.gdm-enviro.com"
+    # This app's own origin. Was https://lagoons.gdm-enviro.com, inherited from
+    # the DECCA/LOS build this repo was copied from — registering against that
+    # host points Stripe at another deployment's billing webhook.
+    base_url = os.environ.get("PUBLIC_BASE_URL", "https://app.gdm-enviro.com")
     
     # Since the FastAPI route is /billing/webhook, the endpoint URL should be:
     webhook_url = f"{base_url.rstrip('/')}/billing/webhook"

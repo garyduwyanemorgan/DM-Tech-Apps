@@ -19,9 +19,24 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-REPO_URL="https://github.com/garyduwyanemorgan/DECCA-Lagoons-App"
-API_URL="https://lagoons.gdm-enviro.com/api/version"
-RENDER_SERVICE="srv-d91t1ofavr4c73fv52d0"   # lagoon-saas
+# Derived from the checkout, never hardcoded. This repo began as a copy of the
+# DECCA/LOS build, and these two constants came with it — so every release from
+# v1.6.0 onward wrote CHANGELOG compare links pointing at the frozen
+# DECCA-Lagoons-App repo, and --verify would have polled that project's
+# production host to decide whether THIS release had landed. Deriving the repo
+# from `origin` means a future fork cannot inherit the wrong identity again.
+REPO_URL="$(git remote get-url origin 2>/dev/null | sed -E 's/\.git$//; s#git@github\.com:#https://github.com/#')"
+
+# The deployed host to poll when --verify is passed. Overridable, because a
+# wrong value here reports success against somebody else's app. Default is this
+# app's own origin, per CLERK_AUTHORIZED_PARTIES in .env.example.
+API_URL="${RELEASE_VERIFY_URL:-https://app.gdm-enviro.com/api/version}"
+# Render service to name in the rollback hint below. Inherited from the
+# DECCA/LOS build as srv-d91t1ofavr4c73fv52d0 ("lagoon-saas") — a rollback
+# command naming another project's service is worse than no hint at all,
+# since it would be pasted during an incident. Set RENDER_SERVICE_ID for
+# this app, or the hint says so instead of guessing.
+RENDER_SERVICE="${RENDER_SERVICE_ID:-}"
 cd "$(git rev-parse --show-toplevel)"
 
 BUMP="patch"; EXPLICIT=""; DRYRUN=0; NOPUSH=0; VERIFY=0
@@ -131,7 +146,12 @@ if [ "$VERIFY" -eq 1 ]; then
   {
     echo "release.sh: live app never reported v$NEW within 10 minutes."
     echo "Investigate before assuming success. To roll back:"
-    echo "  render deploys create ${RENDER_SERVICE} --commit ${PREV_SHA} --wait"
+    if [ -n "$RENDER_SERVICE" ]; then
+      echo "  render deploys create ${RENDER_SERVICE} --commit ${PREV_SHA} --wait"
+    else
+      echo "  set RENDER_SERVICE_ID to this app's Render service, then:"
+      echo "  render deploys create <service-id> --commit ${PREV_SHA} --wait"
+    fi
     echo "NOTE: an env-var change needs a deploy, not a restart. A code rollback"
     echo "      does NOT revert env vars."
   } >&2

@@ -27,7 +27,11 @@ except ImportError:
 
 from payments.checkout_provider import API_LIVE, API_SANDBOX, WEBHOOK_EVENTS
 
-BASE_URL = "https://lagoons.gdm-enviro.com"
+# This app's own origin. Was https://lagoons.gdm-enviro.com, inherited from
+# the DECCA/LOS build this repo was copied from — running the script with
+# that value registers a payment webhook pointing at the OTHER app, so its
+# provider would call a host this deployment does not control.
+BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://app.gdm-enviro.com")
 
 
 def read_key_from_toml(filepath: pathlib.Path, section: str, key: str) -> str:
