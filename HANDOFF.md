@@ -5,7 +5,7 @@ shutdown on 2026-08-15. Records verified state, not intended state: everything
 marked "verified" was checked against the live stack on the date above, and
 everything still open is named with the reason it is open.
 
-Branch `feat/dm-compliance-phase-1`, version 1.8.0. Six commits added this
+Branch `feat/dm-compliance-phase-1`, version 1.8.0. Seven commits added this
 session, all pushed:
 
 | Commit | What |
@@ -15,13 +15,15 @@ session, all pushed:
 | `454f0e0` | Observability layers 0-2 — correlation, reason codes, workflow spine |
 | `4d694a4` | The read side — `/system/*` endpoints and the System Health screen |
 | `b0cb0c3` | Layer 3 — crash reporting, inert unless a DSN is set |
+| `85c60a0` | This handoff — the observability system |
+| `4892237` | A partial reading is INCOMPLETE, and no longer a 500 |
 
 Two bodies of work. Scoped reads are **verified end to end against a real
 Clerk user** (§2.1), which closed the last unproven link in that chain. Then
 the observability system (§3), built because the app could not report where or
 why it broke.
 
-**Tests: 769 passed, 10 skipped.** Baseline at session start was 674/10. Run
+**Tests: 785 passed, 10 skipped.** Baseline at session start was 674/10. Run
 with `python -m pytest -q`. Some tests hit the live stack, so it must be up.
 
 One habit worth keeping, because it earned its place repeatedly today: **a test
@@ -345,10 +347,9 @@ it is wrong.
 Quick list, expanded below:
 
 1. `CLERK_DEV_SECRET_KEY` (§1) — still unset, still 503s `/users/invite`.
-2. `core/calculations.py:32` (§6e) — no None guard; 500s `/status/{site}`.
-3. Migration 031 in production — applied locally only.
-4. The bootstrap break (§4) — blocks any future move of writes onto RLS.
-5. Surfacing observability to the user: nothing yet shows a request id in the
+2. Migration 031 in production — applied locally only.
+3. The bootstrap break (§4) — blocks any future move of writes onto RLS.
+4. Surfacing observability to the user: nothing yet shows a request id in the
    UI, so a user cannot quote one to support. The API returns it on every
    response and `SystemHealth.tsx` reads run ids — the missing piece is showing
    it on an error toast.
@@ -393,7 +394,23 @@ Prerequisites before the default could flip: confirm `007` is applied; write the
 backfill; give the frontend an empty-scope state (see §6b — same gap); assign
 sites at invite time; make the flag per-org rather than a process-wide env var.
 
-### e. `/status/{site}` 500s on a partially-filled reading — NOT FIXED
+### e. ~~`/status/{site}` 500s on a partially-filled reading~~ — FIXED `4892237`
+
+Fixed after this handoff was first written. Both crash sites are guarded, and
+an incomplete reading now reports **INCOMPLETE**, never COMPLIANT — averaging
+over only the parameters that happen to be present would have called one
+measured value out of ten "100% COMPLIANT". `bloom_probability` is None rather
+than 0.0 when Chl-a is unmeasured, and unevaluated alert drivers are named so a
+GREEN reading on missing data is distinguishable from a healthy one.
+
+**The lesson is worth more than the fix.** Guarding `check_compliance` was not
+enough: `_assess` also calls `evaluate_alert_level`, which had the same
+unguarded comparisons. All ten unit tests passed while the endpoint still 500'd,
+because the test helper happened to set `chla`. Only re-running the real
+end-to-end reproduction against a NULL-metric row exposed the second site. The
+original text below is kept because the reasoning still applies.
+
+
 
 Found while verifying §2.1, unrelated to the token work, and still open.
 
@@ -456,6 +473,10 @@ Left for its own commit rather than smuggled into the RLS work.
   looked missing. Kill the PID on the port and restart after every change.
 - **Vite binds IPv6 only.** `curl http://127.0.0.1:5173` returns nothing;
   `localhost` works. A `000` response code is this, not a dead server.
+- **Fixing the frame in the traceback may not fix the bug.** The partial-reading
+  500 had two crash sites; guarding the first left the endpoint still failing,
+  and the unit tests passed because the fixture set the field the second site
+  read. Re-run the original end-to-end reproduction, not just the tests.
 - **Test the payload, not your own logic.** The Sentry scrubber passed 15 unit
   tests while the real SDK still shipped every probe secret, because the values
   also live in the source lines the SDK attaches. Capture a real event through
