@@ -5,15 +5,32 @@ shutdown on 2026-08-15. Records verified state, not intended state: everything
 marked "verified" was checked against the live stack on the date above, and
 everything still open is named with the reason it is open.
 
-Branch `feat/dm-compliance-phase-1`, version 1.8.0. Three commits added this
-session, all pushed: `84621ab` (scoped reads), `dc3a999` + this one (handoff).
+Branch `feat/dm-compliance-phase-1`, version 1.8.0. Six commits added this
+session, all pushed:
 
-Scoped reads are **verified working end to end against a real Clerk user** —
-see §2.1. That closes the last unproven link in the chain.
+| Commit | What |
+|---|---|
+| `84621ab` | Reads run under the caller's token; anon key closes the fail-open hole |
+| `dc3a999`, `f0dc90b` | This handoff — reads scoped; the Clerk claim proven |
+| `454f0e0` | Observability layers 0-2 — correlation, reason codes, workflow spine |
+| `4d694a4` | The read side — `/system/*` endpoints and the System Health screen |
+| `b0cb0c3` | Layer 3 — crash reporting, inert unless a DSN is set |
 
-**Tests: 691 passed, 10 skipped.** Baseline at session start was 674/10; the
-new file accounts for exactly +17. Run with `python -m pytest -q`. Some tests
-hit the live stack, so it must be up.
+Two bodies of work. Scoped reads are **verified end to end against a real
+Clerk user** (§2.1), which closed the last unproven link in that chain. Then
+the observability system (§3), built because the app could not report where or
+why it broke.
+
+**Tests: 769 passed, 10 skipped.** Baseline at session start was 674/10. Run
+with `python -m pytest -q`. Some tests hit the live stack, so it must be up.
+
+One habit worth keeping, because it earned its place repeatedly today: **a test
+is not believed until it fails against a deliberately broken implementation.**
+That caught a scoped-read regression guard (12 of 17 failed on revert) and a
+tenant-isolation guard (2 failed when the org filter was removed). It also
+caught a *false* verification — the first mutation attempt did not match the
+code, everything passed, and that is indistinguishable from a real pass unless
+you confirm the mutation actually landed.
 
 ---
 
@@ -56,7 +73,7 @@ for k in ('dev_secret_key','secret_key','dev_publishable_key'):
 
 The previous handoff listed "nothing sends a Clerk token yet" as the top open
 item. That is now half-closed: **reads are scoped, writes are not.** This was a
-deliberate split, not a partial job — see §3 for why writes cannot follow yet.
+deliberate split, not a partial job — see §4 for why writes cannot follow yet.
 
 ### The state that was found, and was worse than filed
 
@@ -107,7 +124,7 @@ Done after the commit, against the live stack with the dev servers up
 passes the `iss`/`azp` checks. Before this, every test had used a self-signed
 token.
 
-It also confirms §3: the bootstrap succeeded **because writes are still
+It also confirms §4: the bootstrap succeeded **because writes are still
 service_role**. Under RLS both inserts would have been denied.
 
 **Step 2 — the scoped read, under that token.** A throwaway site plus one
@@ -133,7 +150,7 @@ calls `get_client()` unscoped, so a site appears there whether RLS works or
 not. It will report a false pass. Use `/status/{site}` or `/readings/{site}`,
 and insert an actual reading first — an empty result is ambiguous.
 
-The 500 itself was a genuine pre-existing bug, unrelated to tokens; see §5f.
+The 500 itself was a genuine pre-existing bug, unrelated to tokens; see §6e.
 
 ### The tests were mutation-checked
 
@@ -148,7 +165,100 @@ read "live tests pass" as end-to-end proof.
 
 ---
 
-## 3. Why writes deliberately stayed on service_role
+## 3. The observability system
+
+Built after the token work, in answer to a direct question: the system could
+not report where and why it broke. Four layers, all committed and pushed
+(`454f0e0`, `4d694a4`, `b0cb0c3`).
+
+### Why this shape, and not just an error tracker
+
+Of the bugs found in this branch, an exception tracker would have caught
+exactly one. The rest returned plausible-looking data: a token silently
+dropped, a read denied by RLS, a client that failed to build. **This system
+fails silently, not loudly** — an RLS denial, an unreachable database, a
+dropped token and a genuinely empty tenant all arrive at the caller as `[]`,
+and several screens then fall back to sample data and look healthy.
+
+So the work was making silence testify. Crash reporting is Layer 3, last and
+least, precisely because it is the least useful here.
+
+The codebase had already invented the right primitive once: `ScopeUnavailable`
+in `core/scope.py` — "an unknown scope is not an empty one". Layers 1 and 2
+generalise that instinct.
+
+### What each layer is
+
+| Layer | Where | What |
+|---|---|---|
+| 0 Correlation | `core/observability.py` | per-request id, contextvar-based; `X-Request-Id` in and out; stamped on every audit event |
+| 1 Reason codes | `core/reasons.py`, `db/client.py`, `db/queries.py` | closed vocabulary; 34 read swallows now emit before returning their fallback |
+| 2 Workflow spine | `core/workflow.py`, migration 031, `ingestion/` | per-entity pipeline step outcomes: ingest → parse → validate → persist → assess → obligation → report |
+| Read side | `api_server.py`, `SystemHealth.tsx` | `/system/health`, `/system/failures`, `/system/runs/{id}`, gated on `audit.read` |
+| 3 Crash reporting | `core/errors.py` | inert unless `SENTRY_DSN` is set |
+
+### Things that look like bugs and are not — do not "fix" these
+
+- **`RLS_DENIED` is always `suspected`, never asserted.** PostgREST does not
+  raise on a denial; it returns zero rows. A denied read and an empty tenant
+  are genuinely indistinguishable. Claiming certainty here would be a
+  confident wrong signal, which is worse than none.
+- **`reading_exists` does not emit a suspected denial**, unlike the other
+  seven token-scoped reads. It is a predicate called before every insert where
+  "no" is the happy path; emitting there fires on every upload and buries the
+  real signals.
+- **The four `workflow_events` reads do not emit one either.** An empty table
+  is the designed state of a quiet tenant, and the UI renders it as a positive
+  result. Emitting there means the observability read path corrupts the
+  observability record every time someone opens the dashboard.
+- **`core/workflow.py::_persist` refuses to write under pytest.** The
+  ingestion tests drive the instrumented gates against the live dev stack and
+  were writing 63 real org-less rows per suite run into what is meant to be
+  evidence. Tests that need persistence opt in with
+  `WORKFLOW_PERSIST_IN_TESTS=1` and inject a fake client.
+- **`SENTRY_SEND_SOURCE` defaults to off.** Stripping frame locals is not
+  sufficient on its own — a value also appears in the source line that assigns
+  it, so with source context on, the data walks back out through
+  `pre_context`. Verified against the real SDK; unit tests of the scrubber
+  passed while the live payload still leaked. It also stops proprietary source
+  reaching whoever runs the collector.
+
+### Defects caught during integration
+
+Eight, none shipped. Recorded because each looked fine in review and only
+surfaced under direct testing:
+
+1. `RequestIdMiddleware` is registered on both the outer app and the mounted
+   `api_app`, so it ran twice and minted two ids — the user got one, the audit
+   rows the other. Nesting is now idempotent.
+2. An unhandled exception meant the response header was never set, so the 500
+   — the one response anyone reports — carried no id.
+3. `get_client()` failure → audit emit → `_persist` → `get_client()`: 51 frames
+   before `RecursionError` was silently swallowed, firing exactly when the
+   database is unreachable. Guarded; now 2.
+4. `reason_code` fell back to the exception class name, giving a supposedly
+   closed vocabulary unbounded cardinality.
+5. Ordering by `created_at` alone returned runs reversed on shared timestamps —
+   the "chronological" timeline was not chronological. `id` is the tiebreak.
+6. The suspected-denial signal wired into the `workflow_events` reads (above).
+7. The pytest pollution (above).
+8. Sentry source-context leakage (above).
+
+### Not done
+
+- **Migration 031 is applied to the LOCAL dev stack only.** Production needs it
+  by hand, like 029 and 030.
+- **No crash report has ever reached a collector.** The scrubbing was verified
+  by capturing a real exception through the real SDK with a fake transport and
+  grepping the outgoing payload. The first live report still needs a DSN and a
+  look at what actually arrives.
+- **The empty and unavailable states of `SystemHealth.tsx` have not been seen
+  rendered** — verified by unit test and by reading the component only. To see
+  *unavailable*, stop the API and reload the page.
+
+---
+
+## 4. Why writes deliberately stayed on service_role
 
 Not laziness — the policies genuinely deny them, and two of the denials are
 structural.
@@ -193,7 +303,7 @@ Do not "finish the job" by adding a token there.
 
 ---
 
-## 4. Verified state of the environment
+## 5. Verified state of the environment
 
 The database is the **self-hosted Supabase stack at `C:\AI\supabase\docker`**.
 The lagoon database is never touched. The gateway is on **port 54321**, not 8000.
@@ -230,7 +340,18 @@ it is wrong.
 
 ---
 
-## 5. Open, in the order I would take them
+## 6. Open, in the order I would take them
+
+Quick list, expanded below:
+
+1. `CLERK_DEV_SECRET_KEY` (§1) — still unset, still 503s `/users/invite`.
+2. `core/calculations.py:32` (§6e) — no None guard; 500s `/status/{site}`.
+3. Migration 031 in production — applied locally only.
+4. The bootstrap break (§4) — blocks any future move of writes onto RLS.
+5. Surfacing observability to the user: nothing yet shows a request id in the
+   UI, so a user cannot quote one to support. The API returns it on every
+   response and `SystemHealth.tsx` reads run ids — the missing piece is showing
+   it on an error toast.
 
 ### a. ~~Nobody has ever seen a real Clerk token~~ — CLOSED 2026-08-17
 
@@ -269,7 +390,7 @@ Unchanged from the previous handoff; the recommendation is still the status quo.
 assignments resolves to an empty frozenset that denies everything. `GET /sites`
 is the consequential call site, and admins are hit harder than operators.
 Prerequisites before the default could flip: confirm `007` is applied; write the
-backfill; give the frontend an empty-scope state (see §5b — same gap); assign
+backfill; give the frontend an empty-scope state (see §6b — same gap); assign
 sites at invite time; make the flag per-org rather than a process-wide env var.
 
 ### e. `/status/{site}` 500s on a partially-filled reading — NOT FIXED
@@ -311,11 +432,11 @@ Left for its own commit rather than smuggled into the RLS work.
 
 ---
 
-## 6. Gotchas worth not rediscovering
+## 7. Gotchas worth not rediscovering
 
 - **The gateway is port 54321.** Port 8000 is container-internal and 404s from
   the host.
-- **`docker exec supabase-rest` is broken**; use `docker inspect` (§4).
+- **`docker exec supabase-rest` is broken**; use `docker inspect` (§5).
 - **`db/queries.py` does `from .client import get_client`**, binding the name
   into the queries module. Patching `db.client.get_client` alone leaves tests
   talking to the live stack and passing for the wrong reason — patch both. See
@@ -326,7 +447,19 @@ Left for its own commit rather than smuggled into the RLS work.
   `tests/test_rls_clerk_identity.py` does.
 - **Run tests against a reverted implementation before believing them.** Both
   agents and humans have written tests here that passed for the wrong reason.
-  12-of-17 failing on revert is what "the test works" looks like.
+  12-of-17 failing on revert is what "the test works" looks like. **Confirm the
+  mutation actually landed** — a replacement that silently fails to match leaves
+  everything passing, which looks exactly like a successful verification.
+- **`uvicorn` here runs without `--reload`.** Editing Python and re-testing
+  against a running server tests the OLD code. This wasted a verification round:
+  a stale process on `:8010` answered without the new middleware and the header
+  looked missing. Kill the PID on the port and restart after every change.
+- **Vite binds IPv6 only.** `curl http://127.0.0.1:5173` returns nothing;
+  `localhost` works. A `000` response code is this, not a dead server.
+- **Test the payload, not your own logic.** The Sentry scrubber passed 15 unit
+  tests while the real SDK still shipped every probe secret, because the values
+  also live in the source lines the SDK attaches. Capture a real event through
+  the real library and grep what would go on the wire.
 - **No `load_dotenv` exists anywhere in the Python source.** `.env` is read by
   `core/config.py:secret()` at call time, not loaded into the process
   environment. `secret(section, key)` derives the env name mechanically
