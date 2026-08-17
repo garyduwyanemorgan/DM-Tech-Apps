@@ -25,6 +25,57 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 - Frontend bundle code-splitting (single chunk is ~968 kB).
 - Reconcile organisation `site_limit` with the real billing plan before production billing.
 
+## [1.9.0] - 2026-08-17
+
+- feat: close the last fabricated-verdict path, add frontend tests, draft 032
+- fix(ui): stop the dashboards asserting verdicts they do not know
+- fix(ui): a failed read is no longer indistinguishable from empty data
+- feat(observability): make the correlation id something a user can quote
+- docs(handoff): close §6e, and record why fixing the traceback was not enough
+- fix(compliance): a partial reading is INCOMPLETE, and no longer a 500
+- docs(handoff): record the observability system and what not to "fix" about it
+- feat(observability): Layer 3 crash reporting, inert until someone opts in
+- feat(observability): the read side — where and why the pipeline broke
+- feat(observability): make silent failures testify
+- docs(handoff): the Clerk claim is no longer inferred — it is proven
+- docs: handoff — reads are scoped, and why writes deliberately are not
+- feat(security): reads run under the caller's token, and fail closed without one
+- docs: handoff — verified state, and the one thing that blocks a restart
+- fix(scope): an unknown scope is not an empty one; restore admin's direct sites
+- docs(security): record L3 as fixed in 75642e8
+- fix(security): stop reads creating sites, closing L3
+- chore(auth): record how the Clerk RS256 keys were merged into the stack's JWKS
+- fix(db): re-key the RLS identity helpers onto the Clerk subject
+- fix(db): super_admin is a tenant role; stop RLS treating it as a platform one
+- fix(security): close M3, M1, M2, L2 and L4 from the compliance review
+- feat(ui): the Obligation Registry and Module Catalogue screens
+- fix(db): stop site deletion reaching other tenants; add 028 and live chain tests
+- refactor(core): retire two of the duplicate verdict implementations
+- docs(scope): Phase 5 is a new primitive, not a reuse
+- feat(authz): entitlements.manage, bound to Executive Management only
+- feat(api): the Obligations view and module catalogue endpoints
+- docs(scope): resolve ambiguous edition dates; bound the staleness risk
+- feat(billing): base platform fee plus per-module, replacing site-count tiers
+- feat(db): load guideline duties as module_obligations templates
+- feat(db): recover 80 guideline editions; load 67 catalogue rows
+- feat(db,core): module_obligations templates and entitlement instantiation
+- feat(core): the obligation ageing engine — due, due soon, overdue
+- feat(db): load the DM corpus; add consumer_product scope; fix a silent output crash
+- feat(db): widen obligation vocabulary; prove the resolver against live data
+- feat(db,frontend): stand up a real Supabase stack; schema and seeder proven
+- feat(data): checklist-family extractions; Phase 4 needs a second primitive
+- docs(scope): revision 3 — quantitative family first, laboratory as counterparty
+- feat(data): DM guideline extractions and a constraint validator
+- fix(ingestion,deps): honour the strictness glyph; pin pydantic and multipart
+- feat(core): specification resolver, proved at parity with check_compliance
+- feat(db): migration 023 — obligations, entitlements, certificates, laboratories
+- feat(db): seeder for standards and specification sets
+- feat(db): migration 000 — bootstrap tables and the wrong-database guard
+- docs(scope): record verdict-conflict decision and audit findings
+- feat(db): migration 022 — standards registry and specification sets
+- docs(scope): revision 2 — modular commercial model and decisions taken
+- docs(scope): scoping document for the DM compliance pivot
+
 ## [1.8.0] - 2026-07-22
 
 - feat(landing): full site footer, modelled on the GDM Environmental one
@@ -187,7 +238,8 @@ version tracking going forward.
   `node_modules/`, and `dist/` can never be committed (Supabase, Clerk, Stripe, and Anthropic
   keys live in those files).
 
-[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/garyduwyanemorgan/DECCA-Lagoons-App/compare/v1.5.0...v1.6.0
