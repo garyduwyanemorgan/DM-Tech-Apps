@@ -38,19 +38,27 @@ class ComplianceResult:
     """Result of checking one parameter against its compliance limit."""
     parameter_key: str
     parameter_name: str
-    value: float
+    value: float | None     # None when the parameter was never measured
     unit: str
     limit_display: str
     compliant: bool
     margin_pct: float       # positive = headroom, negative = breach
-    risk_level: str         # LOW / MODERATE / HIGH
+    risk_level: str         # LOW / MODERATE / HIGH / UNKNOWN
+    # False when the lab never reported this parameter. Such a result carries
+    # no verdict at all: `compliant` is False only because a bool must hold
+    # something, and it must never be read as a breach. Defaulted so existing
+    # constructors keep working unchanged.
+    measured: bool = True
 
 
 @dataclass
 class AlertState:
     """Current alert status for a lagoon."""
     level: int              # 1-4
-    bloom_probability: float  # 0-100
+    # None when Chl-a was never measured. Deliberately not 0.0: a zero states
+    # there is no bloom risk, which is a claim about the water rather than an
+    # admission that nobody looked.
+    bloom_probability: Optional[float]  # 0-100, or None if unmeasured
     dominant_species: str
     top_drivers: list = field(default_factory=list)
     escalation_reason: Optional[str] = None

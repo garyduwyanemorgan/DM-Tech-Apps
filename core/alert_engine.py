@@ -24,39 +24,53 @@ def evaluate_alert_level(reading: WaterReading) -> AlertState:
     phyco = reading.phycocyanin
     temp = reading.water_temp
 
+    # A reading may be partial: insert_reading takes a partial `fields` dict, so
+    # any of these can be None. Comparing None to a number raised TypeError and
+    # took GET /status/{site} down with a 500. _check_compliance_breach below
+    # already skipped None; these triggers never did.
+    #
+    # A trigger whose input is missing is NOT evaluated — it cannot fire, and it
+    # must not be treated as passing either. That distinction is invisible in
+    # `level` alone (there is no UNKNOWN alert level), so every unmeasured
+    # driver is named in `reasons`, which surfaces as top_drivers/escalation
+    # reason. Otherwise an unmonitored lagoon and a healthy one both read GREEN.
+    unmeasured = [name for name, value in (
+        ("Chl-a", chla), ("DO", do), ("Phycocyanin", phyco), ("Water temp", temp),
+    ) if value is None]
+
     # ── Level 4 triggers (any one is sufficient) ──
-    if chla > 75:
+    if chla is not None and chla > 75:
         level = AlertLevel.CRITICAL
         reasons.append(f"Chl-a {chla} µg/L > 75")
-    if do < 2:
+    if do is not None and do < 2:
         level = AlertLevel.CRITICAL
         reasons.append(f"DO {do} mg/L < 2 (hypoxia)")
     # Toxin detection would be an external input
 
     # ── Level 3 triggers (if not already 4) ──
     if level < AlertLevel.WARNING:
-        if chla > 30:
+        if chla is not None and chla > 30:
             level = AlertLevel.WARNING
             reasons.append(f"Chl-a {chla} µg/L > 30")
-        if do < 3:
+        if do is not None and do < 3:
             level = AlertLevel.WARNING
             reasons.append(f"DO {do} mg/L < 3")
-        if phyco > 200:
+        if phyco is not None and phyco > 200:
             level = AlertLevel.WARNING
             reasons.append(f"Phycocyanin {phyco} µg/L > 200")
 
     # ── Level 2 triggers ──
     if level < AlertLevel.WATCH:
-        if 10 <= chla <= 30:
+        if chla is not None and 10 <= chla <= 30:
             level = AlertLevel.WATCH
             reasons.append(f"Chl-a {chla} µg/L in 10–30 range")
-        if do < 4:
+        if do is not None and do < 4:
             level = AlertLevel.WATCH
             reasons.append(f"DO {do} mg/L < 4")
-        if phyco > 50:
+        if phyco is not None and phyco > 50:
             level = AlertLevel.WATCH
             reasons.append(f"Phycocyanin {phyco} µg/L > 50")
-        if temp > 28:
+        if temp is not None and temp > 28:
             level = AlertLevel.WATCH
             reasons.append(f"Water temp {temp}°C > 28")
 
@@ -66,16 +80,31 @@ def evaluate_alert_level(reading: WaterReading) -> AlertState:
         level = AlertLevel.WARNING
         reasons.append(f"Compliance breach: {compliance_breach}")
 
+    # Name what could not be assessed, so a partially measured reading is not
+    # mistaken for a quiet one. Appended after the real triggers so a genuine
+    # escalation still leads the driver list.
+    if unmeasured:
+        reasons.append(
+            "Not evaluated — " + ", ".join(unmeasured) + " not measured"
+        )
+
     # ── Species classification ──
-    if reading.chla > 0.1:
-        ratio = reading.phycocyanin / reading.chla
+    if chla is None or phyco is None:
+        species = "Unknown — Chl-a/phycocyanin not measured"
+    elif chla > 0.1:
+        ratio = phyco / chla
         species = "Cyanobacteria" if ratio > 0.5 else "Other (dino/diatom/green)"
     else:
         species = "No bloom"
 
     # ── Bloom probability (sigmoid) ──
+    # None, not 0.0, when Chl-a is missing: a zero here reads as "no bloom
+    # risk", which is a claim about the water rather than about the data.
     import math
-    bloom_prob = round(100 / (1 + math.exp(-0.15 * (chla - 30))), 1)
+    bloom_prob = (
+        None if chla is None
+        else round(100 / (1 + math.exp(-0.15 * (chla - 30))), 1)
+    )
 
     return AlertState(
         level=level,

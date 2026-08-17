@@ -599,6 +599,12 @@ def _assess(reading: WaterReading) -> dict:
             "compliance_pct":  summary["compliance_pct"],
             "failing_params":  summary["failing_params"],
             "min_margin_pct":  summary["min_margin"],
+            # Surfaced so a caller can tell "everything passed" from "most of it
+            # was never measured". compliance_pct is over measured parameters
+            # only, so on its own it flatters a partial reading.
+            "missing_params":  summary["missing_params"],
+            "missing_count":   summary["missing_count"],
+            "measured_count":  summary["measured_count"],
             "per_parameter": [
                 {
                     "parameter": r.parameter_name,
@@ -608,6 +614,7 @@ def _assess(reading: WaterReading) -> dict:
                     "compliant": r.compliant,
                     "margin_pct":r.margin_pct,
                     "risk":      r.risk_level,
+                    "measured":  r.measured,
                 }
                 for r in results
             ],
