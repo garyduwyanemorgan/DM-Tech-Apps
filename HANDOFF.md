@@ -44,38 +44,53 @@ altered semantics.**
 
 ---
 
-## 1. The one thing blocking someone else
+## 1. ~~The one thing blocking someone else~~ — CLOSED 2026-08-17
 
-Unchanged from the last handoff. `CLERK_DEV_SECRET_KEY` is **still not set** —
-verified again this session, and `.env`'s mtime was still 2026-08-15 20:21, so
-the edit never reached the file. `POST /users/invite` returns 503 at
-`api_server.py:999` until it is. Nothing else depends on it.
+`POST /users/invite` no longer 503s. It returns 401 without a token, which is
+the correct answer and proves `_require_clerk_secret_key()` (`api_server.py:1026`)
+is satisfied. Verified against the running server, not from configuration alone.
 
-Add to `C:\AI\DM-Tech-Apps\.env` (gitignored at `.gitignore:6`):
+**The key is named `CLERK_SECRET_KEY`, not `CLERK_DEV_SECRET_KEY`**, and that is
+fine — do not "correct" it. `_clerk_secret_key()` (`:135-144`) prefers
+`dev_secret_key` only when a dev publishable key is also present, and otherwise
+falls back to `secret_key`. The value is `sk_test_…`, so
+`_clerk_key_instance()` reports `test` for both keys and the pairing guard at
+`:1002-1012` passes. A `sk_live_` under either name would fail that guard.
 
-```
-CLERK_DEV_SECRET_KEY=sk_test_…
-```
+### Two things worth not repeating
 
-The `sk_test_` key from the `touching-baboon-1305` Clerk dashboard
-(Configure → API keys). **The name matters.** `api_server.py:109-118` prefers a
-dev secret key only when a dev *publishable* key is also present, which it is;
-and the pairing guard at `api_server.py:1002-1012` refuses the invite outright
-if the two keys name different Clerk instances. A `sk_live_…` paired with the
-configured `pk_test_…` does not half-work — it 503s with a mismatch message.
-`.env.example:22` shows `CLERK_SECRET_KEY=sk_live_...`; that is the production
-pairing, not this one.
+**The publishable key was corrupted while adding the secret one.** A paste landed
+inside the existing `CLERK_DEV_PUBLISHABLE_KEY` value rather than on a new line,
+splicing it to 68 characters beginning `pk_tespk_tes…`. The symptom is quiet and
+total: `_clerk_frontend_api_domain()` returned nothing, so `_clerk_jwks_url()`
+fell back from the instance URL to the generic `https://api.clerk.com/v1/jwks`
+and **every Clerk token would have failed verification**. Nothing logs this;
+sign-in simply stops working.
 
-Verify without printing the value:
+**There is an intact second copy** at `frontend/.env.local` as
+`VITE_CLERK_DEV_PUBLISHABLE_KEY` — same key, 62 chars, decodes to
+`touching-baboon-1305.clerk.accounts.dev`. That is where the repair came from.
+Check the two agree if Clerk auth ever misbehaves; a mismatch between them means
+the backend and frontend are talking to different instances.
+
+Verify the whole chain without printing values:
 
 ```bash
 python -c "
-from core.config import secret
-for k in ('dev_secret_key','secret_key','dev_publishable_key'):
-    v = secret('clerk', k)
-    print(f'  clerk.{k:20} -> ' + ('SET' if v else 'NOT SET'))
+import sys; sys.path.insert(0,r'C:\AI\DM-Tech-Apps')
+import api_server as a
+pk, sk = a._clerk_publishable_key(), a._clerk_secret_key()
+print('domain :', a._clerk_frontend_api_domain() or 'BROKEN')
+print('jwks   :', a._clerk_jwks_url())
+print('paired :', a._clerk_key_instance(pk) == a._clerk_key_instance(sk) != '')
 "
 ```
+
+`domain` must be `touching-baboon-1305.clerk.accounts.dev`. If it is empty, the
+publishable key is malformed — that is the failure above.
+
+**Remember `_dotenv` is `lru_cache`d**, so the running server keeps a stale copy
+of `.env`. A key change needs a restart, not just a save.
 
 ---
 
@@ -432,18 +447,21 @@ it is wrong.
 
 Quick list. The first three need access this session did not have.
 
-1. **Finish the v1.9.0 tag and push (§8)** — needs the GPG passphrase. Do this
-   first; the repo is sitting on an unreleased release commit.
-2. **`CLERK_DEV_SECRET_KEY` (§1)** — still unset, still 503s `/users/invite`.
-   Needs the Clerk dashboard. Carried across four handoffs now.
-3. **Apply migrations 031 and 032 in production** — both are applied to the
-   LOCAL dev stack only (031), or not applied anywhere (032). Hand-applied by
-   convention.
+1. ~~Finish the v1.9.0 tag~~ — **DONE**, signed and on origin (§8).
+2. ~~`CLERK_DEV_SECRET_KEY`~~ — **DONE** (§1). `/users/invite` returns 401, not
+   503. Carried across five handoffs; closed 2026-08-17.
+3. **Apply migrations 031 and 032 in production** — both are now applied to the
+   LOCAL dev stack, neither anywhere else. Hand-applied by convention. Note 032
+   gained an explicit `REVOKE ... FROM anon` after the first local apply showed
+   Supabase's default privileges had granted it; apply the CURRENT file.
 4. **Rename `render.yaml`'s service (§9)** — cosmetic now that there is
    confirmed to be no Render service, but it still says `lagoon-app`.
 5. **Wire 032 into `_create_super_admin_profile()`** — the function exists
    unused, deliberately. Only worth wiring when writes actually move onto RLS.
-6. **The request id is surfaced only on `SystemHealth` and the screens fixed in
+6. ~~`Sidebar.tsx` has no `res.ok` check~~ — **DONE**. A failed site load now
+   says so instead of reporting "No sites configured yet". That closes all four
+   findings from the frontend audit.
+7. **The request id is surfaced only on `SystemHealth` and the screens fixed in
    §4.** Most components still hand-roll their own fetch and show no id.
    `frontend/src/lib/requestId.ts` is the seam for that; there is still no
    central fetch wrapper, and building one is a separate, riskier job.
