@@ -3316,6 +3316,57 @@ def deactivate_entitlement_endpoint(entitlement_id: str, active_until: str | Non
     }
 
 
+# ── Workflow observability (031_workflow_events.sql) — read side ──────────────
+# "Why is Site 7's March submission not compliant / why did my report fail?" —
+# not "an error occurred". These three endpoints turn workflow_events rows into
+# that answer. All are permission-gated on audit.read (admin/auditor/super_admin
+# — see core/authz.py), the existing permission for viewing operational/audit
+# data; no new permission is introduced. Tenancy is NEVER taken from a request
+# parameter — every query below is scoped to profile["organization_id"] and
+# passes profile["token"] through to the RLS-scoped client, per the CRIT-1
+# fix at get_current_user_profile (line ~405).
+
+@app.get("/system/health", tags=["System"])
+def system_health(since_hours: int = 24, profile: dict = Depends(get_current_user_profile)):
+    """Dashboard-header summary of the compliance pipeline's recent runs:
+    totals, counts by (step, status), and counts by reason_code, plus a
+    `reason_codes` map of code -> human description so the UI never
+    hardcodes copy for a vocabulary that lives in core/reasons.py."""
+    _ensure_permission(profile, "audit.read", detail="Your role cannot view operational health data.")
+    org_id = profile.get("organization_id")
+    from db.queries import workflow_health_summary
+    from core.reasons import DESCRIPTIONS
+    summary = workflow_health_summary(org_id, since_hours=since_hours, token=profile.get("token"))
+    return {**summary, "since_hours": since_hours, "reason_codes": dict(DESCRIPTIONS)}
+
+
+@app.get("/system/failures", tags=["System"])
+def system_failures(since_hours: int = 24, limit: int = 50,
+                    profile: dict = Depends(get_current_user_profile)):
+    """Recent failed/skipped workflow steps for the caller's organisation,
+    newest first — the "what broke" feed behind a failures list."""
+    _ensure_permission(profile, "audit.read", detail="Your role cannot view operational health data.")
+    org_id = profile.get("organization_id")
+    from db.queries import list_recent_failures
+    failures = list_recent_failures(org_id, limit=limit, since_hours=since_hours,
+                                    token=profile.get("token"))
+    return {"failures": failures, "since_hours": since_hours, "limit": limit}
+
+
+@app.get("/system/runs/{run_id}", tags=["System"])
+def system_run(run_id: str, profile: dict = Depends(get_current_user_profile)):
+    """Every event for one pipeline run, in chronological order — the
+    "show me exactly where it broke" drill-down. A run_id belonging to
+    another organisation (or an org-less background run) returns empty,
+    same as any unknown id — this endpoint never reveals whether a run_id
+    exists outside the caller's tenant."""
+    _ensure_permission(profile, "audit.read", detail="Your role cannot view operational health data.")
+    org_id = profile.get("organization_id")
+    from db.queries import get_run
+    events = get_run(org_id, run_id, token=profile.get("token"))
+    return {"run_id": run_id, "events": events}
+
+
 # ── Serve React Frontend directly from the FastAPI backend ──
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse

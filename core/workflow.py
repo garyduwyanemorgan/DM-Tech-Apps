@@ -21,6 +21,7 @@ because this module records outcomes, it does not swallow them.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 import uuid
@@ -72,6 +73,20 @@ def _persist(event: dict) -> None:
     client (unscoped) so writes succeed regardless of the actor's RLS —
     imported lazily to avoid a hard dependency at module import time.
     """
+    # Do not write real rows from a test run. The ingestion tests exercise the
+    # instrumented gates against the live dev stack, and before this guard a
+    # single `pytest` run wrote 63 org-less rows straight into workflow_events.
+    # That corrupts the operational record with synthetic traffic — the table is
+    # meant to be evidence, and evidence you cannot trust is worse than none.
+    # The stderr line below still emits, so tests can assert on emission.
+    # Tests that inject a fake client and assert on what it received opt back in
+    # with WORKFLOW_PERSIST_IN_TESTS=1, so persistence stays directly testable
+    # without any test being able to reach the real table by accident.
+    if os.environ.get("PYTEST_CURRENT_TEST") and not os.environ.get(
+        "WORKFLOW_PERSIST_IN_TESTS"
+    ):
+        return
+
     from db.client import get_client
     client = get_client()
     if not client:

@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import {
   LogOut, Settings, Waves, X, ChevronDown, PanelLeftClose, PanelLeftOpen,
-  Home, FileUp, Activity, Wrench, FileText, FlaskConical, BookOpen, ClipboardCheck,
+  Home, FileUp, Activity, Wrench, FileText, FlaskConical, BookOpen, ClipboardCheck, HeartPulse,
   type LucideIcon,
 } from 'lucide-react'
 import { RoleBadge } from './RoleBadge'
@@ -105,6 +105,11 @@ const NAV: NavEntry[] = [
       { id: 'kpi',        label: 'Management KPIs', permission: 'analytics.portfolio.read' },
     ],
   },
+  // Pipeline observability — "where and why did it break", per run. Gated on
+  // audit.read (admin/auditor/super_admin): it is a diagnostics screen, not
+  // part of an operator's daily workflow, and it exposes internal step/reason
+  // detail that only the roles who already see audit data should see.
+  { icon: HeartPulse, label: 'System Health', id: 'systemhealth', permission: 'audit.read' },
   {
     // Water-body / lagoon asset class only — see the note above the array.
     icon: Waves, label: 'Water Bodies & Lagoons', feature: 'lagoons',

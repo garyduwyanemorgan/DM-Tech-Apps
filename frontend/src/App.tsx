@@ -31,6 +31,7 @@ import { Assets } from './components/Assets'
 import { ManagementKPIs } from './components/ManagementKPIs'
 import { Obligations } from './components/Obligations'
 import { ModuleCatalogue } from './components/ModuleCatalogue'
+import { SystemHealth } from './components/SystemHealth'
 import { Home } from './components/Home'
 import { Settings } from './components/Settings'
 
@@ -42,6 +43,7 @@ const TAB_TITLES: Record<string, string> = {
   compliance: 'Compliance Report',
   obligations: 'Obligation Registry',
   modules: 'Module Catalogue',
+  systemhealth: 'System Health',
   actions: 'Corrective Actions',
   inventory: 'Inventory & Chemicals',
   assets: 'Assets & Maintenance',
@@ -153,6 +155,7 @@ function AppContent() {
           {activeTab === 'compliance'        && <ComplianceReport activeSite={activeSite} />}
           {activeTab === 'obligations' && <Obligations activeSite={activeSite} />}
           {activeTab === 'modules'     && <ModuleCatalogue />}
+          {activeTab === 'systemhealth' && <SystemHealth />}
           {activeTab === 'actions'     && <CorrectiveActions />}
           {activeTab === 'inventory'   && <Inventory />}
           {activeTab === 'assets'      && <Assets />}

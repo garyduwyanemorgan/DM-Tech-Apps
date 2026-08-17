@@ -1781,3 +1781,193 @@ def suspend_obligations_for_entitlement(organization_id: str, entitlement_id: st
            .eq("organization_id", organization_id)
            .eq("entitlement_id", entitlement_id).execute())
     return len(res.data or [])
+
+
+# ── Workflow observability (031_workflow_events.sql) — read side ──────────────
+# workflow_events answers "why is Site 7's March obligation still non-compliant"
+# — which pipeline step (core.workflow: INGEST/PARSE/VALIDATE/PERSIST/ASSESS/
+# OBLIGATION/REPORT) it stalled at, and the reason code, per entity/run. All
+# reads here MUST filter organization_id = <caller's org> explicitly: the
+# column is nullable (background jobs write NULL for org-less runs), and a
+# bare `.eq("organization_id", organization_id)` already excludes NULL rows
+# under Postgres's three-valued logic (NULL = x is never true) — so no extra
+# `is not null` guard is needed, but it is exactly why one must never be
+# skipped or replaced with an "IN" filter that could accidentally admit NULL.
+
+_WORKFLOW_EVENT_COLUMNS = (
+    "id, run_id, request_id, organization_id, step, status, reason_code, "
+    "entity_type, entity_id, duration_ms, created_at"
+)
+# context is deliberately excluded from the default column list: it is
+# non-sensitive by convention (core/workflow.py's docstring), but "by
+# convention" is not a guarantee for every call site that ever passes
+# **context, so it is never returned wholesale to a tenant-facing read.
+
+
+def list_workflow_events(organization_id: str, *, limit: int = 100, since_hours: int = 24,
+                         status: str | None = None, step: str | None = None,
+                         entity_id: str | None = None, token: str | None = None) -> list[dict]:
+    """Newest-first workflow events for the caller's organisation.
+
+    `since_hours` windows the query (default last 24h) so a dashboard tail
+    never pulls the whole append-only table. [] if unconfigured, unscoped, or
+    on any error/RLS denial — never another tenant's rows.
+    """
+    client = get_client(token)
+    if not client or not organization_id:
+        return []
+    try:
+        from datetime import datetime, timedelta, timezone
+        since = (datetime.now(timezone.utc) - timedelta(hours=since_hours)).isoformat()
+        q = (client.table("workflow_events").select(_WORKFLOW_EVENT_COLUMNS)
+             .eq("organization_id", organization_id)
+             .gte("created_at", since))
+        if status:
+            q = q.eq("status", status)
+        if step:
+            q = q.eq("step", step)
+        if entity_id:
+            q = q.eq("entity_id", entity_id)
+        # `id` tiebreaks `created_at` — see get_run's note on same-timestamp rows.
+        res = q.order("created_at", desc=True).order("id", desc=True).limit(limit).execute()
+        rows = res.data or []
+        # No suspected-denial signal here, unlike the tenant data reads. An empty
+        # result is the DESIGNED, expected state of this table: a tenant with a
+        # quiet pipeline has no events, and the health screen renders that as a
+        # positive "no failures" outcome. Emitting a denial would write a false
+        # signal into the audit log every time someone opens the dashboard —
+        # this read is the observability surface, so polluting it here corrupts
+        # the very evidence the feature exists to provide.
+        return rows
+    except Exception as exc:
+        _emit_read_error("db.read.workflow_events", exc, organization_id=organization_id,
+                         table="workflow_events")
+        return []
+
+
+def workflow_health_summary(organization_id: str, *, since_hours: int = 24,
+                            token: str | None = None) -> dict:
+    """Aggregate counts for a dashboard header: totals, counts grouped by
+    (step, status), and counts grouped by reason_code, over the window.
+
+    Aggregation is done in Python, not SQL, deliberately: this project's
+    Supabase access goes through PostgREST, which has no GROUP BY — so the
+    honest options are a raw window of rows summed here, or a bespoke RPC.
+    A bespoke RPC is out of scope for a read-only observability layer, and
+    `since_hours` already bounds how many rows this can ever touch.
+    """
+    empty = {"total": 0, "by_step_status": [], "by_reason_code": []}
+    client = get_client(token)
+    if not client or not organization_id:
+        return empty
+    try:
+        from datetime import datetime, timedelta, timezone
+        since = (datetime.now(timezone.utc) - timedelta(hours=since_hours)).isoformat()
+        res = (client.table("workflow_events")
+               .select("step, status, reason_code")
+               .eq("organization_id", organization_id)
+               .gte("created_at", since)
+               .execute())
+        rows = res.data or []
+        # No suspected-denial signal here, unlike the tenant data reads. An empty
+        # result is the DESIGNED, expected state of this table: a tenant with a
+        # quiet pipeline has no events, and the health screen renders that as a
+        # positive "no failures" outcome. Emitting a denial would write a false
+        # signal into the audit log every time someone opens the dashboard —
+        # this read is the observability surface, so polluting it here corrupts
+        # the very evidence the feature exists to provide.
+        step_status_counts: dict[tuple[str, str], int] = {}
+        reason_counts: dict[str, int] = {}
+        for r in rows:
+            key = (r.get("step") or "", r.get("status") or "")
+            step_status_counts[key] = step_status_counts.get(key, 0) + 1
+            rc = r.get("reason_code")
+            if rc:
+                reason_counts[rc] = reason_counts.get(rc, 0) + 1
+        return {
+            "total": len(rows),
+            "by_step_status": [
+                {"step": step, "status": status, "count": count}
+                for (step, status), count in sorted(step_status_counts.items())
+            ],
+            "by_reason_code": [
+                {"reason_code": code, "count": count}
+                for code, count in sorted(reason_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+            ],
+        }
+    except Exception as exc:
+        _emit_read_error("db.read.workflow_events", exc, organization_id=organization_id,
+                         table="workflow_events")
+        return empty
+
+
+def list_recent_failures(organization_id: str, *, limit: int = 50, since_hours: int = 24,
+                         token: str | None = None) -> list[dict]:
+    """Failed/skipped rows only, newest first — the "what broke" feed.
+
+    `skipped` is included alongside `failed`: a step a pipeline deliberately
+    skipped (e.g. a gate that never ran) is still an answer a customer needs,
+    not a success. `ok` rows are never returned from here.
+    """
+    client = get_client(token)
+    if not client or not organization_id:
+        return []
+    try:
+        from datetime import datetime, timedelta, timezone
+        since = (datetime.now(timezone.utc) - timedelta(hours=since_hours)).isoformat()
+        res = (client.table("workflow_events").select(_WORKFLOW_EVENT_COLUMNS)
+               .eq("organization_id", organization_id)
+               .gte("created_at", since)
+               .in_("status", ["failed", "skipped"])
+               .order("created_at", desc=True)
+               .order("id", desc=True)
+               .limit(limit)
+               .execute())
+        rows = res.data or []
+        # No suspected-denial signal here, unlike the tenant data reads. An empty
+        # result is the DESIGNED, expected state of this table: a tenant with a
+        # quiet pipeline has no events, and the health screen renders that as a
+        # positive "no failures" outcome. Emitting a denial would write a false
+        # signal into the audit log every time someone opens the dashboard —
+        # this read is the observability surface, so polluting it here corrupts
+        # the very evidence the feature exists to provide.
+        return rows
+    except Exception as exc:
+        _emit_read_error("db.read.workflow_events", exc, organization_id=organization_id,
+                         table="workflow_events")
+        return []
+
+
+def get_run(organization_id: str, run_id: str, token: str | None = None) -> list[dict]:
+    """Every event for one run_id, in chronological order — the drill-down
+    behind "show me exactly where it broke". Scoped to the caller's
+    organisation so a run_id from another tenant (or an org-less background
+    run, organization_id NULL) can never be read through this path."""
+    client = get_client(token)
+    if not client or not organization_id or not run_id:
+        return []
+    try:
+        res = (client.table("workflow_events").select(_WORKFLOW_EVENT_COLUMNS)
+               .eq("organization_id", organization_id)
+               .eq("run_id", run_id)
+               # `id` (the bigserial PK) is the tiebreaker, not just created_at:
+               # events emitted from the same request can share a timestamp down
+               # to the microsecond (a fast ingest->parse->validate sequence, or
+               # a batch insert), and created_at alone has been observed to sort
+               # such rows out of true chronological order.
+               .order("created_at", desc=False)
+               .order("id", desc=False)
+               .execute())
+        rows = res.data or []
+        # No suspected-denial signal here, unlike the tenant data reads. An empty
+        # result is the DESIGNED, expected state of this table: a tenant with a
+        # quiet pipeline has no events, and the health screen renders that as a
+        # positive "no failures" outcome. Emitting a denial would write a false
+        # signal into the audit log every time someone opens the dashboard —
+        # this read is the observability surface, so polluting it here corrupts
+        # the very evidence the feature exists to provide.
+        return rows
+    except Exception as exc:
+        _emit_read_error("db.read.workflow_events", exc, organization_id=organization_id,
+                         table="workflow_events")
+        return []

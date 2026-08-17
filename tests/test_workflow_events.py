@@ -63,6 +63,20 @@ class _BoomClient:
 
 # ── step constants ─────────────────────────────────────────────────────────────
 
+@pytest.fixture(autouse=True)
+def _allow_persistence(monkeypatch):
+    """Let this module's tests exercise `_persist`.
+
+    `core.workflow._persist` refuses to write while running under pytest,
+    because the ingestion tests drive the instrumented gates against the live
+    dev stack and were writing real org-less rows into `workflow_events` — 63
+    of them per suite run. Every test in this file injects a fake client and
+    asserts on what it received, so opting back in here is safe: the real table
+    is never reachable from these tests.
+    """
+    monkeypatch.setenv("WORKFLOW_PERSIST_IN_TESTS", "1")
+
+
 def test_step_constants_are_the_canonical_pipeline_names():
     assert workflow.INGEST == "ingest"
     assert workflow.PARSE == "parse"
