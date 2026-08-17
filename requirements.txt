@@ -30,6 +30,10 @@ pillow==12.2.0            # image downscale before vision call (extract.py)
 fastapi==0.136.3
 uvicorn[standard]==0.34.0
 PyJWT[crypto]==2.10.1      # Clerk JWT verification via JWKS
+# Crash reporting. Installed but INERT unless SENTRY_DSN is set — no import
+# happens, nothing is transmitted. Present so enabling Layer 3 is a config
+# change rather than a deploy. See core/errors.py.
+sentry-sdk==2.44.0
 # Both of the following arrive transitively through fastapi, unpinned. They are
 # declared here because this codebase imports them directly, and a transitive
 # resolution is not a tested version.

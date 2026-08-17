@@ -35,6 +35,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 from core.observability import RequestIdMiddleware
+from core.errors import init_error_tracking
+
+# Crash reporting. A complete no-op unless SENTRY_DSN is set, so this sends
+# nothing outward by default — see core/errors.py for why that default is
+# deliberate. Called before the app is built so that import-time and
+# startup failures are covered too, not just request handling.
+init_error_tracking()
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
