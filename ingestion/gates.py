@@ -16,6 +16,7 @@ import logging
 import re
 from typing import Optional
 
+from core.workflow import VALIDATE, new_run_id, step_timer
 from ingestion.schema import (
     ComplianceStatus, LabResult, LabSample, ResultStatus, ReviewerStatus,
 )
@@ -231,30 +232,45 @@ def bind_provenance(sample: LabSample) -> None:
         raise GateFailure("no raw_extraction — gate 7 audit trail would be empty")
 
 
-def apply(sample: LabSample) -> LabSample:
+def apply(
+    sample: LabSample,
+    *,
+    run_id: str | None = None,
+    organization_id: str | None = None,
+) -> LabSample:
     """Run every gate over a freshly parsed sample and return it annotated.
 
     Always leaves `reviewer_status` at PENDING: in this system approval is a human
     act, so there is no path here that commits data on its own (gate 6).
+
+    `run_id` correlates this VALIDATE step with the ingest/parse steps that
+    preceded it (see ingestion/router.py). When called standalone (e.g. from a
+    test) with no run_id, a fresh one is minted so the step is still recorded
+    under its own run — instrumentation only, no change to the returned
+    LabSample or to which gates run.
     """
-    bind_provenance(sample)                                     # gate 5
+    with step_timer(
+        VALIDATE, run_id=run_id or new_run_id(), organization_id=organization_id,
+        entity_type="lab_sample", entity_id=sample.report_no,
+    ):
+        bind_provenance(sample)                                     # gate 5
 
-    sample.anomalies = check_consistency(sample)                # gate 3
-    for result in sample.results:
-        result.status, result.status_reason = evaluate_printed_spec(result)
-    sample.overall_status = roll_up_status(sample.results)
+        sample.anomalies = check_consistency(sample)                # gate 3
+        for result in sample.results:
+            result.status, result.status_reason = evaluate_printed_spec(result)
+        sample.overall_status = roll_up_status(sample.results)
 
-    if sample.overall_status is not ComplianceStatus.COMPLIANT:
-        logger.info("report %s rolls up to %s", sample.report_no,
-                    sample.overall_status.value)
-    if sample.anomalies:
-        logger.warning("report %s flagged %d anomaly(ies): %s",
-                       sample.report_no, len(sample.anomalies), "; ".join(sample.anomalies))
-    if sample.extraction_confidence < CONFIDENCE_THRESHOLD:
-        logger.info("report %s extracted at confidence %.2f — queued for review",
-                    sample.report_no, sample.extraction_confidence)
+        if sample.overall_status is not ComplianceStatus.COMPLIANT:
+            logger.info("report %s rolls up to %s", sample.report_no,
+                        sample.overall_status.value)
+        if sample.anomalies:
+            logger.warning("report %s flagged %d anomaly(ies): %s",
+                           sample.report_no, len(sample.anomalies), "; ".join(sample.anomalies))
+        if sample.extraction_confidence < CONFIDENCE_THRESHOLD:
+            logger.info("report %s extracted at confidence %.2f — queued for review",
+                        sample.report_no, sample.extraction_confidence)
 
-    sample.reviewer_status = ReviewerStatus.PENDING             # gate 6
+        sample.reviewer_status = ReviewerStatus.PENDING             # gate 6
     return sample
 
 

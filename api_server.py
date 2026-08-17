@@ -33,6 +33,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, HTTPException, Security, Header, Depends, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+
+from core.observability import RequestIdMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
@@ -59,6 +61,16 @@ app = FastAPI(
     description="Water quality compliance + alert engine for Dubai lagoon field teams.",
     version=get_version(),
 )
+
+# Starlette wraps middleware in reverse order of registration: the FIRST
+# middleware added ends up OUTERMOST (runs first on the way in, last on the
+# way out). RequestIdMiddleware is registered before CORSMiddleware so it is
+# outermost — the request id is set in the contextvar before CORS (and every
+# route handler) runs, and X-Request-Id is stamped onto the response after
+# CORS has already added its own headers, so it survives untouched. Being
+# outermost also means it wraps CORS's short-circuited OPTIONS preflight
+# responses, not just normal requests.
+app.add_middleware(RequestIdMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -3314,6 +3326,13 @@ app = FastAPI(
     title="Compliance Intelligence Platform",
     description="Portal serving the React frontend and backing FastAPI endpoints.",
 )
+
+# Same ordering rationale as the inner api_app above: register
+# RequestIdMiddleware first so it is outermost, wrapping the mounted /api
+# sub-app, the static frontend, and CORS alike. Requests that hit this outer
+# app directly (e.g. the SPA's own routes, not just /api/*) get a request id
+# too, not only the mounted api_app's routes.
+app.add_middleware(RequestIdMiddleware)
 
 # Enable CORS on the outer app to allow cross-origin API calls if needed
 app.add_middleware(

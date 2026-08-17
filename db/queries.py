@@ -28,6 +28,66 @@ from datetime import datetime
 from typing import List
 
 from .client import get_client
+from core.reasons import DB_ERROR, RLS_DENIED
+
+
+# ── Audit helpers for swallowed read failures ─────────────────────────────────
+# The read functions below all keep their UX fallback ([], None, False, 0) on
+# failure — callers depend on that contract. What changes is that the swallow
+# now testifies: an audit event fires before the fallback returns, so "no
+# data" and "the query blew up" stop being indistinguishable downstream.
+#
+# Two distinct situations, not one:
+#   * an exception was raised                       -> DB_ERROR (a fact)
+#   * a token-scoped read came back with zero rows   -> RLS_DENIED, *suspected*
+# PostgREST does not raise on a Row-Level Security denial — a denied row and
+# an absent row both read back as no rows — so the second case can never be
+# asserted as fact, only flagged as a low-noise possibility for whoever is
+# triaging "why does this tenant look empty".
+#
+# Never log tokens, secrets, or row contents. Best-effort only: core.audit.emit
+# already never raises, but these wrappers add a second safety net so an
+# audit-layer surprise can never turn a swallowed read into an unswallowed one.
+
+def _emit_read_error(action: str, exc: Exception, *, organization_id: str | None,
+                     table: str) -> None:
+    """A read function's `except Exception` fired. Record why, then let the
+    caller's existing fallback (e.g. `return []`) proceed unchanged."""
+    try:
+        from core.audit import emit
+        emit(
+            action,
+            actor_user_id=None,
+            actor_role=None,
+            organization_id=organization_id,
+            outcome="error",
+            target_type=table,
+            reason_code=DB_ERROR,
+            error=str(exc)[:200],
+        )
+    except Exception:
+        pass
+
+
+def _emit_suspected_rls_denial(action: str, *, organization_id: str | None,
+                               table: str) -> None:
+    """A token-scoped read succeeded but returned zero rows. This MIGHT be an
+    RLS denial, or it might be a genuinely empty tenant — those look identical
+    from here, so this is logged as suspected, not confirmed."""
+    try:
+        from core.audit import emit
+        emit(
+            action,
+            actor_user_id=None,
+            actor_role=None,
+            organization_id=organization_id,
+            outcome="denied",
+            target_type=table,
+            reason_code=RLS_DENIED,
+            suspected=True,
+        )
+    except Exception:
+        pass
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -120,8 +180,13 @@ def get_readings_for_site(site_name: str, year: int | None = None, organization_
         if year:
             q = q.eq("year", year)
         resp = q.order("year").order("month").execute()
-        return [_row_to_reading(r) for r in (resp.data or [])]
-    except Exception:
+        rows = resp.data or []
+        if token and not rows:
+            _emit_suspected_rls_denial("db.read.readings", organization_id=organization_id,
+                                       table="readings")
+        return [_row_to_reading(r) for r in rows]
+    except Exception as exc:
+        _emit_read_error("db.read.readings", exc, organization_id=organization_id, table="readings")
         return []
 
 
@@ -139,8 +204,11 @@ def get_site_names(organization_id: str | None = None, token: str | None = None)
             res = client.table("sites").select("name").eq("organization_id", organization_id).execute()
             if res.data:
                 return [row["name"] for row in res.data]
-        except Exception:
-            pass
+            if token:
+                _emit_suspected_rls_denial("db.read.sites", organization_id=organization_id,
+                                           table="sites")
+        except Exception as exc:
+            _emit_read_error("db.read.sites", exc, organization_id=organization_id, table="sites")
 
     # ── Fallbacks ──
     # 1. Local secrets.toml [site_passwords] — one entry per client site
@@ -168,8 +236,17 @@ def reading_exists(site_name: str, year: int, month: int, organization_id: str |
         else:
             q = client.table("readings").select("id").eq("site_name", site_name).eq("year", year).eq("month", month)
         resp = q.execute()
+        # Deliberately NOT emitting a suspected RLS denial on an empty result
+        # here, unlike the other token-scoped reads. This is a predicate, not a
+        # data fetch: it is called before every insert to ask "is this month
+        # already recorded?", and "no" is the ordinary answer on the happy path.
+        # Emitting there would fire on every new monthly upload and bury the
+        # genuine denials from the other seven reads in false positives. A real
+        # denial still surfaces — the caller goes on to write, and the write
+        # path reports its own failure.
         return bool(resp.data)
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.readings", exc, organization_id=organization_id, table="readings")
         return False
 
 
@@ -316,8 +393,14 @@ def get_validated_predictions(site_name: str | None = None, organization_id: str
                 q = q.eq("site_id", site_id)
             else:
                 q = q.eq("site_name", site_name)
-        return q.execute().data or []
-    except Exception:
+        rows = q.execute().data or []
+        if token and not rows:
+            _emit_suspected_rls_denial("db.read.predictions", organization_id=organization_id,
+                                       table="predictions")
+        return rows
+    except Exception as exc:
+        _emit_read_error("db.read.predictions", exc, organization_id=organization_id,
+                         table="predictions")
         return []
 
 
@@ -449,8 +532,13 @@ def get_site_reading_count(site_name: str, organization_id: str | None = None, t
             res = client.table("readings").select("id", count="exact").eq("site_id", site_id).execute()
         else:
             res = client.table("readings").select("id", count="exact").eq("site_name", site_name).execute()
-        return res.count or 0
-    except Exception:
+        count = res.count or 0
+        if token and not count:
+            _emit_suspected_rls_denial("db.read.readings", organization_id=organization_id,
+                                       table="readings")
+        return count
+    except Exception as exc:
+        _emit_read_error("db.read.readings", exc, organization_id=organization_id, table="readings")
         return 0
 
 
@@ -510,8 +598,14 @@ def get_sludge_zones(site_name: str, organization_id: str | None = None,
             return []
         res = (client.table("sludge_surveys").select("*")
                .eq("site_id", site_id).order("zone_name").execute())
-        return [_zone_with_metrics(r) for r in (res.data or [])]
-    except Exception:
+        rows = res.data or []
+        if token and not rows:
+            _emit_suspected_rls_denial("db.read.sludge_surveys", organization_id=organization_id,
+                                       table="sludge_surveys")
+        return [_zone_with_metrics(r) for r in rows]
+    except Exception as exc:
+        _emit_read_error("db.read.sludge_surveys", exc, organization_id=organization_id,
+                         table="sludge_surveys")
         return []
 
 
@@ -606,8 +700,14 @@ def get_open_data_requests(site_name: str, organization_id: str | None = None,
         res = (client.table("data_requests").select("*")
                .eq("site_id", site_id).eq("status", "open")
                .order("created_at", desc=True).execute())
-        return res.data or []
-    except Exception:
+        rows = res.data or []
+        if token and not rows:
+            _emit_suspected_rls_denial("db.read.data_requests", organization_id=organization_id,
+                                       table="data_requests")
+        return rows
+    except Exception as exc:
+        _emit_read_error("db.read.data_requests", exc, organization_id=organization_id,
+                         table="data_requests")
         return []
 
 
@@ -752,7 +852,8 @@ def get_demo_key(organization_id: str) -> dict | None:
                .select("key_code, activated_by, activated_at, expires_at")
                .eq("organization_id", organization_id).limit(1).execute())
         return (res.data or [None])[0]
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.demo_keys", exc, organization_id=organization_id, table="demo_keys")
         return None
 
 
@@ -826,7 +927,9 @@ def list_corrective_actions(organization_id: str, site_id: str | None = None,
         if status:
             q = q.eq("status", status)
         return (q.order("created_at", desc=True).execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.corrective_actions", exc, organization_id=organization_id,
+                         table="corrective_actions")
         return []
 
 
@@ -838,7 +941,9 @@ def get_corrective_action(organization_id: str, action_id: str) -> dict | None:
         res = (client.table("corrective_actions").select("*")
                .eq("id", action_id).eq("organization_id", organization_id).execute())
         return res.data[0] if res.data else None
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.corrective_actions", exc, organization_id=organization_id,
+                         table="corrective_actions")
         return None
 
 
@@ -877,7 +982,9 @@ def get_corrective_action_events(organization_id: str, action_id: str) -> list[d
         return (client.table("corrective_action_events").select("*")
                 .eq("organization_id", organization_id).eq("action_id", action_id)
                 .order("created_at").execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.corrective_action_events", exc, organization_id=organization_id,
+                         table="corrective_action_events")
         return []
 
 
@@ -921,7 +1028,9 @@ def list_inventory_items(organization_id: str) -> list[dict]:
     try:
         return (client.table("inventory_items").select("*")
                 .eq("organization_id", organization_id).order("name").execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.inventory_items", exc, organization_id=organization_id,
+                         table="inventory_items")
         return []
 
 
@@ -934,7 +1043,9 @@ def get_ledger_rows(organization_id: str, item_id: str | None = None) -> list[di
         if item_id:
             q = q.eq("item_id", item_id)
         return q.execute().data or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.inventory_ledger", exc, organization_id=organization_id,
+                         table="inventory_ledger")
         return []
 
 
@@ -1055,7 +1166,8 @@ def list_assets(organization_id: str, site_id: str | None = None,
         if asset_class:
             q = q.eq("asset_class", asset_class)
         return q.order("name").execute().data or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.assets", exc, organization_id=organization_id, table="assets")
         return []
 
 
@@ -1095,8 +1207,9 @@ def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
             "closed": counts.get("closed", 0),
             "by_status": counts,
         }
-    except Exception:
-        pass
+    except Exception as exc:
+        _emit_read_error("db.read.kpi_summary.corrective_actions", exc,
+                         organization_id=organization_id, table="corrective_actions")
     try:
         from core.inventory import balance, is_low_stock
         items = (client.table("inventory_items").select("*")
@@ -1113,14 +1226,17 @@ def kpi_summary(organization_id: str, include_financial: bool = False) -> dict:
         out["inventory"] = {"item_count": len(items), "low_stock_items": low}
         if include_financial:
             out["inventory"]["total_valuation"] = total_value
-    except Exception:
-        pass
+    except Exception as exc:
+        _emit_read_error("db.read.kpi_summary.inventory", exc,
+                         organization_id=organization_id, table="inventory_items")
     try:
         out["compliance"] = _compliance_kpi(client, organization_id)
-    except Exception:
+    except Exception as exc:
         # Degrade to zeros, never omit: the dashboard must be able to tell
         # "no certificates" from "endpoint broken", and a missing key reads as
         # the latter.
+        _emit_read_error("db.read.kpi_summary.compliance", exc,
+                         organization_id=organization_id, table="lab_samples")
         out["compliance"] = _empty_compliance_kpi()
     return out
 
@@ -1187,7 +1303,9 @@ def list_inventory_locations(organization_id: str) -> list[dict]:
     try:
         return (client.table("inventory_locations").select("*")
                 .eq("organization_id", organization_id).order("name").execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.inventory_locations", exc, organization_id=organization_id,
+                         table="inventory_locations")
         return []
 
 
@@ -1201,8 +1319,10 @@ def list_custom_report_types(organization_id: str) -> list[dict]:
     try:
         return (client.table("report_types").select("*")
                 .eq("organization_id", organization_id).order("name").execute().data) or []
-    except Exception:
+    except Exception as exc:
         # Table absent until 017 is applied — the built-in types still work.
+        _emit_read_error("db.read.report_types", exc, organization_id=organization_id,
+                         table="report_types")
         return []
 
 
@@ -1303,7 +1423,9 @@ def list_lab_samples(organization_id: str, limit: int = 50,
         if site_id:
             q = q.eq("site_id", site_id)
         return (q.order("sampled_at", desc=True).limit(limit).execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.lab_samples", exc, organization_id=organization_id,
+                         table="lab_samples")
         return []
 
 
@@ -1321,8 +1443,14 @@ def find_site_id(site_name: str, organization_id: str, token: str | None = None)
         res = (client.table("sites").select("id")
                .eq("organization_id", organization_id)
                .eq("name", site_name).execute())
-        return res.data[0]["id"] if res.data else None
-    except Exception:
+        if res.data:
+            return res.data[0]["id"]
+        if token:
+            _emit_suspected_rls_denial("db.read.sites", organization_id=organization_id,
+                                       table="sites")
+        return None
+    except Exception as exc:
+        _emit_read_error("db.read.sites", exc, organization_id=organization_id, table="sites")
         return None
 
 
@@ -1345,7 +1473,8 @@ def count_lab_results_by_status(sample_ids: list[str]) -> dict[str, dict[str, in
     try:
         rows = (client.table("lab_results").select("sample_id,status")
                 .in_("sample_id", sample_ids).execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.lab_results", exc, organization_id=None, table="lab_results")
         return counts
     key = {"FAIL": "fail", "PASS": "pass", "NOT_ASSESSED": "not_assessed"}
     for r in rows:
@@ -1368,7 +1497,8 @@ def get_asset(asset_id: str, organization_id: str) -> dict | None:
         res = (client.table("assets").select("*")
                .eq("id", asset_id).eq("organization_id", organization_id).execute())
         return res.data[0] if res.data else None
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.assets", exc, organization_id=organization_id, table="assets")
         return None
 
 
@@ -1383,8 +1513,10 @@ def list_asset_types(organization_id: str) -> list[dict]:
     try:
         return (client.table("asset_types").select("*")
                 .eq("organization_id", organization_id).order("label").execute().data) or []
-    except Exception:
+    except Exception as exc:
         # Table absent until 020 is applied — built-in types still work.
+        _emit_read_error("db.read.asset_types", exc, organization_id=organization_id,
+                         table="asset_types")
         return []
 
 
@@ -1442,9 +1574,11 @@ def list_obligations(organization_id: str, site_id: str | None = None) -> list[d
         if site_id:
             q = q.eq("site_id", site_id)
         return (q.order("next_due_on").execute().data) or []
-    except Exception:
+    except Exception as exc:
         # Table absent until 023 is applied. An empty registry is the honest
         # answer to "nothing is recorded"; it is never evidence of compliance.
+        _emit_read_error("db.read.obligations", exc, organization_id=organization_id,
+                         table="obligations")
         return []
 
 
@@ -1457,7 +1591,8 @@ def list_site_ids(organization_id: str) -> list[str]:
         rows = (client.table("sites").select("id")
                 .eq("organization_id", organization_id).execute().data) or []
         return [r["id"] for r in rows]
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.sites", exc, organization_id=organization_id, table="sites")
         return []
 
 
@@ -1470,7 +1605,8 @@ def site_names(organization_id: str) -> dict:
         rows = (client.table("sites").select("id, name")
                 .eq("organization_id", organization_id).execute().data) or []
         return {r["id"]: r["name"] for r in rows}
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.sites", exc, organization_id=organization_id, table="sites")
         return {}
 
 
@@ -1482,7 +1618,9 @@ def list_guideline_modules() -> list[dict]:
     try:
         return (client.table("guideline_modules").select("*")
                 .order("label").execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.guideline_modules", exc, organization_id=None,
+                         table="guideline_modules")
         return []
 
 
@@ -1494,7 +1632,9 @@ def get_guideline_module(module_id: str) -> dict | None:
         res = (client.table("guideline_modules").select("*")
                .eq("id", module_id).execute())
         return res.data[0] if res.data else None
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.guideline_modules", exc, organization_id=None,
+                         table="guideline_modules")
         return None
 
 
@@ -1506,7 +1646,9 @@ def list_module_obligations(module_id: str) -> list[dict]:
     try:
         return (client.table("module_obligations").select("*")
                 .eq("module_id", module_id).execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.module_obligations", exc, organization_id=None,
+                         table="module_obligations")
         return []
 
 
@@ -1522,7 +1664,9 @@ def list_entitlements(organization_id: str, active_only: bool = False) -> list[d
         if active_only:
             q = q.is_("active_until", "null")
         return (q.execute().data) or []
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.organization_entitlements", exc, organization_id=organization_id,
+                         table="organization_entitlements")
         return []
 
 
@@ -1537,7 +1681,9 @@ def get_entitlement(organization_id: str, entitlement_id: str) -> dict | None:
                .eq("id", entitlement_id)
                .eq("organization_id", organization_id).execute())
         return res.data[0] if res.data else None
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.organization_entitlements", exc, organization_id=organization_id,
+                         table="organization_entitlements")
         return None
 
 
@@ -1553,7 +1699,9 @@ def find_active_entitlement(organization_id: str, module_id: str) -> dict | None
                .eq("module_id", module_id)
                .is_("active_until", "null").execute())
         return res.data[0] if res.data else None
-    except Exception:
+    except Exception as exc:
+        _emit_read_error("db.read.organization_entitlements", exc, organization_id=organization_id,
+                         table="organization_entitlements")
         return None
 
 

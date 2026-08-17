@@ -9,7 +9,10 @@ is not installed, so the dashboard falls back to sample data silently.
 """
 from __future__ import annotations
 
+import contextvars
+
 from core.config import secret
+from core.reasons import ANON_KEY_MISSING, DB_UNAVAILABLE, NOT_CONFIGURED
 
 try:
     from supabase import create_client, Client as SupabaseClient
@@ -40,10 +43,59 @@ def _anon_secrets() -> dict | None:
     return {"url": url, "key": anon_key} if url and anon_key else None
 
 
+# Re-entrancy guard. core.audit._persist() writes through get_client(), so a
+# failed get_client() that emits an audit event re-enters get_client(), which
+# fails again, which emits again — unbounded recursion that only stops when
+# RecursionError is swallowed by audit's own except. Measured at 50+ frames per
+# call before this guard. It triggers exactly when the database is unreachable,
+# i.e. the failure this instrumentation exists to observe, so the guard is not
+# optional. A ContextVar rather than a plain bool so concurrent requests on the
+# same thread cannot suppress each other's events.
+_emitting: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "db_client_emitting", default=False
+)
+
+
+def _emit_client_failure(reason_code: str, *, detail: str | None = None, scoped: bool) -> None:
+    """Record why a client could not be built. Never raises into the caller.
+
+    Imported lazily to avoid a cycle: core.audit's own best-effort persistence
+    goes through db.client.get_client(), so importing audit at module scope
+    here would run at import time before this module finishes defining itself.
+    """
+    if _emitting.get():
+        # We are already inside an emission whose own persistence just failed
+        # to build a client. The outer call has reported this; reporting it
+        # again would recurse forever.
+        return
+    token = _emitting.set(True)
+    try:
+        from core.audit import emit
+        emit(
+            "db.client.unavailable",
+            actor_user_id=None,
+            actor_role=None,
+            organization_id=None,
+            outcome="error",
+            target_type="supabase_client",
+            reason_code=reason_code,
+            scoped=scoped,
+            detail=detail,
+        )
+    except Exception:
+        # Auditing must never break client resolution, which already fails
+        # closed (returns None) on every path that calls this.
+        pass
+    finally:
+        _emitting.reset(token)
+
+
 def get_client(token: str | None = None):
     """Return a live Supabase client, optionally scoped with a user's JWT token."""
     global _client
     if not _SUPABASE_PKG:
+        _emit_client_failure(NOT_CONFIGURED, detail="supabase package not installed",
+                             scoped=bool(token))
         return None
     if token:
         # Create a request-scoped client for this specific request context
@@ -56,23 +108,28 @@ def get_client(token: str | None = None):
         # falling back to service_role.
         cfg = _anon_secrets()
         if not cfg:
+            _emit_client_failure(ANON_KEY_MISSING, scoped=True)
             return None
         try:
             scoped_client = create_client(cfg["url"], cfg["key"])
             scoped_client.postgrest.auth(token)
             return scoped_client
-        except Exception:
+        except Exception as exc:
+            _emit_client_failure(DB_UNAVAILABLE, detail=str(exc)[:200], scoped=True)
             return None
 
     cfg = _secrets()
     if not cfg:
+        _emit_client_failure(NOT_CONFIGURED, detail="SUPABASE_URL/SUPABASE_KEY not set",
+                             scoped=False)
         return None
     if _client is not None:
         return _client
     try:
         _client = create_client(cfg["url"], cfg["key"])
         return _client
-    except Exception:
+    except Exception as exc:
+        _emit_client_failure(DB_UNAVAILABLE, detail=str(exc)[:200], scoped=False)
         return None
 
 

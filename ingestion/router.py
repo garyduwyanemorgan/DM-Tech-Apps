@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import logging
 
+from core.workflow import INGEST, PARSE, new_run_id, step_timer
 from ingestion import gates, wimpey
 from ingestion.schema import LabResult, LabSample
 
@@ -22,25 +23,47 @@ VISION_CONFIDENCE = 0.60
 _PDF_MAGIC = b"%PDF"
 
 
-def ingest(file_bytes: bytes, media_type: str, filename: str = "") -> LabSample:
+def ingest(
+    file_bytes: bytes,
+    media_type: str,
+    filename: str = "",
+    *,
+    organization_id: str | None = None,
+) -> LabSample:
     """Parse an uploaded lab report into a gated LabSample.
 
     Raises ValueError for unusable input and RuntimeError when the chosen
     extractor is unavailable (e.g. no Anthropic key for a scanned report).
+
+    Each processing step (ingest, parse, validate) is timed and recorded to
+    workflow_events under one run_id, so a failure at any step is traceable
+    per-entity (Layer 2 workflow tracing) — instrumentation only, no change
+    to the return value or the exceptions raised above.
     """
-    if not file_bytes:
-        raise ValueError("Empty upload.")
+    run_id = new_run_id()
+    entity_id = filename or "upload"
 
-    is_pdf = file_bytes.startswith(_PDF_MAGIC) or "pdf" in (media_type or "").lower()
+    with step_timer(
+        INGEST, run_id=run_id, organization_id=organization_id,
+        entity_type="lab_report", entity_id=entity_id,
+    ):
+        if not file_bytes:
+            raise ValueError("Empty upload.")
 
-    if is_pdf and wimpey.is_wimpey_report(file_bytes):
-        sample = wimpey.parse(file_bytes, filename)
-        logger.info("routed %s to the Wimpey text parser", filename or "upload")
-    else:
-        sample = _vision_fallback(file_bytes, media_type, filename)
-        logger.info("routed %s to the Claude vision fallback", filename or "upload")
+    with step_timer(
+        PARSE, run_id=run_id, organization_id=organization_id,
+        entity_type="lab_report", entity_id=entity_id,
+    ):
+        is_pdf = file_bytes.startswith(_PDF_MAGIC) or "pdf" in (media_type or "").lower()
 
-    return gates.apply(sample)
+        if is_pdf and wimpey.is_wimpey_report(file_bytes):
+            sample = wimpey.parse(file_bytes, filename)
+            logger.info("routed %s to the Wimpey text parser", filename or "upload")
+        else:
+            sample = _vision_fallback(file_bytes, media_type, filename)
+            logger.info("routed %s to the Claude vision fallback", filename or "upload")
+
+    return gates.apply(sample, run_id=run_id, organization_id=organization_id)
 
 
 def _vision_fallback(file_bytes: bytes, media_type: str, filename: str) -> LabSample:

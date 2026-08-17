@@ -10,6 +10,15 @@ silently swallow the *operation*; only the logging is best-effort.
 
 It deliberately records identifiers only — never tokens, secrets, or full
 request bodies — so audit logs stay safe to retain and export.
+
+Every event is stamped with the current request id (see
+``core/observability.py``), so a user-reported symptom can be traced from an
+``X-Request-Id`` response header straight to the exact audit rows and log
+lines produced while handling that request. ``audit_events`` has no
+``request_id`` column, so the id rides inside the existing ``context`` JSONB
+column rather than requiring a migration. Reading the request id must be as
+best-effort as everything else here: if it fails for any reason, the event
+is still emitted, just without one.
 """
 from __future__ import annotations
 
@@ -66,6 +75,16 @@ def emit(
     target_*      the object acted on (type + id), if any.
     extra         additional non-sensitive context (no tokens/secrets/PII bodies).
     """
+    # Best-effort: a request id is a nice-to-have for correlation, never a
+    # reason to fail an audit event. Falls back to None outside a request
+    # (scripts, background jobs, tests that skip the middleware) or if
+    # reading the contextvar somehow errors.
+    try:
+        from core.observability import current_request_id
+        request_id = current_request_id()
+    except Exception:
+        request_id = None
+
     event = {
         "ts": _now_iso(),
         "kind": "audit",
@@ -76,9 +95,13 @@ def emit(
         "organization_id": organization_id,
         "target_type": target_type,
         "target_id": target_id,
+        "request_id": request_id,
     }
-    if extra:
-        event["context"] = extra
+    context = dict(extra) if extra else {}
+    if request_id is not None:
+        context["request_id"] = request_id
+    if context:
+        event["context"] = context
     try:
         print(json.dumps(event, default=str), file=sys.stderr, flush=True)
         _persist(event)
