@@ -89,7 +89,11 @@ def main():
     # This app's own origin. Was https://lagoons.gdm-enviro.com, inherited from
     # the DECCA/LOS build this repo was copied from — registering against that
     # host points Stripe at another deployment's billing webhook.
-    base_url = os.environ.get("PUBLIC_BASE_URL", "https://app.gdm-enviro.com")
+    base_url = os.environ.get("PUBLIC_BASE_URL")
+    if not base_url:
+        sys.exit(
+            "PUBLIC_BASE_URL is not set. Set it to this deployment's own public origin before registering a webhook. There is deliberately no default: this repo inherited https://lagoons.gdm-enviro.com from the build it was copied from, which would point Stripe at another app."
+        )
     
     # Since the FastAPI route is /billing/webhook, the endpoint URL should be:
     webhook_url = f"{base_url.rstrip('/')}/billing/webhook"

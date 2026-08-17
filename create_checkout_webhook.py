@@ -31,7 +31,11 @@ from payments.checkout_provider import API_LIVE, API_SANDBOX, WEBHOOK_EVENTS
 # the DECCA/LOS build this repo was copied from — running the script with
 # that value registers a payment webhook pointing at the OTHER app, so its
 # provider would call a host this deployment does not control.
-BASE_URL = os.environ.get("PUBLIC_BASE_URL", "https://app.gdm-enviro.com")
+BASE_URL = os.environ.get("PUBLIC_BASE_URL")
+if not BASE_URL:
+    sys.exit(
+        "PUBLIC_BASE_URL is not set. Set it to this deployment's own public origin before registering a webhook. There is deliberately no default: this repo inherited https://lagoons.gdm-enviro.com from the build it was copied from, which would point the payment provider at another app."
+    )
 
 
 def read_key_from_toml(filepath: pathlib.Path, section: str, key: str) -> str:

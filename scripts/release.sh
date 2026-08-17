@@ -27,10 +27,14 @@ set -euo pipefail
 # from `origin` means a future fork cannot inherit the wrong identity again.
 REPO_URL="$(git remote get-url origin 2>/dev/null | sed -E 's/\.git$//; s#git@github\.com:#https://github.com/#')"
 
-# The deployed host to poll when --verify is passed. Overridable, because a
-# wrong value here reports success against somebody else's app. Default is this
-# app's own origin, per CLERK_AUTHORIZED_PARTIES in .env.example.
-API_URL="${RELEASE_VERIFY_URL:-https://app.gdm-enviro.com/api/version}"
+# The deployed host to poll when --verify is passed. REQUIRED, with no default.
+# It briefly defaulted to https://app.gdm-enviro.com, inferred from
+# CLERK_AUTHORIZED_PARTIES — that host has no DNS record at all, so the default
+# was a guess that could never succeed. The inherited default before that was
+# the OTHER project's production host, where a green verify would have been a
+# different app answering. Both failure modes are silent, so there is no safe
+# default: an unset value must stop the verify, not guess at one.
+API_URL="${RELEASE_VERIFY_URL:-}"
 # Render service to name in the rollback hint below. Inherited from the
 # DECCA/LOS build as srv-d91t1ofavr4c73fv52d0 ("lagoon-saas") — a rollback
 # command naming another project's service is worse than no hint at all,
@@ -131,6 +135,12 @@ echo "pushed ${BRANCH} + tag v${NEW} to origin ✓"
 # serving traffic — an orphaned worker can hold the port, and an env-var change
 # needs a *deploy*, not a restart. So poll /api/version until it reports v$NEW.
 if [ "$VERIFY" -eq 1 ]; then
+  if [ -z "$API_URL" ]; then
+    echo "release.sh: --verify needs RELEASE_VERIFY_URL set to this app's" >&2
+    echo "  deployed /api/version endpoint. Refusing to guess: the wrong host" >&2
+    echo "  answers for a different deployment and reports a false success." >&2
+    exit 1
+  fi
   echo "waiting for $API_URL to report $NEW …"
   for i in $(seq 1 60); do
     LIVE="$(curl -fsS --max-time 10 "$API_URL" 2>/dev/null | sed -nE 's/.*"version" *: *"([^"]+)".*/\1/p' || true)"
