@@ -5,8 +5,11 @@ shutdown on 2026-08-15. Records verified state, not intended state: everything
 marked "verified" was checked against the live stack on the date above, and
 everything still open is named with the reason it is open.
 
-Branch `feat/dm-compliance-phase-1`, version 1.8.0. One commit added this
-session: `84621ab`. **Not pushed** — 1 ahead of `origin/feat/dm-compliance-phase-1`.
+Branch `feat/dm-compliance-phase-1`, version 1.8.0. Three commits added this
+session, all pushed: `84621ab` (scoped reads), `dc3a999` + this one (handoff).
+
+Scoped reads are **verified working end to end against a real Clerk user** —
+see §2.1. That closes the last unproven link in the chain.
 
 **Tests: 691 passed, 10 skipped.** Baseline at session start was 674/10; the
 new file accounts for exactly +17. Run with `python -m pytest -q`. Some tests
@@ -90,6 +93,47 @@ Seven read functions (`get_readings_for_site`, `get_site_names`,
 `reading_exists`, `get_validated_predictions`, `get_site_reading_count`,
 `get_sludge_zones`, `get_open_data_requests`) plus the two helpers. Counts
 reconcile: 57 bare + 8 scoped = 65, the original total.
+
+### 2.1 Proven end to end with a real Clerk user
+
+Done after the commit, against the live stack with the dev servers up
+(API `:8010`, Vite `:5173` — Vite binds IPv6, so use `localhost`, not
+`127.0.0.1`). `uvicorn` is in `requirements.txt` but was not installed; it is now.
+
+**Step 1 — Clerk → api_server.** Signing in created
+`user_3I2TVNgiIgcM9VCC5GjDtzRWiv2 / super_admin`. That row is written only by
+`_create_super_admin_profile()` (`api_server.py:297-318`), reachable only after
+`get_user_from_token` verifies the signature against Clerk's live JWKS and
+passes the `iss`/`azp` checks. Before this, every test had used a self-signed
+token.
+
+It also confirms §3: the bootstrap succeeded **because writes are still
+service_role**. Under RLS both inserts would have been denied.
+
+**Step 2 — the scoped read, under that token.** A throwaway site plus one
+reading, then `GET /api/status/RLS-Verify-Temp`. It returned 500 — and the 500
+is the proof, so do not "fix" this reasoning later:
+
+```python
+# api_server.py:1716
+if not readings:
+    return {..., "note": "No readings stored yet."}
+```
+
+An RLS denial returns **200 with that note** and cannot reach line 1723. The
+crash was *at* 1723 (`_assess`), so rows came back; and line 1710 passes
+`token=profile["token"]`, so they came through the anon-key scoped client.
+Real Clerk token → anon client → PostgREST → RLS → the caller's own row.
+
+That also settles the `role` claim: without it PostgREST rejects the token, the
+swallow returns `[]`, and the response would have been the 200-with-note.
+
+**Do not use `GET /sites` for this test.** `list_sites` (`api_server.py:643`)
+calls `get_client()` unscoped, so a site appears there whether RLS works or
+not. It will report a false pass. Use `/status/{site}` or `/readings/{site}`,
+and insert an actual reading first — an empty result is ambiguous.
+
+The 500 itself was a genuine pre-existing bug, unrelated to tokens; see §5f.
 
 ### The tests were mutation-checked
 
@@ -188,22 +232,17 @@ it is wrong.
 
 ## 5. Open, in the order I would take them
 
-### a. Nobody has ever seen a real Clerk token
+### a. ~~Nobody has ever seen a real Clerk token~~ — CLOSED 2026-08-17
 
-Still the honest gap, and it is now the cheapest high-value thing left.
-PostgREST trusts Clerk's key, and the frontend sends `getToken()` — but
-**`getToken()` is called with no arguments** (`AuthContext.tsx:53,96`), so it
-returns the *default session token*, not a template. Whether that token carries
-`role: "authenticated"` has never been observed. Everything to date used
-locally-signed tokens or `SET LOCAL request.jwt.claims`.
+This was the last open link and it is now proven end to end against a real
+signed-in Clerk user. Recorded in full at §2.1. Clerk emits
+`role: "authenticated"` on the **default** session token — note
+`getToken()` is called with no arguments (`AuthContext.tsx:53,96`), so no JWT
+template is involved and none is needed.
 
-`get_user_from_token` extracts only `sub` and `email`, so the claim currently
-has no consumer in application code — which is exactly why its absence would go
-unnoticed until the day it matters.
-
-To close it: decode one live session token's **payload segment only** (index 1
-of the three dot-separated parts; never the signature) and confirm `role`
-appears.
+Do not re-open this on the strength of `get_user_from_token` extracting only
+`sub` and `email`. That is true, and irrelevant: the claim's consumer is
+PostgREST, not Python.
 
 ### b. A failed read is invisible in the UI
 
@@ -233,7 +272,25 @@ Prerequisites before the default could flip: confirm `007` is applied; write the
 backfill; give the frontend an empty-scope state (see §5b — same gap); assign
 sites at invite time; make the flag per-org rather than a process-wide env var.
 
-### e. Residual items recorded elsewhere
+### e. `/status/{site}` 500s on a partially-filled reading — NOT FIXED
+
+Found while verifying §2.1, unrelated to the token work, and still open.
+
+`core/calculations.py:32` does `value < lim.max_val` with no None guard:
+
+```
+TypeError: '<' not supported between instances of 'NoneType' and 'int'
+```
+
+Isolated both ways: a reading with `cod, ammonia, phosphate, turbidity,
+oil_grease, ecoli` NULL raises; fill them and `_assess` returns
+`COMPLIANT / 100.0 / alert 2`. Lines 24 and 28 have the same shape.
+
+This is reachable in production — `insert_reading` takes a partial `fields`
+dict, so any partially-filled reading takes `/status/{site}` down with a 500.
+Left for its own commit rather than smuggled into the RLS work.
+
+### f. Residual items recorded elsewhere
 
 - `SECURITY_REVIEW_COMPLIANCE.md` — H1, H2, M1, M2, M3, L2, L3, L4 fixed; L1
   open by choice. The PLAUSIBLE section (CORS `*`, `evaluate` trusting one
