@@ -554,7 +554,7 @@ Left for its own commit rather than smuggled into the RLS work.
 
 ---
 
-## 8. The v1.9.0 release is half-cut — finish it before anything else
+## 8. The v1.9.0 release — cut, signed and pushed
 
 `scripts/release.sh auto` chose **minor → v1.9.0** (48 commits since v1.8.0, many
 `feat:`; the script's default is `patch`, which would have been wrong). It got as
@@ -569,8 +569,23 @@ Then it **stalled and was killed**. `tag.gpgsign = true` in the user's global
 and a non-interactive shell has no TTY to prompt on. The log ends with
 `error: unable to sign the tag`.
 
-**The tag does not exist and nothing is pushed.** To finish, in an interactive
-terminal:
+**Now resolved.** The repo owner created the tag in an interactive terminal on
+2026-08-17; `git tag -v v1.9.0` reports a good signature from key
+`95615C170AC5B430C7B5ABF8CF222D00358DC9E9`, and it is on origin.
+
+Two things this left behind, both harmless but worth knowing:
+
+- **The tag points at `ec5ed29`, not the `e675f3e` release commit.** Five
+  commits landed between them — the identity fixes, this handoff, the
+  render.yaml rename — so the tag contains more than the CHANGELOG section
+  originally described. Those five were added to `[1.9.0]` afterwards, which
+  means the CHANGELOG inside the tagged tree is one commit behind the
+  CHANGELOG on the branch. The tag was NOT moved: retagging a published tag
+  is worse than a stale file.
+- **uvicorn runs without `--reload`,** so `/api/version` served 1.8.0 until
+  the process was restarted. A version bump needs a restart.
+
+For reference, the command that worked:
 
 ```bash
 git tag -a v1.9.0 -m "Release v1.9.0"

@@ -27,6 +27,11 @@ release time, so just write clear commit messages (`feat:`, `fix:`, `chore:` …
 
 ## [1.9.0] - 2026-08-17
 
+- chore: correct this build's version control and service identity
+- fix(release): require the deploy host, never guess it
+- fix(release): strip the parent build's identity from this repo
+- docs(handoff): compile the full session — UI honesty, the release, the fork
+- docs(handoff): close the Render question — there is no deployment
 - feat: close the last fabricated-verdict path, add frontend tests, draft 032
 - fix(ui): stop the dashboards asserting verdicts they do not know
 - fix(ui): a failed read is no longer indistinguishable from empty data
