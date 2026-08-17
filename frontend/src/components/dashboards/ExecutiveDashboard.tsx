@@ -45,10 +45,25 @@ export const ExecutiveDashboard: React.FC<Props> = ({ setActiveSite, setActiveTa
 
       {/* Business metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1rem' }}>
-        <MetricCard icon={<ShieldCheck size={22} />} label="Overall Compliance" value={kpis.avgCompliancePct === null ? '—' : `${kpis.avgCompliancePct}%`} accent="#27ae60" sub="Mean across projects" />
+        <MetricCard
+          icon={<ShieldCheck size={22} />}
+          label="Overall Compliance"
+          value={kpis.avgCompliancePct === null ? '—' : `${kpis.avgCompliancePct}%`}
+          accent="#27ae60"
+          sub={`Mean across ${kpis.compliancePctBasis} of ${kpis.total} project${kpis.total === 1 ? '' : 's'}${kpis.unavailable > 0 ? ` — ${kpis.unavailable} unavailable` : ''}`}
+        />
         <MetricCard icon={<Layers size={22} />} label="Projects Fully Compliant" value={compliantRate === null ? '—' : `${kpis.green}/${kpis.total}`} accent="#2E5D8A" sub={compliantRate === null ? undefined : `${compliantRate}% green`} />
         <MetricCard icon={<AlertTriangle size={22} />} label="Regulatory Risk" value={String(kpis.red)} accent="#e74c3c" sub="Projects critical / non-compliant" />
         <MetricCard icon={<TrendingUp size={22} />} label="Needs Attention" value={String(kpis.needsAttention)} accent="#f39c12" sub="Warning + critical" />
+        {kpis.unavailable > 0 && (
+          <MetricCard
+            icon={<AlertTriangle size={22} />}
+            label="Status Unavailable"
+            value={String(kpis.unavailable)}
+            accent="#7C3AED"
+            sub="Could not be checked — excluded from the averages above, not counted as compliant"
+          />
+        )}
       </div>
 
       {/* Projects needing attention */}
@@ -56,10 +71,16 @@ export const ExecutiveDashboard: React.FC<Props> = ({ setActiveSite, setActiveTa
         <h2 className="section-heading" style={{ fontSize: '1rem', marginBottom: '1rem' }}>Projects Requiring Management Attention</h2>
         {attention.length === 0 ? (
           /* "No escalations" is only an all-clear when every project actually
-             carries a verdict. Unassessed projects are stated, not absorbed. */
-          kpis.grey > 0 ? (
+             carries a verdict. Unassessed and unreachable projects are
+             stated, not absorbed — a project whose status call failed is not
+             the same claim as one confirmed compliant. */
+          kpis.grey > 0 || kpis.unavailable > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#64748B', fontSize: '0.9rem', fontWeight: 600 }}>
-              <ShieldCheck size={18} /> No escalations — but {kpis.grey} project{kpis.grey === 1 ? '' : 's'} could not be assessed.
+              <ShieldCheck size={18} />
+              No escalations
+              {kpis.grey > 0 ? ` — but ${kpis.grey} project${kpis.grey === 1 ? '' : 's'} could not be assessed` : ''}
+              {kpis.grey > 0 && kpis.unavailable > 0 ? ' and' : kpis.unavailable > 0 ? ' — but' : ''}
+              {kpis.unavailable > 0 ? ` ${kpis.unavailable} project${kpis.unavailable === 1 ? '' : 's'} could not be checked at all` : ''}.
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#006100', fontSize: '0.9rem', fontWeight: 600 }}>

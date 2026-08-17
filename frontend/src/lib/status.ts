@@ -10,14 +10,23 @@
 //              green nor red: "this certificate does not say" is a third answer,
 //              and rendering it as a pass is the exact failure DM_COMPLIANCE_SCOPING
 //              §7.4 forbids.
+//   🟣 unavailable — the /api/status call itself failed (network error,
+//              non-2xx, unreadable body). This is NOT the same as blue: blue
+//              means the site legitimately has no readings yet; unavailable
+//              means we don't know what the site's readings are because the
+//              call to find out did not succeed. Conflating the two used to
+//              make failed status calls look like quiet, compliant sites —
+//              undercounting `needsAttention` and diluting `avgCompliancePct`
+//              on exactly the rollups regulators and executives read.
 //
 // Derived from the shape returned by GET /api/status/{site}:
 //   { readings: [{ month, compliance, compliance_pct, alert_level, alert_label,
 //                  failing_params, ...paramValues }] }
 
 import { STATUS } from './tokens'
+import { lastRequestId, readRequestId } from './requestId'
 
-export type TrafficLight = 'green' | 'yellow' | 'red' | 'blue' | 'grey'
+export type TrafficLight = 'green' | 'yellow' | 'red' | 'blue' | 'grey' | 'unavailable'
 
 /**
  * Canonical certificate verdict. The producers disagree on spelling —
@@ -82,15 +91,22 @@ export interface SiteStatus {
   failingParams: string[]
   /** Alert level 1–4, or null when no readings. */
   alertLevel: 1 | 2 | 3 | 4 | null
+  /**
+   * Correlation id for this site's status lookup, when known. Populated on the
+   * `unavailable` factory so a failed call can be traced to server-side logs;
+   * `undefined` on every other path (nothing failed, nothing to trace).
+   */
+  requestId?: string | null
 }
 
 /** Visual tokens for a traffic-light value — derived from the canonical STATUS tokens. */
 export const LIGHT_STYLE: Record<TrafficLight, { bg: string; color: string; dot: string; label: string }> = {
-  green:  { bg: STATUS.compliant.bg,      color: STATUS.compliant.fg,      dot: STATUS.compliant.dot,      label: STATUS.compliant.label },
-  yellow: { bg: STATUS.actionRequired.bg, color: STATUS.actionRequired.fg, dot: STATUS.actionRequired.dot, label: STATUS.actionRequired.label },
-  red:    { bg: STATUS.critical.bg,       color: STATUS.critical.fg,       dot: STATUS.critical.dot,       label: STATUS.critical.label },
-  blue:   { bg: STATUS.awaitingLab.bg,    color: STATUS.awaitingLab.fg,    dot: STATUS.awaitingLab.dot,    label: STATUS.awaitingLab.label },
-  grey:   { bg: STATUS.notAssessed.bg,    color: STATUS.notAssessed.fg,    dot: STATUS.notAssessed.dot,    label: STATUS.notAssessed.label },
+  green:       { bg: STATUS.compliant.bg,      color: STATUS.compliant.fg,      dot: STATUS.compliant.dot,      label: STATUS.compliant.label },
+  yellow:      { bg: STATUS.actionRequired.bg, color: STATUS.actionRequired.fg, dot: STATUS.actionRequired.dot, label: STATUS.actionRequired.label },
+  red:         { bg: STATUS.critical.bg,       color: STATUS.critical.fg,       dot: STATUS.critical.dot,       label: STATUS.critical.label },
+  blue:        { bg: STATUS.awaitingLab.bg,    color: STATUS.awaitingLab.fg,    dot: STATUS.awaitingLab.dot,    label: STATUS.awaitingLab.label },
+  grey:        { bg: STATUS.notAssessed.bg,    color: STATUS.notAssessed.fg,    dot: STATUS.notAssessed.dot,    label: STATUS.notAssessed.label },
+  unavailable: { bg: STATUS.unavailable.bg,    color: STATUS.unavailable.fg,    dot: STATUS.unavailable.dot,    label: STATUS.unavailable.label },
 }
 
 /**
@@ -133,6 +149,28 @@ export function statusFromReadings(site: string, readings: SiteReading[] | null 
 }
 
 /**
+ * Explicit factory for a site whose status lookup failed — a non-2xx response,
+ * an unreadable body, or a thrown network error. Deliberately not routed
+ * through `statusFromReadings(site, null)`: that path means "no readings
+ * yet" (blue), which is a legitimate, known state. This means "we don't know
+ * what this site's readings are", which must never be scored as compliant,
+ * averaged into `avgCompliancePct`, or silently dropped from `needsAttention`
+ * accounting. `requestId` carries the correlation id (see lib/requestId.ts)
+ * so the failure can be traced server-side.
+ */
+export function statusUnavailable(site: string, requestId: string | null): SiteStatus {
+  return {
+    site,
+    latest: null,
+    light: 'unavailable',
+    compliancePct: null,
+    failingParams: [],
+    alertLevel: null,
+    requestId,
+  }
+}
+
+/**
  * Fetch and summarise the traffic-light status for many sites in parallel.
  * MVP client-side fan-out over the existing per-site endpoint; a backend
  * /api/portfolio aggregate is a documented follow-up if this proves slow.
@@ -150,11 +188,12 @@ export async function fetchPortfolioStatus(
     sites.map(async (site) => {
       try {
         const res = await fetch(`/api/status/${encodeURIComponent(site)}?year=${year}`, { headers })
-        if (!res.ok) return statusFromReadings(site, null)
+        const requestId = readRequestId(res)
+        if (!res.ok) return statusUnavailable(site, requestId)
         const data = await res.json()
         return statusFromReadings(site, data.readings)
       } catch {
-        return statusFromReadings(site, null)
+        return statusUnavailable(site, lastRequestId())
       }
     }),
   )
@@ -170,19 +209,38 @@ export interface PortfolioKpis {
   blue: number
   /** Sites whose latest reading carries no judgeable verdict. */
   grey: number
+  /**
+   * Sites whose status lookup failed outright (network error, non-2xx, bad
+   * shape) — we don't have a reading to even call unjudgeable. Counted
+   * separately from `blue`/`grey` on purpose: these are not compliant,
+   * excluded from `avgCompliancePct`'s denominator (not scored 0 or 100), and
+   * NOT folded into `needsAttention` (that is a compliance signal; this is an
+   * infrastructure one) — but they must never be invisible, which is why this
+   * field exists at all. A rollup with `unavailable > 0` covers fewer sites
+   * than `total` suggests, and any consumer showing `avgCompliancePct` or
+   * `needsAttention` must say so.
+   */
+  unavailable: number
   /** Mean of known compliance_pct values (0–100), null when none reported. */
   avgCompliancePct: number | null
+  /** Sites that actually contributed a figure to `avgCompliancePct`.
+   *  Quote THIS, not `total - unavailable`: a site awaiting lab results is
+   *  reachable but contributes nothing, so the reachable count overstates
+   *  the sample the average rests on. */
+  compliancePctBasis: number
   /** Sites needing management attention (yellow + red). */
   needsAttention: number
 }
 
 export function rollup(statuses: SiteStatus[]): PortfolioKpis {
-  const counts = { green: 0, yellow: 0, red: 0, blue: 0, grey: 0 }
+  const counts = { green: 0, yellow: 0, red: 0, blue: 0, grey: 0, unavailable: 0 }
   let pctSum = 0
   let pctCount = 0
   for (const s of statuses) {
     counts[s.light] += 1
-    if (typeof s.compliancePct === 'number') {
+    // Excluded from the denominator, not scored — an unavailable site has no
+    // known compliance_pct to average in either direction.
+    if (s.light !== 'unavailable' && typeof s.compliancePct === 'number') {
       pctSum += s.compliancePct
       pctCount += 1
     }
@@ -191,6 +249,11 @@ export function rollup(statuses: SiteStatus[]): PortfolioKpis {
     total: statuses.length,
     ...counts,
     avgCompliancePct: pctCount > 0 ? Math.round(pctSum / pctCount) : null,
+    // How many sites actually contributed a number to that average. NOT
+    // `total - unavailable`: a blue "awaiting lab" site is reachable but has no
+    // compliance_pct, so quoting the reachable count overstates the sample the
+    // figure rests on.
+    compliancePctBasis: pctCount,
     needsAttention: counts.yellow + counts.red,
   }
 }

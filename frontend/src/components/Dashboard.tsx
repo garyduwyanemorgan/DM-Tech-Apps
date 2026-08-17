@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { COMPLIANCE_LIMITS, ALERT_THRESHOLDS, ALERT_COLORS, ALERT_LABELS, ALERT_BG, ALERT_FG } from '../constants'
 import { LIGHT_STYLE, type TrafficLight } from '../lib/status'
 import { tableHeaderStyle as TH, tableCellStyle as TD } from '../lib/ui'
-import { MetricCard } from './ui'
+import { AlertCard, MetricCard, RequestIdChip } from './ui'
+import { readRequestId, lastRequestId } from '../lib/requestId'
 import { useMonthlySeries, NoData, SampleBanner, UnavailableBanner, fmt, type ParamKey } from '../lib/sampleData'
 // One rendering path for certificates, shared with Water Quality Monitoring, so the
 // two pages can never disagree about a verdict or a review state.
@@ -51,12 +52,23 @@ function riskStyle(pct: number, pass: boolean): React.CSSProperties {
 export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
   const { organizationId, token } = useAuth()
   const { series, source, loading, liveMonths, requestId, requestIdApproximate } = useMonthlySeries(activeSite)
-  const [alertLevel, setAlertLevel] = useState<1 | 2 | 3 | 4>(1)
+  // null = not yet known for the CURRENT site. Defaulting to 1 meant that
+  // between switching sites and the new fetch resolving, the previous site's
+  // verdict (or a fabricated Level 1) rendered under the new site's name.
+  const [alertLevel, setAlertLevel] = useState<1 | 2 | 3 | 4 | null>(null)
+  // A failed/errored/malformed /api/status response is a distinct "we do not
+  // know" state — never collapsed into alert_level 1, and never rendered as
+  // compliant. See the traffic-light chip below.
+  const [statusUnavailable, setStatusUnavailable] = useState<{ message: string; requestId: string | null; approximate: boolean } | null>(null)
 
   // /api/status is the alert-level source. It carries NO parameter values — those
   // come from the monthly series — so nothing here can back-fill a measurement.
   useEffect(() => {
-    if (!activeSite) { setAlertLevel(1); return }
+    // Clear on EVERY site change, not just when the site is cleared: stale
+    // state under a new site's name is a verdict for the wrong lagoon.
+    setAlertLevel(null)
+    setStatusUnavailable(null)
+    if (!activeSite) return
     let cancelled = false
     const load = async () => {
       try {
@@ -64,11 +76,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
         if (organizationId) headers['X-Organization-ID'] = organizationId
         if (token) headers['Authorization'] = `Bearer ${token}`
         const res = await fetch(`/api/status/${encodeURIComponent(activeSite)}`, { headers })
+        const requestId = readRequestId(res)
+        if (!res.ok) {
+          if (!cancelled) setStatusUnavailable({ message: `Status endpoint returned ${res.status}. Alert level could not be verified.`, requestId, approximate: false })
+          return
+        }
         const data = await res.json()
-        const latest = data.readings?.[data.readings.length - 1]
-        if (!cancelled) setAlertLevel((latest?.alert_level ?? 1) as 1 | 2 | 3 | 4)
+        if (!data || !Array.isArray(data.readings)) {
+          if (!cancelled) setStatusUnavailable({ message: 'Status endpoint returned an unexpected shape. Refusing to guess at alert level.', requestId, approximate: false })
+          return
+        }
+        const latest = data.readings[data.readings.length - 1]
+        if (!cancelled) {
+          setStatusUnavailable(null)
+          setAlertLevel((latest?.alert_level ?? 1) as 1 | 2 | 3 | 4)
+        }
       } catch {
-        if (!cancelled) setAlertLevel(1)
+        if (!cancelled) setStatusUnavailable({ message: 'Network error reaching the status endpoint. Alert level is unknown, not level 1.', requestId: lastRequestId(), approximate: true })
       }
     }
     void load()
@@ -104,14 +128,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
   const month = now.getMonth() + 1
   const currentPhase = month <= 3 ? 'Phase 1: Pre-load' : month <= 5 ? 'Phase 2: Ramp' : month <= 9 ? 'Phase 3: Peak' : 'Phase 4: Recovery'
 
-  const alertColor = ALERT_COLORS[alertLevel]
-  const alertLevelLabel = ALERT_LABELS[alertLevel]
+  const alertKnown = alertLevel !== null
+  const alertColor = alertKnown ? ALERT_COLORS[alertLevel] : '#94A3B8'
+  const alertLevelLabel = alertKnown ? ALERT_LABELS[alertLevel] : 'Unknown'
 
   // Traffic-light signal (consistent with the higher-tier role dashboards).
   // Sample data is never green/red — it is 'blue' (awaiting real results).
-  const light: TrafficLight = !isLive
-    ? 'blue'
-    : (!allPass || alertLevel >= 3 ? 'red' : alertLevel === 2 ? 'yellow' : 'green')
+  // An unknown alert level can never resolve to green/yellow/red — the caller
+  // renders the unavailable card instead, but this must not fabricate one either.
+  const light: TrafficLight = !alertKnown
+    ? 'unavailable'
+    : !isLive
+      ? 'blue'
+      : (!allPass || alertLevel >= 3 ? 'red' : alertLevel === 2 ? 'yellow' : 'green')
   const lightStyle = LIGHT_STYLE[light]
 
   return (
@@ -126,35 +155,85 @@ export const Dashboard: React.FC<DashboardProps> = ({ activeSite }) => {
 
       {loading && <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading data…</div>}
 
-      {/* Traffic-light status chip */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: lightStyle.bg, color: lightStyle.color, fontWeight: 700, fontSize: '0.8rem', borderRadius: 999, padding: '5px 14px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: lightStyle.dot }} />
-          {lightStyle.label}
-        </span>
-        {activeSite && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{activeSite}</span>}
-      </div>
+      {/* Traffic-light status chip. A failed alert-status fetch renders an explicit
+          "unavailable" card instead of the light — it must never be mistaken for
+          compliant (green) or for "no readings yet" (blue). */}
+      {statusUnavailable ? (
+        <AlertCard
+          tier="awaiting"
+          title="Alert status unavailable — this is not a compliance verdict"
+          description={
+            <>
+              {statusUnavailable.message} The traffic light cannot be shown until this is known.
+              <RequestIdChip requestId={statusUnavailable.requestId} approximate={statusUnavailable.approximate} />
+            </>
+          }
+        />
+      ) : !alertKnown ? (
+        // Still resolving for THIS site. Distinct from a failure, and equally
+        // distinct from a verdict — nothing is asserted while we wait.
+        <AlertCard
+          tier="awaiting"
+          title="Checking alert status…"
+          description="No verdict is shown until this site's status has loaded."
+        />
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: lightStyle.bg, color: lightStyle.color, fontWeight: 700, fontSize: '0.8rem', borderRadius: 999, padding: '5px 14px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: lightStyle.dot }} />
+            {lightStyle.label}
+          </span>
+          {activeSite && <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{activeSite}</span>}
+        </div>
+      )}
 
       {/* Alert level card + KPI metrics */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'stretch' }}>
-        {/* Big alert badge */}
-        <div style={{
-          background: ALERT_BG[alertLevel],
-          border: `2px solid ${alertColor}`,
-          borderRadius: 10,
-          padding: '1.25rem 1.75rem',
-          minWidth: '200px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: ALERT_FG[alertLevel], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            Current Alert Level
+        {/* Big alert badge. `alertLevel` keeps its previous value when the status
+            fetch fails, so this badge must be gated on statusUnavailable too — not
+            just the traffic light above it. It is the larger, more prominent of the
+            two, and rendering "Level 1 — GREEN" here during an outage is the same
+            fabricated verdict, in a bigger font. */}
+        {(statusUnavailable || !alertKnown) ? (
+          <div style={{
+            background: '#F1F5F9',
+            border: '2px dashed #94A3B8',
+            borderRadius: 10,
+            padding: '1.25rem 1.75rem',
+            minWidth: '200px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              Current Alert Level
+            </div>
+            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#475569', lineHeight: 1.2 }}>
+              Unknown
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.35rem', lineHeight: 1.4 }}>
+              Could not be loaded — not the same as Level&nbsp;1.
+            </div>
           </div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: ALERT_FG[alertLevel], lineHeight: 1.2 }}>
-            {alertLevelLabel}
+        ) : (
+          <div style={{
+            background: ALERT_BG[alertLevel],
+            border: `2px solid ${alertColor}`,
+            borderRadius: 10,
+            padding: '1.25rem 1.75rem',
+            minWidth: '200px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: ALERT_FG[alertLevel], letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              Current Alert Level
+            </div>
+            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: ALERT_FG[alertLevel], lineHeight: 1.2 }}>
+              {alertLevelLabel}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* KPI cards */}
         <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>

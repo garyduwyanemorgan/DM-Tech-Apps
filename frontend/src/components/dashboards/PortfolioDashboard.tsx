@@ -39,9 +39,17 @@ export const PortfolioDashboard: React.FC<Props> = ({ setActiveSite, setActiveTa
       {/* KPI rollup */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <MetricCard label="Projects" value={kpis.total} />
-        <MetricCard label="Avg. Compliance" value={kpis.avgCompliancePct === null ? '—' : `${kpis.avgCompliancePct}%`} valueColor={kpis.avgCompliancePct !== null && kpis.avgCompliancePct >= 90 ? '#006100' : '#856404'} />
+        <MetricCard
+          label="Avg. Compliance"
+          value={kpis.avgCompliancePct === null ? '—' : `${kpis.avgCompliancePct}%`}
+          valueColor={kpis.avgCompliancePct !== null && kpis.avgCompliancePct >= 90 ? '#006100' : '#856404'}
+          sub={`Across ${kpis.compliancePctBasis} of ${kpis.total} site${kpis.total === 1 ? '' : 's'}${kpis.unavailable > 0 ? ` — ${kpis.unavailable} unavailable` : ''}`}
+        />
         <MetricCard label="Needs Attention" value={kpis.needsAttention} valueColor={kpis.needsAttention > 0 ? '#9C0006' : '#006100'} sub="Yellow + Red" />
         <MetricCard label="Awaiting Lab" value={kpis.blue} />
+        {kpis.unavailable > 0 && (
+          <MetricCard label="Status Unavailable" value={kpis.unavailable} valueColor="#5B21B6" sub="Could not be checked — not counted as compliant" />
+        )}
       </div>
 
       {/* Status-dot grid */}

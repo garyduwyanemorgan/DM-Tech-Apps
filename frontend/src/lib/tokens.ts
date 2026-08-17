@@ -29,6 +29,7 @@ export const COLORS = {
   warning: '#F39C12',
   critical: '#E74C3C',
   awaiting: '#3B82F6',
+  unavailable: '#7C3AED',
 } as const
 
 /**
@@ -39,6 +40,12 @@ export const COLORS = {
  * UploadReport). It exists because "we cannot judge this" is a third answer
  * alongside pass and breach, and must never be painted as either. It is not a
  * new colour: it reuses the slate badge tone.
+ *
+ * `unavailable` is a fourth, distinct answer again: the status *call itself*
+ * failed (network error, non-2xx, bad shape) — we don't even have a reading
+ * to call unjudgeable. It deliberately uses violet, not slate/blue/red, so it
+ * can never be mistaken for "awaiting lab" (blue, a legitimate quiet state)
+ * or "not assessed" (grey, a reading exists but has no verdict).
  */
 export const STATUS = {
   compliant:      { bg: '#C6EFCE', fg: '#006100', dot: COLORS.compliant, label: 'Compliant' },
@@ -46,6 +53,7 @@ export const STATUS = {
   critical:       { bg: '#FFC7CE', fg: '#9C0006', dot: COLORS.critical,  label: 'Critical' },
   awaitingLab:    { bg: '#D6E4F0', fg: '#1B3A5C', dot: COLORS.awaiting,  label: 'Awaiting Lab' },
   notAssessed:    { bg: '#F1F5F9', fg: COLORS.slate, dot: COLORS.slateLight, label: 'Not Assessed' },
+  unavailable:    { bg: '#EDE9FE', fg: '#5B21B6', dot: COLORS.unavailable, label: 'Status Unavailable' },
 } as const
 
 export type StatusKey = keyof typeof STATUS

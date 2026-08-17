@@ -10,7 +10,7 @@
 import React from 'react'
 import { LIGHT_STYLE, type TrafficLight } from '../../lib/status'
 
-export type BadgeTone = 'green' | 'amber' | 'red' | 'slate' | 'blue'
+export type BadgeTone = 'green' | 'amber' | 'red' | 'slate' | 'blue' | 'violet'
 
 const TONE_STYLE: Record<BadgeTone, { bg: string; fg: string; dot: string }> = {
   green: { bg: LIGHT_STYLE.green.bg, fg: LIGHT_STYLE.green.color, dot: LIGHT_STYLE.green.dot },
@@ -18,10 +18,11 @@ const TONE_STYLE: Record<BadgeTone, { bg: string; fg: string; dot: string }> = {
   red: { bg: LIGHT_STYLE.red.bg, fg: LIGHT_STYLE.red.color, dot: LIGHT_STYLE.red.dot },
   blue: { bg: LIGHT_STYLE.blue.bg, fg: LIGHT_STYLE.blue.color, dot: LIGHT_STYLE.blue.dot },
   slate: { bg: LIGHT_STYLE.grey.bg, fg: LIGHT_STYLE.grey.color, dot: LIGHT_STYLE.grey.dot },
+  violet: { bg: LIGHT_STYLE.unavailable.bg, fg: LIGHT_STYLE.unavailable.color, dot: LIGHT_STYLE.unavailable.dot },
 }
 
 const STATUS_TONE: Record<TrafficLight, BadgeTone> = {
-  green: 'green', yellow: 'amber', red: 'red', blue: 'blue', grey: 'slate',
+  green: 'green', yellow: 'amber', red: 'red', blue: 'blue', grey: 'slate', unavailable: 'violet',
 }
 
 interface BaseProps {

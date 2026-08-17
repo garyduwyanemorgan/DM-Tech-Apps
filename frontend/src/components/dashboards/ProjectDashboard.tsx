@@ -66,7 +66,13 @@ export const ProjectDashboard: React.FC<Props> = ({ setActiveSite, setActiveTab 
                 </div>
                 <div>
                   <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Outstanding actions</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: actions > 0 ? '#9C0006' : '#006100' }}>{actions}</div>
+                  {/* An unreadable status has no known action count. Rendering the
+                      0 that statusUnavailable() supplies, in the same green used for
+                      a confirmed-clean site, contradicts the "could not be checked"
+                      copy directly below it. */}
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: s.light === 'unavailable' ? '#5B21B6' : actions > 0 ? '#9C0006' : '#006100' }}>
+                    {s.light === 'unavailable' ? '—' : actions}
+                  </div>
                 </div>
               </div>
 
@@ -81,14 +87,20 @@ export const ProjectDashboard: React.FC<Props> = ({ setActiveSite, setActiveTab 
                   </div>
                 ) : (
                   // No failing parameters is not the same as a clean bill: a grey
-                  // site has a reading that could not be judged, and saying
-                  // "no outstanding compliance issues" there would assert a pass.
-                  <span style={{ fontSize: '0.8rem', color: s.light === 'blue' ? '#1B3A5C' : s.light === 'grey' ? '#64748B' : '#006100' }}>
+                  // site has a reading that could not be judged, and an
+                  // unavailable site's status call failed outright — neither
+                  // should read as "no outstanding compliance issues".
+                  <span style={{
+                    fontSize: '0.8rem',
+                    color: s.light === 'blue' ? '#1B3A5C' : s.light === 'grey' ? '#64748B' : s.light === 'unavailable' ? '#5B21B6' : '#006100',
+                  }}>
                     {s.light === 'blue'
                       ? 'Awaiting laboratory results'
                       : s.light === 'grey'
                         ? 'Not assessed — no verdict recorded'
-                        : 'No outstanding compliance issues'}
+                        : s.light === 'unavailable'
+                          ? 'Status could not be checked — not confirmed compliant'
+                          : 'No outstanding compliance issues'}
                   </span>
                 )}
               </div>
