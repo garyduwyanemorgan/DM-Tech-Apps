@@ -84,7 +84,7 @@ def get_or_create_site_id(site_name: str, organization_id: str | None = None, to
     return None
 
 
-def _read_site_id(site_name: str, organization_id: str | None) -> tuple[str | None, bool]:
+def _read_site_id(site_name: str, organization_id: str | None, token: str | None = None) -> tuple[str | None, bool]:
     """Resolve a site for a READ. Returns (site_id, exists).
 
     Three cases, and the middle one is the finding:
@@ -100,17 +100,17 @@ def _read_site_id(site_name: str, organization_id: str | None) -> tuple[str | No
     """
     if not organization_id:
         return None, True
-    site_id = find_site_id(site_name, organization_id)
+    site_id = find_site_id(site_name, organization_id, token)
     return site_id, site_id is not None
 
 
 def get_readings_for_site(site_name: str, year: int | None = None, organization_id: str | None = None, token: str | None = None) -> List:
     """Return WaterReading list ordered by month. Empty list on failure."""
-    client = get_client()
+    client = get_client(token)
     if not client:
         return []
     try:
-        site_id, exists = _read_site_id(site_name, organization_id)
+        site_id, exists = _read_site_id(site_name, organization_id, token)
         if not exists:
             return []
         if site_id:
@@ -133,7 +133,7 @@ def get_site_names(organization_id: str | None = None, token: str | None = None)
       1. Streamlit secrets  [site_passwords] keys   (Streamlit Cloud / local)
       2. Env var  LAGOON_SITES="Emaar,Damac,Nakheel" (Render / headless hosts)
     """
-    client = get_client()
+    client = get_client(token)
     if client and organization_id:
         try:
             res = client.table("sites").select("name").eq("organization_id", organization_id).execute()
@@ -156,11 +156,11 @@ def get_site_names(organization_id: str | None = None, token: str | None = None)
 
 def reading_exists(site_name: str, year: int, month: int, organization_id: str | None = None, token: str | None = None) -> bool:
     """True if a reading already exists for this site/year/month."""
-    client = get_client()
+    client = get_client(token)
     if not client:
         return False
     try:
-        site_id, exists = _read_site_id(site_name, organization_id)
+        site_id, exists = _read_site_id(site_name, organization_id, token)
         if not exists:
             return False
         if site_id:
@@ -303,13 +303,13 @@ def validate_open_predictions(site_name: str, year: int, month: int, fields: dic
 def get_validated_predictions(site_name: str | None = None, organization_id: str | None = None,
                                token: str | None = None) -> list:
     """Return validated prediction rows (actual filled). Empty if table absent."""
-    client = get_client()
+    client = get_client(token)
     if not client:
         return []
     try:
         q = client.table("predictions").select("*").not_.is_("actual", "null")
         if site_name:
-            site_id, exists = _read_site_id(site_name, organization_id)
+            site_id, exists = _read_site_id(site_name, organization_id, token)
             if not exists:
                 return []
             if site_id:
@@ -438,11 +438,11 @@ def delete_site(site_name: str, organization_id: str | None = None, token: str |
 
 def get_site_reading_count(site_name: str, organization_id: str | None = None, token: str | None = None) -> int:
     """Return the number of readings stored for a site."""
-    client = get_client()
+    client = get_client(token)
     if not client:
         return 0
     try:
-        site_id, exists = _read_site_id(site_name, organization_id)
+        site_id, exists = _read_site_id(site_name, organization_id, token)
         if not exists:
             return 0
         if site_id:
@@ -501,11 +501,11 @@ def get_sludge_zones(site_name: str, organization_id: str | None = None,
                      token: str | None = None) -> List[dict]:
     """Return the sludge survey zones for a site, each with derived metrics.
     Empty list if the table is absent, the site is unknown, or on any error."""
-    client = get_client()
+    client = get_client(token)
     if not client:
         return []
     try:
-        site_id, _ = _read_site_id(site_name, organization_id)
+        site_id, _ = _read_site_id(site_name, organization_id, token)
         if not site_id:
             return []
         res = (client.table("sludge_surveys").select("*")
@@ -596,11 +596,11 @@ def create_data_request(site_name: str, items: List[str], reason: str = "",
 def get_open_data_requests(site_name: str, organization_id: str | None = None,
                           token: str | None = None) -> List[dict]:
     """Return open data/lab requests for a site (newest first). [] if none/absent."""
-    client = get_client()
+    client = get_client(token)
     if not client:
         return []
     try:
-        site_id, _ = _read_site_id(site_name, organization_id)
+        site_id, _ = _read_site_id(site_name, organization_id, token)
         if not site_id:
             return []
         res = (client.table("data_requests").select("*")
@@ -1307,14 +1307,14 @@ def list_lab_samples(organization_id: str, limit: int = 50,
         return []
 
 
-def find_site_id(site_name: str, organization_id: str) -> str | None:
+def find_site_id(site_name: str, organization_id: str, token: str | None = None) -> str | None:
     """Resolve a site name to its id WITHOUT creating it.
 
     get_or_create_site_id() is the write path; a read filter must never bring a
     site into existence as a side effect of someone typing a name in a query
     string.
     """
-    client = get_client()
+    client = get_client(token)
     if not client or not organization_id or not site_name:
         return None
     try:

@@ -774,10 +774,17 @@ def update_preferences(
 
     try:
         from db.client import get_client
-        # Unscoped client, as every other user_profiles write does. Supabase cannot decode
-        # a Clerk JWT (PostgREST answers PGRST301 "no suitable key"), so the token is not
-        # passed. Safe here because the row is pinned to the clerk_id that came out of the
-        # verified token — a caller can only ever update their own profile.
+        # Unscoped client, as every other user_profiles write does. This is a WRITE, and
+        # writes deliberately stay on service_role: mutate_profiles requires the caller to
+        # already resolve to admin/super_admin in their own org, which an operator editing
+        # their own preferences does not. Safe here because the row is pinned to the
+        # clerk_id that came out of the verified token — a caller can only ever update
+        # their own profile.
+        #
+        # The earlier reason given here — that PostgREST answers PGRST301 "no suitable
+        # key" for a Clerk JWT — is no longer true. 083bdb0 merged Clerk's RS256 key into
+        # the stack's JWT_JWKS, so PostgREST verifies Clerk tokens. Reads now pass the
+        # token through to an anon-key client (db/client.py); only writes still do not.
         client = get_client()
         client.table("user_profiles").update(
             {"show_sample_data": body.show_sample_data}
