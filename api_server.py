@@ -48,6 +48,7 @@ from pydantic import BaseModel, Field
 
 from core.alert_engine import evaluate_alert_level
 from core.audit import emit as audit_emit, emit_denial as audit_denial
+from core import reasons
 from core.authz import has_permission
 from core.scope import ALL_SITES, resolve_site_scope
 from core.calculations import check_all_compliance, compliance_summary
@@ -331,6 +332,13 @@ def _create_super_admin_profile(user_id: str, email: str) -> str | None:
     if not client:
         return None
     org_id = create_organization(_personal_org_name(email, user_id))
+    if not org_id:
+        audit_emit(
+            "tenant.provision", outcome="error", actor_user_id=user_id,
+            actor_role=None, organization_id=None,
+            reason_code=reasons.DB_ERROR, stage="organization",
+        )
+        return None
     try:
         client.table("user_profiles").insert({
             "id": str(_uuid.uuid4()),
@@ -339,8 +347,28 @@ def _create_super_admin_profile(user_id: str, email: str) -> str | None:
             "role": "super_admin",
             "organization_id": org_id,
         }).execute()
-    except Exception:
-        pass
+    except Exception as exc:
+        # These two writes are not atomic, and the profile is the half that can
+        # fail on its own. Returning org_id here regardless — as this did — hands
+        # the caller an organisation the user has no profile in, and reports
+        # success: the sign-in appears to work, the tenant exists, and the user
+        # belongs to nothing. The org is then orphaned with nothing pointing at
+        # it and no record of why.
+        #
+        # Returning None makes the failure visible to the caller instead. The
+        # orphaned organisation is still created — undoing it needs a
+        # transaction, which is exactly what migration 032's
+        # bootstrap_self_serve_profile() provides. It cannot be used yet: it
+        # derives identity from clerk_subject(), which is NULL on this
+        # service_role connection, so calling it today raises "no Clerk subject
+        # on this request". Wire it up when writes carry a user token.
+        audit_emit(
+            "tenant.provision", outcome="error", actor_user_id=user_id,
+            actor_role=None, organization_id=org_id,
+            reason_code=reasons.DB_ERROR, stage="user_profile",
+            detail=type(exc).__name__,
+        )
+        return None
     return org_id
 
 

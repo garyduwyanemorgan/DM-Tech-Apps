@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext'
 import { hasPermission } from '../lib/permissions'
 import { PageHeader } from './PageHeader'
 import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
-import { Button } from './ui'
+import { Button, RequestIdChip } from './ui'
+import { readRequestId, lastRequestId } from '../lib/requestId'
 import { Plus, Wrench } from 'lucide-react'
 
 interface Asset {
@@ -59,7 +60,7 @@ export const Assets: React.FC = () => {
 
   const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ message: string; requestId: string | null } | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   const [showForm, setShowForm] = useState(false)
@@ -84,16 +85,23 @@ export const Assets: React.FC = () => {
         fetch('/api/assets', { headers: makeHeaders() }),
         fetch('/api/asset-types', { headers: makeHeaders() }),
       ])
+      const aRequestId = readRequestId(aRes)
       const data = await aRes.json()
-      if (!aRes.ok) { setError(data.detail || 'Failed to load assets.'); return }
+      if (!aRes.ok) { setError({ message: data.detail || 'Failed to load assets.', requestId: aRequestId }); return }
       setAssets(data.assets || [])
+      const tRequestId = readRequestId(tRes)
       if (tRes.ok) {
         const t = await tRes.json()
         if (Array.isArray(t?.types) && t.types.length) {
           setTypes(t.types.map((x: any) => ({ key: x.key, label: x.label, assetClass: x.asset_class })))
         }
+      } else {
+        // Non-fatal: the fallback type list still lets the form work. Not
+        // treated as the load's error state, but keep the id in case it
+        // becomes relevant to a report about mismatched types.
+        console.error('Failed to load asset types: HTTP', tRes.status, tRequestId)
       }
-    } catch { setError('Network error loading assets.') }
+    } catch { setError({ message: 'Network error loading assets.', requestId: lastRequestId() }) }
     finally { setLoading(false) }
   }, [makeHeaders])
 
@@ -123,9 +131,10 @@ export const Assets: React.FC = () => {
         }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to create asset.'); return }
+      const requestId = readRequestId(res)
+      if (!res.ok) { setError({ message: data.detail || 'Failed to create asset.', requestId }); return }
       setSuccess(`Asset "${name}" configured.`); setName(''); setShowForm(false); await load()
-    } catch { setError('Network error creating asset.') }
+    } catch { setError({ message: 'Network error creating asset.', requestId: lastRequestId() }) }
     finally { setSaving(false) }
   }
 
@@ -137,16 +146,17 @@ export const Assets: React.FC = () => {
         body: JSON.stringify({ interval_days: interval ? parseInt(interval) : null, next_due: nextDue || null }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to add schedule.'); return }
+      const requestId = readRequestId(res)
+      if (!res.ok) { setError({ message: data.detail || 'Failed to add schedule.', requestId }); return }
       setSuccess('Maintenance schedule added.'); setMaintFor(null); setInterval(''); setNextDue('')
-    } catch { setError('Network error adding schedule.') }
+    } catch { setError({ message: 'Network error adding schedule.', requestId: lastRequestId() }) }
   }
 
   return (
     <div style={{ padding: '24px', maxWidth: 1400, margin: '0 auto' }}>
       <PageHeader title="Assets & Maintenance" subtitle="Equipment, inspection checklists, and maintenance schedules" />
 
-      {error && <div style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #fecaca' }}>{error}</div>}
+      {error && <div style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #fecaca' }}>{error.message}<RequestIdChip requestId={error.requestId} /></div>}
       {success && <div style={{ background: COLORS.greenBg, color: COLORS.greenFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #86efac' }}>{success}</div>}
 
       <div className="glass-card">

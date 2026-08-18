@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext'
 import { hasPermission, type Permission } from '../lib/permissions'
 import { PageHeader } from './PageHeader'
 import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
-import { MetricCard, StatusBadge } from './ui'
+import { MetricCard, RequestIdChip, StatusBadge } from './ui'
+import { lastRequestId, readRequestId } from '../lib/requestId'
 import { Plus } from 'lucide-react'
 
 interface Item { id: string; name: string; sku: string | null; unit: string | null; reorder_threshold: number | null; unit_cost?: number | null }
@@ -26,7 +27,7 @@ export const Inventory: React.FC = () => {
   const [stock, setStock] = useState<StockRow[]>([])
   const [valuation, setValuation] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ message: string; requestId: string | null } | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   // stock-move form
@@ -56,14 +57,15 @@ export const Inventory: React.FC = () => {
         fetch('/api/inventory/locations', { headers: makeHeaders() }),
         fetch('/api/inventory/stock', { headers: makeHeaders() }),
       ])
+      const requestId = readRequestId(ri)
       const [di, dl, ds] = await Promise.all([ri.json(), rl.json(), rs.json()])
-      if (!ri.ok) { setError(di.detail || 'Failed to load inventory.'); return }
+      if (!ri.ok) { setError({ message: di.detail || 'Failed to load inventory.', requestId }); return }
       setItems(di.items || []); setLocations(dl.locations || []); setStock(ds.stock || [])
       if (canValuation) {
         const rv = await fetch('/api/inventory/valuation', { headers: makeHeaders() })
         if (rv.ok) setValuation((await rv.json()).total_value)
       }
-    } catch { setError('Network error loading inventory.') }
+    } catch { setError({ message: 'Network error loading inventory.', requestId: lastRequestId() }) }
     finally { setLoading(false) }
   }, [makeHeaders, canValuation])
 
@@ -88,10 +90,11 @@ export const Inventory: React.FC = () => {
       }
       const res = await fetch(url, { method: 'POST', headers: makeHeaders(), body: JSON.stringify(body) })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Stock movement failed.'); return }
+      const requestId = readRequestId(res)
+      if (!res.ok) { setError({ message: data.detail || 'Stock movement failed.', requestId }); return }
       setSuccess(data.message || 'Done.'); setMQty(''); setMReason('')
       await load()
-    } catch { setError('Network error recording movement.') }
+    } catch { setError({ message: 'Network error recording movement.', requestId: lastRequestId() }) }
     finally { setMoving(false) }
   }
 
@@ -103,10 +106,11 @@ export const Inventory: React.FC = () => {
         body: JSON.stringify({ name: iName.trim(), sku: iSku || null, unit: iUnit || null, unit_cost: iCost ? parseFloat(iCost) : null, reorder_threshold: iThreshold ? parseFloat(iThreshold) : null }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to create item.'); return }
+      const requestId = readRequestId(res)
+      if (!res.ok) { setError({ message: data.detail || 'Failed to create item.', requestId }); return }
       setSuccess(`Item "${iName}" added.`); setIName(''); setISku(''); setIUnit(''); setICost(''); setIThreshold(''); setShowItemForm(false)
       await load()
-    } catch { setError('Network error creating item.') }
+    } catch { setError({ message: 'Network error creating item.', requestId: lastRequestId() }) }
   }
 
   const submitLoc = async (e: React.FormEvent) => {
@@ -116,10 +120,11 @@ export const Inventory: React.FC = () => {
         method: 'POST', headers: makeHeaders(), body: JSON.stringify({ name: lName.trim(), kind: lKind }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to create location.'); return }
+      const requestId = readRequestId(res)
+      if (!res.ok) { setError({ message: data.detail || 'Failed to create location.', requestId }); return }
       setSuccess(`Location "${lName}" added.`); setLName(''); setShowLocForm(false)
       await load()
-    } catch { setError('Network error creating location.') }
+    } catch { setError({ message: 'Network error creating location.', requestId: lastRequestId() }) }
   }
 
   const kpis = [
@@ -132,7 +137,7 @@ export const Inventory: React.FC = () => {
     <div style={{ padding: '24px', maxWidth: 1400, margin: '0 auto' }}>
       <PageHeader title="Inventory & Chemical Control" subtitle="Live stock via an append-only ledger — usage, transfers, and (for managers) valuation" />
 
-      {error && <div style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #fecaca' }}>{error}</div>}
+      {error && <div style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #fecaca' }}>{error.message}<RequestIdChip requestId={error.requestId} /></div>}
       {success && <div style={{ background: COLORS.greenBg, color: COLORS.greenFg, padding: '0.75rem 1rem', borderRadius: 6, marginBottom: 16, fontSize: '0.875rem', border: '1px solid #86efac' }}>{success}</div>}
 
       <div className={kpis.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} style={{ marginBottom: 24 }}>

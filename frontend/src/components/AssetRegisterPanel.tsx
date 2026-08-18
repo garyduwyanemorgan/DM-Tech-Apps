@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { COLORS, tableHeaderStyle, tableCellStyle, inputStyle, labelStyle, fieldStyle } from '../lib/ui'
-import { Button, StatusBadge } from './ui'
+import { Button, StatusBadge, RequestIdChip } from './ui'
+import { readRequestId, lastRequestId } from '../lib/requestId'
 
 /**
  * Settings → Asset Register: the asset *taxonomy*.
@@ -44,7 +45,7 @@ export const AssetRegisterPanel: React.FC<{
 }> = ({ organizationId, token }) => {
   const [types, setTypes] = useState<AssetType[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ message: string; requestId: string | null } | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   const [showForm, setShowForm] = useState(false)
@@ -64,10 +65,11 @@ export const AssetRegisterPanel: React.FC<{
     setLoading(true); setError(null)
     try {
       const res = await fetch('/api/asset-types', { headers: headers() })
+      const requestId = readRequestId(res)
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to load the asset register.'); return }
+      if (!res.ok) { setError({ message: data.detail || 'Failed to load the asset register.', requestId }); return }
       setTypes(data.types || [])
-    } catch { setError('Network error loading the asset register.') }
+    } catch { setError({ message: 'Network error loading the asset register.', requestId: lastRequestId() }) }
     finally { setLoading(false) }
   }, [headers])
 
@@ -92,11 +94,12 @@ export const AssetRegisterPanel: React.FC<{
           scope: assetClass === 'sampled' ? scope : null,
         }),
       })
+      const requestId = readRequestId(res)
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to add the asset type.'); return }
+      if (!res.ok) { setError({ message: data.detail || 'Failed to add the asset type.', requestId }); return }
       setSuccess(`Asset type "${data.label}" added.`)
       setLabel(''); setShowForm(false); await load()
-    } catch { setError('Network error adding the asset type.') }
+    } catch { setError({ message: 'Network error adding the asset type.', requestId: lastRequestId() }) }
     finally { setSaving(false) }
   }
 
@@ -106,11 +109,12 @@ export const AssetRegisterPanel: React.FC<{
       const res = await fetch(`/api/asset-types/${encodeURIComponent(t.key)}`, {
         method: 'DELETE', headers: headers(),
       })
+      const requestId = readRequestId(res)
       const data = await res.json()
-      if (!res.ok) { setError(data.detail || 'Failed to remove the asset type.'); return }
+      if (!res.ok) { setError({ message: data.detail || 'Failed to remove the asset type.', requestId }); return }
       setSuccess(`Asset type "${t.label}" removed. Existing assets are unaffected.`)
       await load()
-    } catch { setError('Network error removing the asset type.') }
+    } catch { setError({ message: 'Network error removing the asset type.', requestId: lastRequestId() }) }
   }
 
   const sampled = types.filter(t => t.asset_class === 'sampled')
@@ -130,7 +134,12 @@ export const AssetRegisterPanel: React.FC<{
         {sampled.length} listed here are what the Upload Report asset dropdown is built from.
       </p>
 
-      {error && <div role="alert" style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.65rem 0.95rem', borderRadius: 6, marginBottom: '0.9rem', fontSize: '0.85rem' }}>{error}</div>}
+      {error && (
+        <div role="alert" style={{ background: COLORS.redBg, color: COLORS.redFg, padding: '0.65rem 0.95rem', borderRadius: 6, marginBottom: '0.9rem', fontSize: '0.85rem' }}>
+          {error.message}
+          <RequestIdChip requestId={error.requestId ?? null} approximate={!error.requestId && !!lastRequestId()} />
+        </div>
+      )}
       {success && <div style={{ background: COLORS.greenBg, color: COLORS.greenFg, padding: '0.65rem 0.95rem', borderRadius: 6, marginBottom: '0.9rem', fontSize: '0.85rem' }}>{success}</div>}
 
       {showForm && (
