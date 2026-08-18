@@ -461,7 +461,25 @@ Quick list. The first three need access this session did not have.
 6. ~~`Sidebar.tsx` has no `res.ok` check~~ — **DONE**. A failed site load now
    says so instead of reporting "No sites configured yet". That closes all four
    findings from the frontend audit.
-7. **The request id is surfaced only on `SystemHealth` and the screens fixed in
+7. **Thirteen components still do not surface the request id.** Done:
+   `SystemHealth`, `Dashboard`, `Alerts`, `Monitoring`, `ComplianceReport`,
+   `Sidebar`, `AssetRegisterPanel`, `Assets`, `Inventory`. Remaining:
+   `Community`, `CorrectiveActions`, `Home`, `Login`, `ManagementKPIs`,
+   `ModuleCatalogue`, `Obligations`, `ScienceSimulation`, `Settings`,
+   `SiteManager`, `Sludge`, `UploadReport`, `UserManager`.
+
+   Each already HAS an error state; the work is to widen it to carry an id,
+   capture `readRequestId(res)` before anything can throw, fall back to
+   `lastRequestId()` in the catch, and render `<RequestIdChip />`. Copy
+   `Sidebar.tsx` or `SystemHealth.tsx`.
+
+   **Watch for the trap that bit this rollout:** `setError(data.detail || '…')`
+   type-checks even after the state is widened, because `data` is `any` off
+   `res.json()`. tsc will not flag a string going into an object-typed state;
+   it only surfaces when an error actually renders. Grep every `setError(`
+   in a file you convert, do not trust a green build.
+
+8. **The request id is surfaced only on `SystemHealth` and the screens fixed in
    §4.** Most components still hand-roll their own fetch and show no id.
    `frontend/src/lib/requestId.ts` is the seam for that; there is still no
    central fetch wrapper, and building one is a separate, riskier job.
